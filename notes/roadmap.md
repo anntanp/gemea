@@ -126,6 +126,7 @@ build_docs.py + index_es.py  (Phase 1, now runs with enriched data)
 - [ ] `/search` page: results list + `FacetSidebar` + pagination
 - [ ] `/item/[id]` page: metadata panel + thumbnail + placeholder for graph viz
 - [ ] `/agent/[id]`, `/place/[id]`, `/timespan/[id]` entity pages
+- [ ] `/work/[id]` FRBR Work page with `WEMIHierarchy` component — **conditional**: same as API condition above
 - [ ] `GraphViz` component (Cytoscape.js) — 1-hop neighborhood
 - [ ] `MapView` component (Leaflet + OSM) — geo-referenced objects + clustering
 - [ ] `Timeline` component (D3 histogram) — object count by year
@@ -178,6 +179,7 @@ Team instance deployed at public URL; all services healthy; security headers ver
 - [ ] `GET /sectors` — list of DDB institutional sectors with object counts (ES aggregation)
 - [ ] `GET /suggest` — autocomplete
 - [ ] `GET /item/{id}`, `/agent/{id}`, `/place/{id}`, `/timespan/{id}` — QLever SPARQL
+- [ ] `GET /work/{id}`, `/expression/{id}` — QLever SPARQL; FRBR Work/Expression hierarchy; **conditional**: verify mocho outputs `frbr:Work` / `frbr:Expression` nodes and Phase 1b coverage ≥ 70% before implementing
 - [ ] `GET /sparql` — read-only QLever proxy with rate limiting
 - [ ] `POST /graphql` — GraphQL schema over RDA/EDM entities (strawberry); resolvers backed by SPARQL
 - [ ] `GET /health`

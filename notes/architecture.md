@@ -88,6 +88,8 @@ Normalized RDF triples (N-Triples / Turtle)
 | `GET /item/{id}` | QLever SPARQL | full entity description + 1-hop neighbors |
 | `GET /agent/{id}` | QLever SPARQL | agent description + linked objects |
 | `GET /place/{id}` | QLever SPARQL | place description + linked objects |
+| `GET /work/{id}` | QLever SPARQL | FRBR Work: title, agents, expressions, all manifestations; **conditional** on mocho outputting `frbr:Work` nodes |
+| `GET /expression/{id}` | QLever SPARQL | FRBR Expression: language, date, parent Work, manifestations; **conditional** on mocho output |
 | `GET /sparql` | QLever proxy | read-only pass-through; rate-limited |
 | `POST /graphql` | QLever SPARQL | GraphQL schema over RDA/EDM entities; easier frontend consumption than SPARQL |
 | `GET /health` | — | service health check |
@@ -148,6 +150,7 @@ The DDB organizes providers by institutional type. `sector` is a first-class fil
 | Agent page | `/agent/[id]` | `EntityHeader`, `LinkedObjects` |
 | Place page | `/place/[id]` | `EntityHeader`, `MapView` (Leaflet), `LinkedObjects` |
 | TimeSpan page | `/timespan/[id]` | `EntityHeader`, `Timeline` (D3), `LinkedObjects` |
+| Work page _(conditional)_ | `/work/[id]` | `WEMIHierarchy` (Work → Expressions → Manifestations), `LinkedObjects` |
 | Map | `/map` | `MapView` (Leaflet), cluster markers, `SearchBar` |
 | Explore | `/explore` | `Timeline` (D3 histogram), `GraphViz` entry |
 
@@ -253,6 +256,42 @@ Response 200:
   "provider": {"uri": "...", "label": "..."},
   "isShownAt": "...",
   "thumbnails": ["..."],
-  "neighbors": [{"uri": "...", "label": "...", "relation": "..."}]
+  "neighbors": [{"uri": "...", "label": "...", "relation": "..."}],
+  "work": {"uri": "...", "label": "..."}        // present if GND Werktitel linked
+}
+```
+
+### `GET /work/{id}` _(conditional on mocho frbr:Work output + Phase 1b coverage)_
+```
+Response 200:
+{
+  "id": "...",
+  "label": "Faust. Der Tragödie erster Teil",
+  "gnd_uri": "http://d-nb.info/gnd/...",
+  "agents": [{"uri": "...", "label": "...", "role": "author"}],
+  "expressions": [
+    {
+      "uri": "...",
+      "language": "de",
+      "date": "1808",
+      "manifestations": [
+        {"uri": "...", "title": "...", "provider": "...", "thumbnail": "..."}
+      ]
+    }
+  ]
+}
+```
+
+### `GET /expression/{id}` _(conditional on mocho frbr:Expression output)_
+```
+Response 200:
+{
+  "id": "...",
+  "work": {"uri": "...", "label": "..."},
+  "language": "de",
+  "date": "1808",
+  "manifestations": [
+    {"uri": "...", "title": "...", "provider": "...", "thumbnail": "..."}
+  ]
 }
 ```

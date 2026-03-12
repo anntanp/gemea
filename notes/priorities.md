@@ -34,6 +34,7 @@ Strengthen the paper or product but not blocking for acceptance.
 |------|-------|--------------|
 | `FacetSidebar` (type, place, institution, year) | Strong UX; good for §5 screenshots | Can show basic results without facets |
 | `GET /suggest` autocomplete | Smooth UX; entity-typed suggest is interesting | Results page works without it |
+| `GET /work/{id}` + `GET /expression/{id}` + `/work/[id]` page | Unique FRBR view; strong paper differentiator | **Conditional**: only if mocho outputs `frbr:Work` nodes and Phase 1b coverage ≥ 70%; verify before building |
 | `GraphViz` (Cytoscape.js) | Headline feature for a "KG browser" | Could show static neighbor list instead |
 | `MapView` (Leaflet) | Visual impact in paper | `/place/[id]` pages work without a map |
 | `Timeline` (D3) | Nice for `/explore` | Not needed for core browsing |
