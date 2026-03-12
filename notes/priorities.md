@@ -15,12 +15,14 @@ Blocking — without these, the resource doesn't exist or the paper fails review
 | **Phase 1**: `load_qlever.py` — data into QLever | No KG without it |
 | **Phase 1**: `index_es.py` + `build_docs.py` — ES index | No search without it |
 | **Phase 1b**: `link_gnd_agents.py` + `link_gnd_works.py` | Stated differentiator; feeds quality section numbers |
-| **Phase 2**: `GET /search`, `GET /item/{id}`, `GET /agent/{id}`, `GET /place/{id}` | Core API for the UI |
+| **Phase 2**: `GET /search`, `GET /sectors`, `GET /item/{id}`, `GET /agent/{id}`, `GET /place/{id}` | Core API for the UI |
 | **Phase 2**: `GET /sparql` (QLever proxy) | ISWC Resource Track requires a public SPARQL endpoint |
 | **Phase 3**: `SearchBar` + results list | Minimum viable UI |
 | **Phase 3**: `/item/[id]`, `/agent/[id]`, `/place/[id]` entity pages | Demonstrates graph browsing — the core claim |
 | **Phase 4**: Docker Compose + Nginx + `.env.example` | Required to deploy a public instance |
 | Persistent URI (w3id) + public URL | Mandatory for Resource Availability Statement |
+
+> **Note:** Phase 3 runs entirely with `next dev` against mock API fixtures — no Nginx, no Docker, no live backend needed. Nginx is a Phase 4 deployment concern only.
 
 ---
 

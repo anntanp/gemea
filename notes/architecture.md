@@ -61,7 +61,8 @@ Normalized RDF triples (N-Triples / Turtle)
 {
   "id": "http://www.deutsche-digitale-bibliothek.de/item/ABC123",
   "title": ["Faust", "Faust: Der Tragödie erster Teil"],
-  "type": ["http://www.europeana.eu/schemas/edm/ProvidedCHO"],
+  "type": "literature",
+  "sector": "bibliothek",
   "agent": [{"uri": "http://d-nb.info/gnd/118540238", "label": "Goethe, Johann Wolfgang von"}],
   "place": [{"uri": "http://sws.geonames.org/2925533", "label": "Frankfurt am Main", "lat": 50.11, "lon": 8.68}],
   "timespan": {"earliest": 1808, "latest": 1808},
@@ -71,6 +72,8 @@ Normalized RDF triples (N-Triples / Turtle)
 }
 ```
 
+`type` is normalized at index time via `ingest/type_mapping.json` (maps raw `dc:type` strings → controlled vocabulary). `sector` is derived from provider metadata.
+
 ---
 
 ### API (`api/`)
@@ -79,7 +82,8 @@ Normalized RDF triples (N-Triples / Turtle)
 
 | Endpoint | Backend | Notes |
 |----------|---------|-------|
-| `GET /search` | Elasticsearch | params: `q`, `type`, `place`, `from`, `to`, `institution`, `page`, `size` |
+| `GET /search` | Elasticsearch | params: `q`, `type`, `sector`, `place`, `from`, `to`, `institution`, `page`, `size`; `type` is a controlled vocabulary (arts/culture branches, see below) |
+| `GET /sectors` | Elasticsearch | list of DDB institutional sectors with object counts |
 | `GET /suggest` | Elasticsearch | autocomplete on title + agent + place labels |
 | `GET /item/{id}` | QLever SPARQL | full entity description + 1-hop neighbors |
 | `GET /agent/{id}` | QLever SPARQL | agent description + linked objects |
@@ -87,6 +91,38 @@ Normalized RDF triples (N-Triples / Turtle)
 | `GET /sparql` | QLever proxy | read-only pass-through; rate-limited |
 | `POST /graphql` | QLever SPARQL | GraphQL schema over RDA/EDM entities; easier frontend consumption than SPARQL |
 | `GET /health` | — | service health check |
+
+**`type` — controlled vocabulary (arts and culture branches):**
+
+The `type` filter is restricted to a curated set of top-level domain labels, not raw RDF type URIs. These map to `dc:type` values in the EDM data and are normalized at index time.
+
+| `type` value | Maps to (EDM `dc:type` / GND genre) |
+|---|---|
+| `literature` | Handschrift, Buch, Manuskript, Textdokument, Werktitel |
+| `music` | Musikhandschrift, Notendruck, Tonträger, Musikwerk |
+| `theater` | Theaterzettel, Bühnenbildentwurf, Regiebuch |
+| `film` | Film, Filmdokument, Kinoplakat |
+| `painting` | Gemälde, Aquarell, Zeichnung |
+| `graphic` | Druckgrafik, Radierung, Holzschnitt, Lithografie |
+| `photography` | Fotografie, Fotodokument, Lichtbild |
+| `architecture` | Architekturzeichnung, Bauplan, Modell |
+| `sculpture` | Skulptur, Plastik, Objekt |
+| `map` | Karte, Kartografisches Dokument |
+| `object` | Kunstgewerbe, Objekt, Gebrauchsgegenstand |
+
+Unmapped `dc:type` values are indexed under `object` as fallback. The mapping table is maintained in `ingest/type_mapping.json`.
+
+**`sector` — DDB institutional sectors:**
+
+The DDB organizes providers by institutional type. `sector` is a first-class filter and facet.
+
+| `sector` value | DDB institution type |
+|---|---|
+| `bibliothek` | Public and research libraries |
+| `archiv` | State, municipal, and private archives |
+| `museum` | Museums and collections |
+| `mediathek` | Media libraries (audio, video, film) |
+| `denkmal` | Monument and heritage sites |
 
 **Caching:** Redis; TTL 5 min for search results, 1 hour for entity pages.
 
@@ -157,14 +193,15 @@ These are not in v1 but the architecture is designed to accommodate them without
 ### `GET /search`
 ```
 Query params:
-  q          string   keyword query (required)
-  type       string   RDF type URI filter
-  place      string   place URI or label
-  from       int      earliest year
-  to         int      latest year
-  institution string  provider institution URI
-  page       int      default 1
-  size       int      default 20, max 100
+  q           string   keyword query (required)
+  type        string   arts/culture branch (controlled vocabulary; see type table above)
+  sector      string   DDB institutional sector (bibliothek | archiv | museum | mediathek | denkmal)
+  place       string   place URI or label
+  from        int      earliest year
+  to          int      latest year
+  institution string   provider institution URI
+  page        int      default 1
+  size        int      default 20, max 100
 
 Response 200:
 {
@@ -174,19 +211,33 @@ Response 200:
     {
       "id": "...",
       "title": "...",
-      "type": "...",
+      "type": "painting",
+      "sector": "museum",
       "thumbnail": "...",
       "highlight": {"title": ["..."]},
       "score": 1.23
     }
   ],
   "facets": {
-    "type": [{"value": "...", "label": "...", "count": 42}],
+    "type": [{"value": "painting", "label": "Gemälde / Painting", "count": 42}],
+    "sector": [{"value": "museum", "label": "Museum", "count": 18}],
     "place": [...],
     "institution": [...],
     "year": [{"year": 1808, "count": 7}]
   }
 }
+```
+
+### `GET /sectors`
+```
+Response 200:
+[
+  {"value": "bibliothek", "label": "Bibliothek",  "count": 28400000},
+  {"value": "archiv",     "label": "Archiv",      "count": 14200000},
+  {"value": "museum",     "label": "Museum",      "count": 12100000},
+  {"value": "mediathek",  "label": "Mediathek",   "count":  8900000},
+  {"value": "denkmal",    "label": "Denkmal",     "count":  1400000}
+]
 ```
 
 ### `GET /item/{id}`

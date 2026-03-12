@@ -39,12 +39,14 @@ All 65M DDB objects converted to N-Triples; `validate_rdf.py` passes with zero c
 
 ### Deliverables
 - [ ] `ingest/load_qlever.py` — build QLever index from N-Triples (`qlever index`); named graphs per provider
+- [ ] `ingest/type_mapping.json` — maps raw `dc:type` strings → controlled vocabulary (literature, music, theater, film, painting, graphic, photography, architecture, sculpture, map, object)
+- [ ] `ingest/sector_mapping.json` — maps provider IDs → DDB institutional sector (bibliothek, archiv, museum, mediathek, denkmal)
+- [ ] `ingest/build_docs.py` — assemble ES docs via SPARQL over QLever; apply type + sector normalization
 - [ ] `ingest/index_es.py` — Elasticsearch document builder
-- [ ] `ingest/build_docs.py` — assemble ES docs via SPARQL over QLever
 - [ ] `ingest/validate.py` — post-ingest integrity checks
-- [ ] `ingest/tests/` — pytest: unit (converters, doc builders) + integration (real ES + QLever)
+- [ ] `ingest/tests/` — pytest: unit (converters, doc builders, type/sector mapping) + integration (real ES + QLever)
 - [ ] `scripts/ingest_all.sh` — end-to-end ingest driver
-- [ ] Elasticsearch index mapping (German analyzer, GeoPoint, keyword facets)
+- [ ] Elasticsearch index mapping (German analyzer, GeoPoint, `type` and `sector` as `keyword` facets)
 - [ ] QLever index config tuned for dataset scale (`Mmap`, `num-threads`)
 
 ### Milestone
@@ -172,7 +174,8 @@ Team instance deployed at public URL; all services healthy; security headers ver
 
 ### Deliverables
 - [ ] FastAPI app (`api/`)
-- [ ] `GET /search` — Elasticsearch with facets, highlighting, pagination
+- [ ] `GET /search` — Elasticsearch with facets (`type`, `sector`, place, institution, year), highlighting, pagination
+- [ ] `GET /sectors` — list of DDB institutional sectors with object counts (ES aggregation)
 - [ ] `GET /suggest` — autocomplete
 - [ ] `GET /item/{id}`, `/agent/{id}`, `/place/{id}`, `/timespan/{id}` — QLever SPARQL
 - [ ] `GET /sparql` — read-only QLever proxy with rate limiting
