@@ -11,10 +11,10 @@ Blocking — without these, the resource doesn't exist or the paper fails review
 
 | Item | Why blocking |
 |------|-------------|
-| **Phase 0**: DDB data → N-Triples (rdf2jsonld + mocho) | No data, no resource |
+| **Phase 0**: DDB data → N-Triples (rdf2jsonld + link_gnd_works + mocho) | No data, no resource — **⚠ blocked on mocho.owl stabilizing** |
 | **Phase 1**: `load_qlever.py` — data into QLever | No KG without it |
 | **Phase 1**: `index_es.py` + `build_docs.py` — ES index | No search without it |
-| **Phase 1b**: `link_gnd_agents.py` + `link_gnd_works.py` | Stated differentiator; feeds quality section numbers |
+| **Phase 1b**: `link_gnd_agents.py` | Stated differentiator; feeds quality section numbers (`link_gnd_works.py` runs in Phase 0, before mocho) |
 | **Phase 2**: `GET /search`, `GET /sectors`, `GET /item/{id}`, `GET /agent/{id}`, `GET /place/{id}` | Core API for the UI |
 | **Phase 2**: `GET /sparql` (QLever proxy) | ISWC Resource Track requires a public SPARQL endpoint |
 | **Phase 3**: `SearchBar` + results list | Minimum viable UI |
@@ -34,7 +34,7 @@ Strengthen the paper or product but not blocking for acceptance.
 |------|-------|--------------|
 | `FacetSidebar` (type, place, institution, year) | Strong UX; good for §5 screenshots | Can show basic results without facets |
 | `GET /suggest` autocomplete | Smooth UX; entity-typed suggest is interesting | Results page works without it |
-| `GET /work/{id}` + `GET /expression/{id}` + `/work/[id]` page | Unique FRBR view; strong paper differentiator | **Conditional**: only if mocho outputs `frbr:Work` nodes and Phase 1b coverage ≥ 70%; verify before building |
+| `GET /work/{id}` + `GET /expression/{id}` + `/work/[id]` page | Unique WEMI view; strong paper differentiator | **Conditional**: only after mocho.owl stabilizes and `mocho:Work` nodes confirmed in output; Phase 0 title linking coverage ≥ 70% |
 | `GraphViz` (Cytoscape.js) | Headline feature for a "KG browser" | Could show static neighbor list instead |
 | `MapView` (Leaflet) | Visual impact in paper | `/place/[id]` pages work without a map |
 | `Timeline` (D3) | Nice for `/explore` | Not needed for core browsing |

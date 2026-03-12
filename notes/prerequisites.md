@@ -20,10 +20,10 @@ CS concepts, algorithms, frameworks, design patterns, programming languages, and
 
 ## Graph Databases
 
-- **Virtuoso Open Source**: installation, configuration, ISQL, bulk loading via `isql-vt` + `rdf_loader_run()`, SPARQL endpoint (`/sparql`), text index, named graphs, security settings
-- **Apache Jena TDB2 + Fuseki**: tdbloader2, dataset assembly, Fuseki server config (for dev/staging)
-- **Graph DB performance tuning**: index strategies, query caching, connection pooling, SPARQL query optimization (LIMIT early, use named graphs, avoid Cartesian products)
+- **QLever**: `qlever index` (build index from N-Triples), `qlever start` (launch server), Qleverfile configuration (`Mmap`, `num-threads`, `text-index`), SPARQL endpoint, built-in text search (`ql:contains-entity`), spatial queries, named graphs
 - **Triplestore bulk load patterns**: N-Triples chunk loading, parallel load, checkpoint/restart
+- **SPARQL query optimization**: LIMIT early, use named graphs, avoid Cartesian products, query timeout configuration
+- **Fallback options** (self-hosting v2): Apache Jena TDB2 + Fuseki (tdbloader2, Fuseki server config); Virtuoso OSE (ISQL, `rdf_loader_run()`)
 
 ## Search & Information Retrieval
 
@@ -35,21 +35,30 @@ CS concepts, algorithms, frameworks, design patterns, programming languages, and
 ## Backend (Python / FastAPI)
 
 - **FastAPI**: path operations, async handlers, Pydantic models, dependency injection, middleware (CORS, caching)
-- **SPARQL client**: `SPARQLWrapper` or `httpx` for async HTTP calls to Virtuoso `/sparql`
+- **SPARQL client**: `SPARQLWrapper` or `httpx` for async HTTP calls to QLever SPARQL endpoint
 - **Elasticsearch Python client** (`elasticsearch-py 8.x`): async client, index lifecycle
 - **Async Python**: `asyncio`, `httpx`, background tasks
 - **Caching**: Redis for SPARQL result caching; HTTP cache headers (`Cache-Control`, ETags)
 - **Pagination patterns**: cursor-based vs. offset for large result sets
 - **API design**: REST conventions, OpenAPI/Swagger auto-docs, versioning (`/v1/`)
 
+## Ontology Alignment & mocho
+
+- **Ontology alignment**: mapping classes and properties between source ontology (EDM) and target ontology (RDA/FRBR); `owl:equivalentClass`, `owl:equivalentProperty`; SPARQL CONSTRUCT for rule-based transformation
+- **mocho** (`../mocho/`): GeMeA's alignment tool; takes rdf2jsonld output + GND Werk triples → produces `mocho:Work` entities + RDA-normalized triples; mocho.owl is WIP
+- **mocho:Work**: mocho-specific class grouping `edm:ProvidedCHO` instances that share a GND Werk URI; the grouping key is the GND Werk link produced by `link_gnd_works.py` (must run before mocho)
+- **FRBR entity creation**: promoting a flat `edm:ProvidedCHO` record into the WEMI hierarchy (Work → Expression → Manifestation → Item); requires external authority linkage (GND Werktitel) to identify Work-level groupings
+- **OWL reasoning**: forward chaining, materialization; difference between declarative alignment (reasoner applies equivalences) vs. procedural transformation (SPARQL CONSTRUCT rules)
+- **rdf2jsonld** (`../rdf2jsonld/`): converts DDB JSON-LD → W3C RDF/JSON; repairs URI malformations; parallel processing per provider batch
+
 ## ETL / Data Engineering
 
-- **RDF bulk loading**: converting mocho-normalized RDF/JSON → N-Triples → Virtuoso bulk loader
-- **Named graph assignment**: partition by provider, batch, or type for manageability
+- **RDF bulk loading**: mocho N-Triples → QLever index via `qlever index`
+- **Named graph assignment**: partition by provider for manageability and per-provider reload
 - **Python RDF libraries**: `rdflib` (parsing, serialization, graph manipulation)
 - **Streaming / chunked processing**: process 65M records without loading all into memory (NDJSON, generators)
 - **Elasticsearch bulk indexing**: `helpers.bulk()`, index rollover for large datasets
-- **Process orchestration**: Luigi or Airflow for multi-stage pipelines (optional for v1)
+- **Process orchestration**: sequential shell scripts for v1; Luigi or Airflow for v2
 - **Monitoring ingestion**: progress logging, checkpointing, error recovery
 
 ## Frontend (Next.js / React)
@@ -78,11 +87,11 @@ CS concepts, algorithms, frameworks, design patterns, programming languages, and
 
 ## DevOps & Infrastructure
 
-- **Docker / Docker Compose**: containerize Virtuoso, Elasticsearch, FastAPI, Next.js
-- **Nginx**: reverse proxy, static asset serving, SPARQL endpoint exposure
+- **Docker / Docker Compose**: containerize QLever, Elasticsearch, Redis, FastAPI, Next.js, Nginx
+- **Nginx**: reverse proxy, TLS termination, security headers, rate limiting (`limit_req_zone`)
 - **Environment variables**: secrets management (no hardcoded credentials)
 - **Health checks**: `/health` endpoints for all services
-- **Volume mounts**: persistent data for Virtuoso TDB and Elasticsearch indices
+- **Volume mounts**: persistent data for QLever index and Elasticsearch indices
 
 ## General CS
 

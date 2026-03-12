@@ -8,7 +8,11 @@ DDB JSON-LD files
       ▼  rdf2jsonld (parallel conversion)
 RDF/JSON (W3C serialization)
       │
-      ▼  mocho (RDA/FRBR ontology normalization)
+      ▼  scripts/link_gnd_works.py  (Phase 0: title → GND Werk URI, pre-mocho)
+RDF/JSON + GND Werk triples
+      │
+      ▼  mocho (EDM → mocho:Work grouping + RDA normalization)
+      │  ⚠ mocho.owl is WIP — pipeline blocked until stable
 Normalized RDF triples (N-Triples / Turtle)
       │
       ├──▶  ingest/load_qlever.py ──▶  QLever
@@ -16,7 +20,6 @@ Normalized RDF triples (N-Triples / Turtle)
       │                                        │
       │                                        ▼  Phase 1b
       │                              ingest/link_gnd_agents.py
-      │                              ingest/link_gnd_works.py
       │                                  (graph/gnd-enrichment)
       │                                        │
       └──▶  ingest/index_es.py ◀──────────────┘  Elasticsearch
@@ -49,10 +52,13 @@ Normalized RDF triples (N-Triples / Turtle)
 
 | Script | Responsibility |
 |--------|---------------|
-| `load_qlever.py` | Build QLever index from N-Triples via `qlever index`; assign named graphs per provider |
+| `scripts/link_gnd_works.py` | **Pre-mocho (Phase 0)**: link `dc:title` strings → GND Werk URIs via lobid-gnd; output triples feed mocho for `mocho:Work` grouping |
+| `load_qlever.py` | Build QLever index from mocho N-Triples via `qlever index`; assign named graphs per provider |
 | `index_es.py` | Build Elasticsearch documents from mocho RDF; one doc per ProvidedCHO |
-| `build_docs.py` | Assemble ES document fields from SPARQL query over Virtuoso |
+| `build_docs.py` | Assemble ES document fields from SPARQL query over QLever |
 | `validate.py` | Post-ingest integrity checks (triple count, missing required fields) |
+
+**mocho:Work:** mocho creates `mocho:Work` entities (mocho-specific class, not standard `frbr:Work`) by grouping `edm:ProvidedCHO` instances that share the same GND Werk URI. The GND Werk link — produced by `link_gnd_works.py` — is the key mocho uses to determine which ProvidedCHOs belong to the same Work. mocho.owl is **currently WIP**; the `/work/{id}` API and WEMI hierarchy are blocked on its stabilization.
 
 **Named graph strategy:** `http://gemea.ddb.de/graph/{provider-id}` — allows per-provider reload without touching the full dataset.
 

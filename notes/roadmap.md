@@ -6,30 +6,58 @@ Phase order: **0 → 1 → 1b → 3 → 4 → 2**
 
 ## Phase 0 — Data Acquisition and Conversion
 
-**Goal:** Obtain the full DDB dataset and produce mocho-normalized N-Triples ready for loading into QLever.
+**Goal:** Obtain the full DDB dataset, link titles to GND Werk, and produce mocho-normalized N-Triples ready for loading into QLever.
 
-**Output:** N-Triples files (one per provider) in `data/raw/`, suitable as direct input to Phase 1.
+**Output:** N-Triples files (one per provider) in `data/raw/ntriples/`, suitable as direct input to Phase 1.
+
+**⚠ External dependency:** mocho.owl is currently **WIP**. The full pipeline (rdf2jsonld → link_gnd_works → mocho) cannot run end-to-end until mocho.owl stabilizes. This is the single biggest risk to the May 7 deadline. Track mocho progress closely.
 
 ### Background
 
-The DDB exposes its metadata as JSON-LD files following the Europeana Data Model (EDM). Two existing external tools handle the conversion pipeline:
+The DDB exposes its metadata as JSON-LD files following the Europeana Data Model (EDM). The conversion pipeline has three steps in order:
 
-- **rdf2jsonld** (`../rdf2jsonld/`) — converts DDB JSON-LD to W3C-compliant RDF/JSON; repairs URI malformations; runs in parallel per provider batch
-- **mocho** (`../mocho/`) — ontology alignment tool; maps EDM predicates and classes to RDA/FRBR terms; outputs N-Triples or Turtle
+1. **rdf2jsonld** (`../rdf2jsonld/`) — converts DDB JSON-LD to W3C-compliant RDF/JSON; repairs URI malformations; runs in parallel per provider batch
+2. **link_gnd_works.py** — links `dc:title` strings to GND Werk URIs via lobid-gnd API; the resulting triples are fed to mocho so it can group `edm:ProvidedCHO` instances into `mocho:Work` entities
+3. **mocho** (`../mocho/`) — ontology alignment tool; uses GND Werk links to create `mocho:Work` groupings; maps EDM predicates and classes to RDA terms; outputs N-Triples or Turtle
 
-GeMeA does not own these tools. Phase 0 is about **driving** them correctly on the full DDB corpus and validating their output before Phase 1 begins.
+GeMeA does not own rdf2jsonld or mocho. Phase 0 is about **driving** them correctly on the full DDB corpus and validating their output before Phase 1 begins.
 
 ### Deliverables
 
 - [ ] `scripts/download_ddb.sh` — fetch full DDB JSON-LD dump from the DDB OAI-PMH feed or bulk export; organize by provider ID under `data/raw/jsonld/`
 - [ ] `scripts/run_rdf2jsonld.sh` — invoke rdf2jsonld in parallel over all provider batches; output to `data/raw/rdf-json/`
-- [ ] `scripts/run_mocho.sh` — invoke mocho over rdf2jsonld output; output N-Triples per provider to `data/raw/ntriples/`
-- [ ] `ingest/validate_rdf.py` — sanity checks on mocho output: triple count per provider, required predicates present (`edm:ProvidedCHO`, `dc:title`, `edm:isShownAt`), URI well-formedness
+- [ ] `scripts/link_gnd_works.py` — link `dc:title` strings → GND Werk URIs; feeds mocho
+  - Step 1: rule-based ISBD parser (split on ` / ` and `. - `) to extract clean title from messy `dc:title` strings
+  - Step 2: NER fallback (`deepset/gbert-large`) for records without ISBD punctuation (~15–30%); labels: TITLE, PERSON, PUBLISHER, YEAR, EDITION
+  - Step 3: deduplicate `(title, author_gnd_uri)` pairs before API calls (~65M records → ~5–10M unique)
+  - Step 4: lobid-gnd Werk lookup with author GND URI cross-reference; score candidates (`owl:sameAs` exact / `skos:closeMatch` fuzzy)
+  - Output: per-CHO JSON with `raw_title`, `extracted_title`, `extraction_method`, `gnd_werk_uri`, `match_type`, `match_confidence` → `data/raw/gnd-works/`
+  - See `notes/gnd-title-extraction.md` for full spec
+- [ ] `scripts/run_mocho.sh` — invoke mocho over rdf2jsonld + GND Werk triples; output N-Triples per provider to `data/raw/ntriples/`
+- [ ] `ingest/validate_rdf.py` — sanity checks on mocho output: triple count per provider, `mocho:Work` nodes present, required predicates (`edm:ProvidedCHO`, `dc:title`, `edm:isShownAt`), URI well-formedness
 - [ ] `ingest/tests/test_validate_rdf.py` — unit tests for validation logic on fixture files
+
+### Pipeline order
+
+```
+download_ddb.sh
+      │
+      ▼
+run_rdf2jsonld.sh  →  data/raw/rdf-json/
+      │
+      ▼
+link_gnd_works.py  →  data/raw/gnd-works/  (title → GND Werk URI)
+      │
+      ▼  (mocho reads both rdf-json/ + gnd-works/)
+run_mocho.sh       →  data/raw/ntriples/   ⚠ blocked on mocho.owl stability
+      │
+      ▼
+validate_rdf.py
+```
 
 ### Milestone
 
-All 65M DDB objects converted to N-Triples; `validate_rdf.py` passes with zero critical errors; triple count and provider coverage logged to `data/processed/conversion_report.json`.
+All 65M DDB objects converted to N-Triples; `mocho:Work` nodes present for linked titles; `validate_rdf.py` passes with zero critical errors; triple count and provider coverage logged to `data/processed/conversion_report.json`.
 
 ---
 
@@ -54,25 +82,27 @@ Full dataset loaded; SPARQL queries return correct results on sample queries. ES
 
 ---
 
-## Phase 1b — GND Enrichment
+## Phase 1b — GND Agent Enrichment
 
-**Goal:** Link unresolved agents and work titles to GND authority records; write enrichment triples back into QLever before building the Elasticsearch index.
+**Goal:** Link unresolved agents to GND authority records; write enrichment triples into QLever before building the Elasticsearch index.
 
 **Depends on:** Phase 1 (QLever loaded). **Blocks:** `build_docs.py` + `index_es.py` in Phase 1.
+
+**Note:** GND title/Work linking (`link_gnd_works.py`) was moved to Phase 0 — it must run before mocho. Phase 1b covers only agent linking, which queries QLever and can run post-load.
 
 ### Background
 
 The DDB EDM records already contain GND URIs for many agents (`d-nb.info/gnd/...`). Phase 1b handles the remainder:
 - **Persons**: agents without GND URIs — link via name string matching against GND authority records
-- **Work titles**: `ProvidedCHO` titles → GND *Werktitel* (work title authority records) — enables FRBR Work-level grouping, consistent with mocho's RDA/FRBR normalisation
+- **CorporateBodies**: institutions and organizations without GND URIs
 
-All new linking triples are written to a dedicated named graph `http://gemea.ddb.de/graph/gnd-enrichment`, keeping them separate from the source data and allowing re-running without touching the original load.
+All new linking triples are written to the named graph `http://gemea.ddb.de/graph/gnd-enrichment`, keeping them separate from source data and allowing re-running without touching the original load.
 
 ### GND lookup tool: lobid-gnd API
 
-lobid-gnd (`https://lobid.org/gnd`) is the recommended tool — RESTful, JSON-LD responses, free, maintained by hbz. Supports:
+lobid-gnd (`https://lobid.org/gnd`) — RESTful, JSON-LD responses, free, maintained by hbz:
 - Person lookup: `GET /gnd/search?q=label:"{name}"&filter=type:Person`
-- Work lookup: `GET /gnd/search?q=label:"{title}"&filter=type:Work`
+- CorporateBody lookup: `GET /gnd/search?q=label:"{name}"&filter=type:CorporateBody`
 - Direct URI resolution: `GET /gnd/{id}.json`
 
 Linking predicate: `owl:sameAs` for high-confidence matches; `skos:closeMatch` for approximate matches.
@@ -80,22 +110,18 @@ Linking predicate: `owl:sameAs` for high-confidence matches; `skos:closeMatch` f
 ### Deliverables
 
 - [ ] `ingest/link_gnd_agents.py`
-  - Query Virtuoso for all `edm:Agent` URIs without a `d-nb.info/gnd/` URI
+  - Query QLever for all `edm:Agent` URIs without a `d-nb.info/gnd/` URI
   - Batch-lookup names against lobid-gnd API (Person + CorporateBody types)
   - Score candidates (exact label match → `owl:sameAs`; fuzzy → `skos:closeMatch` with confidence score)
-  - Write triples to `gnd-enrichment` named graph
-- [ ] `ingest/link_gnd_works.py`
-  - Query Virtuoso for `edm:ProvidedCHO` titles without a GND Werktitel link
-  - Lookup against lobid-gnd (type: `Work`), filtered by language (`de`) and associated agent GND URI where available
-  - Write triples to `gnd-enrichment` named graph
+  - Write triples to `gnd-enrichment` named graph in QLever
 - [ ] `ingest/enrichment_report.py`
-  - Coverage statistics: agents linked (%), works linked (%), breakdown by provider
+  - Coverage statistics: agents linked (%), works linked (from Phase 0), breakdown by provider
   - Match quality breakdown: exact / approximate / unresolved
   - Output: JSON report + summary logged to stdout
 - [ ] `ingest/tests/test_gnd_linking.py`
   - Unit: name normalisation, candidate scoring, triple generation
   - Integration: mock lobid API responses; verify correct triples written
-- [ ] `scripts/run_gnd_enrichment.sh` — end-to-end driver for both scripts + report
+- [ ] `scripts/run_gnd_enrichment.sh` — driver for agent linking + report
 - [ ] Update `build_docs.py` to include GND URIs in ES documents (`agent.gnd_uri`, `cho.gnd_work_uri`)
 
 ### Pipeline position
@@ -105,14 +131,13 @@ load_qlever.py  (Phase 1)
       │
       ▼
 link_gnd_agents.py  ──▶  QLever: gnd-enrichment graph
-link_gnd_works.py   ──▶  QLever: gnd-enrichment graph
       │
       ▼
 build_docs.py + index_es.py  (Phase 1, now runs with enriched data)
 ```
 
 ### Milestone
-≥ 80% of agents with name labels linked to GND; enrichment report written; ES documents include GND URIs.
+≥ 80% of agents with name labels linked to GND; enrichment report written; ES documents include `agent.gnd_uri`.
 
 ---
 
