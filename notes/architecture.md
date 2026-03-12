@@ -11,17 +11,22 @@ RDF/JSON (W3C serialization)
       ▼  mocho (RDA/FRBR ontology normalization)
 Normalized RDF triples (N-Triples / Turtle)
       │
-      ├──▶  ingest/load_virtuoso.py ──▶  Virtuoso Open Source
-      │                                  (named graphs per provider)
-      │
-      └──▶  ingest/index_es.py ──────▶  Elasticsearch
+      ├──▶  ingest/load_qlever.py ──▶  QLever
+      │                                (named graphs per provider)
+      │                                        │
+      │                                        ▼  Phase 1b
+      │                              ingest/link_gnd_agents.py
+      │                              ingest/link_gnd_works.py
+      │                                  (graph/gnd-enrichment)
+      │                                        │
+      └──▶  ingest/index_es.py ◀──────────────┘  Elasticsearch
                                          (one doc per ProvidedCHO)
                                                 │
                                                 ▼
                                          FastAPI (api/)
                                          ├── /search       → Elasticsearch
-                                         ├── /item/{id}    → Virtuoso SPARQL
-                                         ├── /sparql       → Virtuoso proxy
+                                         ├── /item/{id}    → QLever SPARQL
+                                         ├── /sparql       → QLever proxy
                                          └── /suggest      → Elasticsearch
                                                 │
                                                 ▼
@@ -44,7 +49,7 @@ Normalized RDF triples (N-Triples / Turtle)
 
 | Script | Responsibility |
 |--------|---------------|
-| `load_virtuoso.py` | Bulk-load N-Triples into Virtuoso via ISQL; assign named graphs per provider |
+| `load_qlever.py` | Build QLever index from N-Triples via `qlever index`; assign named graphs per provider |
 | `index_es.py` | Build Elasticsearch documents from mocho RDF; one doc per ProvidedCHO |
 | `build_docs.py` | Assemble ES document fields from SPARQL query over Virtuoso |
 | `validate.py` | Post-ingest integrity checks (triple count, missing required fields) |
@@ -76,17 +81,17 @@ Normalized RDF triples (N-Triples / Turtle)
 |----------|---------|-------|
 | `GET /search` | Elasticsearch | params: `q`, `type`, `place`, `from`, `to`, `institution`, `page`, `size` |
 | `GET /suggest` | Elasticsearch | autocomplete on title + agent + place labels |
-| `GET /item/{id}` | Virtuoso SPARQL | full entity description + 1-hop neighbors |
-| `GET /agent/{id}` | Virtuoso SPARQL | agent description + linked objects |
-| `GET /place/{id}` | Virtuoso SPARQL | place description + linked objects |
-| `GET /sparql` | Virtuoso proxy | read-only pass-through; rate-limited |
-| `POST /graphql` | Virtuoso SPARQL | GraphQL schema over RDA/EDM entities; easier frontend consumption than SPARQL |
+| `GET /item/{id}` | QLever SPARQL | full entity description + 1-hop neighbors |
+| `GET /agent/{id}` | QLever SPARQL | agent description + linked objects |
+| `GET /place/{id}` | QLever SPARQL | place description + linked objects |
+| `GET /sparql` | QLever proxy | read-only pass-through; rate-limited |
+| `POST /graphql` | QLever SPARQL | GraphQL schema over RDA/EDM entities; easier frontend consumption than SPARQL |
 | `GET /health` | — | service health check |
 
 **Caching:** Redis; TTL 5 min for search results, 1 hour for entity pages.
 
 **Security (OWASP):**
-- SPARQL injection: parameterized query templates; block UPDATE/INSERT/DELETE at proxy
+- SPARQL injection: parameterized query templates; QLever is read-only by default; block UPDATE/INSERT/DELETE at proxy
 - Input sanitization: strip HTML/script from all query params
 - Rate limiting: token bucket on `/sparql` (10 req/s) and `/search` (50 req/s)
 - CORS: configured whitelist; defaults to same-origin
@@ -120,16 +125,14 @@ Normalized RDF triples (N-Triples / Turtle)
 
 | Service | Image | Port | Notes |
 |---------|-------|------|-------|
-| `virtuoso` | `openlink/virtuoso-opensource-7` | 8890 (internal) | persistent volume for TDB |
-| `elasticsearch` | `elasticsearch:8.x` | 9200 (internal) | single-node for self-hosting |
+| `qlever` | `adfreiburg/qlever` | 7001 (internal) | persistent volume for QLever index |
+| `elasticsearch` | `elasticsearch:8.x` | 9200 (internal) | single-node |
 | `redis` | `redis:alpine` | 6379 (internal) | API response cache |
 | `api` | custom FastAPI | 8000 (internal) | |
 | `frontend` | custom Next.js | 3000 (internal) | |
 | `nginx` | `nginx:alpine` | 80, 443 | reverse proxy; TLS termination; security headers |
 
-**Self-hosting modes:**
-- **Lite**: 100K objects slice for local dev (< 8 GB RAM)
-- **Full**: complete 65M object dataset (≥ 64 GB RAM, ≥ 1 TB disk for Virtuoso TDB)
+**Deployment (v1):** Single hosted instance operated by the team. Self-hosting (lite + full mode Docker Compose for external users) is v2 future work.
 
 ---
 

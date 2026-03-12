@@ -29,10 +29,10 @@ GeMeA fills a critical gap by providing the first open, SPARQL-accessible knowle
 - Cultural heritage KGs: Europeana EDM LOD, ArCo (Italian CH, CIDOC-CRM), Smithsonian LOD, BIBFRAME
 - **ArtKB** [Blanco et al., ESWC 2026] — closest contemporary: CACAO/CIDOC-CRM, Wikidata source,
   8M triples, 307K artefacts, multimodal (vector DB + object storage); differs from GeMeA in scale
-  (200×), scope (art only vs. cross-domain), access (API-only vs. web UI), no self-hosting docs
+  (200×), scope (art only vs. cross-domain), access (API-only vs. web UI)
 - DDB native UI: limitations (no SPARQL, no graph navigation, no open data export)
 - Comparison table (rows: GeMeA, ArtKB, Europeana LOD, ArCo, DDB native UI):
-  columns: scale, ontology, SPARQL, web UI, multimodal, self-hostable
+  columns: scale, ontology, SPARQL, web UI, multimodal, self-hostable (GeMeA: planned v2)
 - ORKG comparison link: TBD
 
 ### 3. Resource Description (~3–4 pages)
@@ -56,14 +56,13 @@ GeMeA fills a critical gap by providing the first open, SPARQL-accessible knowle
 
 ### 5. Usage and Reusability (~1–2 pages)
 - Web UI walkthrough (screenshots)
-- Self-hosting: Docker Compose, lite mode
 - Example SPARQL queries (4 listings):
   1. Objects by agent (GND URI)
   2. Objects by place + decade
   3. Object count per provider
   4. 1-hop neighborhood of a ProvidedCHO
 - GraphQL endpoint: example query fetching an item with its agents and places
-- Extension points: new providers, Wikidata enrichment, v2 features (Text2SPARQL, visual search)
+- Extension points: new providers, Wikidata enrichment, v2 features (self-hosting, Text2SPARQL, visual search)
 
 ### 6. Impact (~0.5–1 page)
 - FAIR compliance analysis
@@ -73,9 +72,9 @@ GeMeA fills a critical gap by providing the first open, SPARQL-accessible knowle
 
 ### 7. Sustainability (~0.5 page)
 - Versioning + update cadence
-- Self-hosting as resilience strategy
 - Persistent URI plan (w3id)
 - Open source (GitHub)
+- Self-hosting planned for v2 (Docker Compose lite + full mode)
 
 ### 8. Conclusion (~0.5 page)
 
