@@ -1,0 +1,1 @@
+../../../latex-springer-lncs/splncs04.bst

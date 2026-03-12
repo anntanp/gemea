@@ -1,0 +1,1 @@
+../../../latex-springer-lncs/llncs.cls
