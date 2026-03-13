@@ -28,7 +28,7 @@ GeMeA does not own rdf2jsonld or mocho. Phase 0 is about **driving** them correc
 - [ ] `scripts/run_rdf2jsonld.sh` — invoke rdf2jsonld in parallel over all provider batches; output to `data/raw/rdf-json/`
 - [ ] `scripts/link_gnd_works.py` — link `dc:title` strings → GND Werk URIs; feeds mocho
   - Step 1: rule-based ISBD parser (split on ` / ` and `. - `) to extract clean title from messy `dc:title` strings
-  - Step 2: NER fallback for records without ISBD punctuation (~15–30%); labels: TITLE, PERSON, PUBLISHER, YEAR, EDITION — see [ner-bibliographic.md](ner-bibliographic.md)
+  - Step 2: NER fallback for records without ISBD punctuation (~71% per Goethe-Faust sample — majority path); labels: TITLE, PERSON, PUBLISHER, YEAR, EDITION — see [ner-bibliographic.md](ner-bibliographic.md)
   - Step 3: deduplicate `(title, author_gnd_uri)` pairs before API calls (~65M records → ~5–10M unique)
   - Step 4: lobid-gnd Werk lookup with author GND URI cross-reference; score candidates (`owl:sameAs` exact / `skos:closeMatch` fuzzy)
   - Output: per-CHO JSON with `raw_title`, `extracted_title`, `extraction_method`, `gnd_werk_uri`, `match_type`, `match_confidence` → `data/raw/gnd-works/`

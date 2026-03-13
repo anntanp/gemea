@@ -1,6 +1,8 @@
 # GeMeA — NER for Bibliographic Title Extraction
 
-Context: NER is the **fallback** in `link_gnd_works.py` for records without ISBD markers (~15–30% of DDB records). The primary extractor is the rule-based ISBD parser. NER only runs when that fails.
+Context: NER is the **fallback** in `link_gnd_works.py` for records without ISBD markers. The primary extractor is the rule-based ISBD parser. NER only runs when that fails.
+
+**Scale of the fallback**: analysis of 115K Goethe-Faust DDB items ([isbd-title-analysis.md](../../goethe-faust/notes/isbd-title-analysis.md)) shows only **~29% of titles carry any ISBD pattern**, meaning NER applies to ~71% of records — the majority, not a small edge case. The dominant ISBD signal is ` :` (18%); the ` / ` split used by the parser appears in only 2.1% of titles. These figures are from one DDB provider subset and may vary across the full corpus.
 
 Target label set: `TITLE`, `PERSON`, `PUBLISHER`, `YEAR`, `EDITION`.
 
@@ -65,24 +67,24 @@ BERT-sized — runs on CPU, deployable alongside the existing stack. Zero-shot p
 
 ## LLM options at inference time
 
-NER only runs on the fallback subset (~15–30% of records that failed ISBD parsing): 750K–3M unique pairs, not 5–10M. At that scale, API LLMs become feasible.
+NER applies to ~71% of records (~3.5–7M unique pairs after deduplication). LLM API at inference is expensive at this scale; local options are strongly preferred.
 
 | Approach | Scale | Cost | Historical/Latin | Effort |
 |---|---|---|---|---|
-| **GLiNER zero-shot** (local) | All fallback records | Free | Moderate | Low — deploy and evaluate |
-| **LLM API at inference** (GPT-4o, Claude) | Fallback subset only | ~$300–900 at fallback scale | Good | Low |
-| **Local LLM** (Llama 3.1 8B) | All records | GPU infra only | Moderate | Medium |
+| **GLiNER zero-shot** (local) | All NER records | Free | Moderate | Low — deploy and evaluate |
+| **Local LLM** (Llama 3.1 8B) | All NER records | GPU infra only | Moderate | Medium |
 | **LLM one-time labeler → fine-tune xlm-roberta** | Generate labels once | Low one-time API cost | Good | Medium |
-| **Fine-tuned xlm-roberta-base** | All records | Cheap at inference | Good (if trained on historical) | High upfront |
+| **Fine-tuned xlm-roberta-base** | All NER records | Cheap at inference | Good (if trained on historical) | High upfront |
+| **LLM API at inference** (GPT-4o, Claude) | All NER records | ~$1,500–3,500 at full scale | Good | Low — but costly |
 
-**Recommended path**: start with GLiNER zero-shot on 500 fallback records. If precision is acceptable, done. If not, use a LLM API to label those records and fine-tune `xlm-roberta-base` on that output.
+**Recommended path**: start with GLiNER zero-shot on 500 stratified NER records. If precision is acceptable, done. If not, use an LLM to label a few thousand records and fine-tune `xlm-roberta-base` on that output.
 
 ---
 
 ## If no labeled training data is available
 
 **1. Silver labeling from the ISBD pipeline**
-The ~70–85% of records where ISBD parsing succeeds become auto-labeled training examples:
+The ~29% of records where ISBD parsing succeeds become auto-labeled training examples (a useful but minority source):
 - Pre-`/` segment → `TITLE`
 - Post-`/` segment → `PERSON` (statement of responsibility)
 - Post-`. -` segments → `EDITION`, `PUBLISHER`, `YEAR` by position
@@ -128,5 +130,6 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 - [ ] Is TITLE extraction sufficient, or are PUBLISHER/YEAR/EDITION labels needed for the paper's quality metrics?
 - [ ] Silver label quality: how clean are the ISBD-derived annotations for training, especially for historical records?
+- [ ] ISBD coverage varies by provider — measure across more DDB subsets before assuming the 29%/71% split holds corpus-wide
 - [ ] What share of non-ISBD records have Latin or historical German titles? (determines how much historical signal is needed)
 - [ ] Gold set composition: sample should be stratified by era to catch historical degradation early

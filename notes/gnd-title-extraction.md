@@ -13,7 +13,7 @@ DDB `dc:title` strings are not clean bibliographic titles — they follow **ISBD
 Faust / von Johann Wolfgang von Goethe. - 3. Aufl. - Weimar : Böhlau, 1887
 ```
 
-This single `dc:title` value contains: title, statement of responsibility, edition, place of publication, publisher, and year. Sending the raw string to the lobid-gnd Werk lookup fails or produces low-precision results.
+This single `dc:title` value contains: title, statement of responsibility, edition, place of publication, publisher, and year. Sending the raw string to the local GND instance Werk lookup fails or produces low-precision results.
 
 ---
 
@@ -49,9 +49,9 @@ def extract_title_isbd(raw: str) -> str | None:
 
 ## Step 2 — NER fallback (secondary)
 
-For records without ISBD markers (~15–30% of DDB records based on provider conventions), use a German NER model to label spans:
+For records without ISBD markers (~71% of DDB records based on Goethe-Faust sample analysis — NER is the majority path, not a small fallback), use a NER model to label spans. See [ner-bibliographic.md](ner-bibliographic.md) for model selection; current recommendation is GLiNER zero-shot (`gliner_multi-v2.1`) evaluated first, with `xlm-roberta-base` fine-tuning if needed.
 
-**Model**: `deepset/gbert-large` fine-tuned on bibliographic NER, or a custom-trained model with label set:
+Label set:
 
 | Label | Example |
 |-------|---------|
@@ -69,9 +69,9 @@ Extract the `TITLE` span(s). If multiple `TITLE` spans: join with ` : ` (main ti
 
 ## Step 3 — Author GND URI cross-reference
 
-The extracted title alone is often ambiguous (many works share the same title). Cross-referencing with the author's GND URI narrows the lobid-gnd Werk result set.
+The extracted title alone is often ambiguous (many works share the same title). Cross-referencing with the author's GND URI narrows the local GND instance Werk result set.
 
-If the `edm:ProvidedCHO` links to an `edm:Agent` that already has a `d-nb.info/gnd/` URI (from Phase 1b pre-population or the source data), pass it to the lobid-gnd query:
+If the `edm:ProvidedCHO` links to an `edm:Agent` that already has a `d-nb.info/gnd/` URI (from Phase 1b pre-population or the source data), pass it to the local GND instance query:
 
 ```
 GET /gnd/search?q=label:"{title}" AND creator:{gnd_person_uri}&filter=type:Work
@@ -85,9 +85,9 @@ GET /gnd/search?q=label:"{title}"&filter=type:Work
 
 ---
 
-## Step 4 — lobid-gnd Werk lookup and scoring
+## Step 4 — local GND instance Werk lookup and scoring
 
-lobid-gnd API: `https://lobid.org/gnd`
+Local GND instance — query endpoint TBD (see infrastructure setup).
 
 ```
 GET /gnd/search?q=label:"{extracted_title}"&filter=type:Work&size=5
@@ -106,7 +106,7 @@ Score the top candidates:
 
 ## Scale: deduplication
 
-65M ProvidedCHOs, but many share identical `dc:title` strings (multiple copies of the same work across institutions). Deduplicate before calling lobid-gnd:
+65M ProvidedCHOs, but many share identical `dc:title` strings (multiple copies of the same work across institutions). Deduplicate before calling local GND instance:
 
 ```
 unique titles ≈ 5–10M (estimated; actual number computed during run)
@@ -114,10 +114,10 @@ unique titles ≈ 5–10M (estimated; actual number computed during run)
 
 **Strategy:**
 1. First pass: collect all `(raw_title, author_gnd_uri_if_available)` pairs from rdf2jsonld output
-2. Deduplicate by pair; run lobid-gnd lookups on unique pairs only
+2. Deduplicate by pair; run local GND instance lookups on unique pairs only
 3. Second pass: join results back to all ProvidedCHOs sharing the same pair
 
-This reduces API calls from ~65M to ~5–10M and respects lobid-gnd rate limits.
+This reduces API calls from ~65M to ~5–10M and respects local GND instance rate limits.
 
 ---
 
