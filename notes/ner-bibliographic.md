@@ -51,14 +51,33 @@ For the fallback, historical language introduces real risk:
 [NuNER Zero](https://huggingface.co/numind/NuNER_Zero) (NuMind, 2024) is the current SOTA compact zero-shot NER model, outperforming GLiNER-large-v2.1 by +3.1% F1. Unlike GLiNER, it is a token classifier rather than span-based, so it handles arbitrarily long entities — relevant for verbose DDB title strings.
 
 ```python
-from gliner import GLiNER  # NuNER Zero uses the GLiNER library
+from gliner import GLiNER
 
-model = GLiNER.from_pretrained("numind/NuNER_Zero")
+model = GLiNER.from_pretrained("numind/NuNerZero")
 
-entities = model.predict_entities(
-    "Faust drittes Buch von Goethe erschienen Weimar",
-    labels=["title", "person", "publisher", "year", "edition"],
-)
+# Labels must be lower-cased
+labels = ["title", "person", "publisher", "year", "edition"]
+
+text = "Faust drittes Buch von Goethe erschienen Weimar"
+entities = model.predict_entities(text, labels)
+
+# Merge adjacent tokens with the same label (token classifier output)
+def merge_entities(entities, text):
+    if not entities:
+        return []
+    merged = []
+    current = entities[0]
+    for nxt in entities[1:]:
+        if nxt["label"] == current["label"] and nxt["start"] <= current["end"] + 1:
+            current["text"] = text[current["start"]:nxt["end"]].strip()
+            current["end"] = nxt["end"]
+        else:
+            merged.append(current)
+            current = nxt
+    merged.append(current)
+    return merged
+
+entities = merge_entities(entities, text)
 # → [{"text": "Faust drittes Buch", "label": "title", "score": 0.91}, ...]
 ```
 
