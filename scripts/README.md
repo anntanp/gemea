@@ -21,4 +21,4 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | Script | Purpose |
 |--------|---------|
 | `download_data.sh` | Fetch mocho-normalized RDF from public data dump |
-| _(add as created)_ | |
+| `setup_gnd_fuseki.sh` | Start local Fuseki container and load GND authority files into named graphs |
