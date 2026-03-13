@@ -49,7 +49,7 @@ def extract_title_isbd(raw: str) -> str | None:
 
 ## Step 2 — NER fallback (secondary)
 
-For records without ISBD markers (~71% of DDB records based on Goethe-Faust sample analysis — NER is the majority path, not a small fallback), use a NER model to label spans. See [ner-bibliographic.md](ner-bibliographic.md) for model selection; current recommendation is GLiNER zero-shot (`gliner_multi-v2.1`) evaluated first, with `xlm-roberta-base` fine-tuning if needed.
+For records without ISBD markers (~71% of DDB records based on Goethe-Faust sample analysis — NER is the majority path, not a small fallback), use a NER model to label spans. See [ner-bibliographic.md](ner-bibliographic.md) for model selection; current recommendation is NuNER Zero (`numind/NuNER_Zero`) evaluated first, with `xlm-roberta-base` fine-tuning if needed.
 
 Label set:
 

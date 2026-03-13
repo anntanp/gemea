@@ -38,21 +38,22 @@ For the fallback, historical language introduces real risk:
 | `flair/ner-german-large` | Stacked embeddings | No | No | Yes (PER) | Poor | CoNLL-2003 labels; same limitation as spaCy |
 | `deepset/gbert-large` | BERT-large | Yes | No | No | Poor | Monolingual modern German; no off-the-shelf bibliographic NER |
 | LLM (GPT-4o, Claude, Llama 3) | Generative | No | Yes | Yes | Good | Handles Latin and historical German well; too slow at 5–10M records but strong as a one-time labeler |
-| **GLiNER** (`gliner_multi-v2.1`) | Zero-shot NER | No | Yes | Yes | Moderate | Zero-shot, any label set, BERT-sized, runs on CPU; multilingual variant covers German, Latin, historical text; best first thing to try |
+| **NuNER Zero** (`numind/NuNER_Zero`) | Zero-shot NER | No | Yes | Yes | Moderate | +3.1% F1 over GLiNER-large-v2.1; token classifier (handles arbitrarily long entities); same size, local CPU; **current SOTA in this category** |
+| GLiNER (`gliner_multi-v2.1`) | Zero-shot NER | No | Yes | Yes | Moderate | NAACL 2024; span-based (max 12 tokens per entity); multilingual; slightly behind NuNER Zero on benchmarks |
 | GROBID | Rule-based + CRF | No | Partial | Partial | Poor | Trained on scientific citations, not ISBD/library catalog — different domain; not recommended |
 
 **Note on gbert-large**: was listed as the original plan but was never properly justified. Monolingual modern German is the wrong choice for a historically diverse corpus.
 
 ---
 
-## GLiNER — zero-shot NER
+## NuNER Zero — zero-shot NER (current recommendation)
 
-[GLiNER](https://github.com/urchade/GLiNER) accepts arbitrary labels at inference time with no fine-tuning. The multilingual variant covers German, Latin, and historical text reasonably well.
+[NuNER Zero](https://huggingface.co/numind/NuNER_Zero) (NuMind, 2024) is the current SOTA compact zero-shot NER model, outperforming GLiNER-large-v2.1 by +3.1% F1. Unlike GLiNER, it is a token classifier rather than span-based, so it handles arbitrarily long entities — relevant for verbose DDB title strings.
 
 ```python
-from gliner import GLiNER
+from gliner import GLiNER  # NuNER Zero uses the GLiNER library
 
-model = GLiNER.from_pretrained("urchade/gliner_multi-v2.1")
+model = GLiNER.from_pretrained("numind/NuNER_Zero")
 
 entities = model.predict_entities(
     "Faust drittes Buch von Goethe erschienen Weimar",
@@ -61,7 +62,7 @@ entities = model.predict_entities(
 # → [{"text": "Faust drittes Buch", "label": "title", "score": 0.91}, ...]
 ```
 
-BERT-sized — runs on CPU, deployable alongside the existing stack. Zero-shot precision on domain-specific ISBD strings is unknown; **evaluate on ~500 fallback records before committing**.
+BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing**.
 
 ---
 
@@ -71,13 +72,13 @@ NER applies to ~71% of records (~3.5–7M unique pairs after deduplication). LLM
 
 | Approach | Scale | Cost | Historical/Latin | Effort |
 |---|---|---|---|---|
-| **GLiNER zero-shot** (local) | All NER records | Free | Moderate | Low — deploy and evaluate |
+| **NuNER Zero** (local) | All NER records | Free | Moderate | Low — deploy and evaluate |
 | **Local LLM** (Llama 3.1 8B) | All NER records | GPU infra only | Moderate | Medium |
 | **LLM one-time labeler → fine-tune xlm-roberta** | Generate labels once | Low one-time API cost | Good | Medium |
 | **Fine-tuned xlm-roberta-base** | All NER records | Cheap at inference | Good (if trained on historical) | High upfront |
 | **LLM API at inference** (GPT-4o, Claude) | All NER records | ~$1,500–3,500 at full scale | Good | Low — but costly |
 
-**Recommended path**: start with GLiNER zero-shot on 500 stratified NER records. If precision is acceptable, done. If not, use an LLM to label a few thousand records and fine-tune `xlm-roberta-base` on that output.
+**Recommended path**: start with NuNER Zero on 500 stratified NER records. If precision is acceptable, done. If not, use an LLM to label a few thousand records and fine-tune `xlm-roberta-base` on that output.
 
 ---
 
@@ -118,8 +119,8 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## Decision
 
-1. **Try GLiNER zero-shot first** — no training data, runs locally, handles multilingual. Evaluate on 500 stratified fallback records.
-2. **If GLiNER precision is insufficient**, use an LLM API to label those same records and fine-tune `xlm-roberta-base` on that output.
+1. **Try NuNER Zero first** — current SOTA compact zero-shot NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records.
+2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune `xlm-roberta-base` on that output.
 3. **Silver labeling** (ISBD-derived) augments any fine-tuning — language-agnostic, large volume, no annotation cost.
 4. Use `xlm-roberta` over any monolingual German model — the historical and Latin scope makes multilingual pretraining essential.
 5. **GROBID**: trained on scientific citations, not library catalog records — not recommended.
