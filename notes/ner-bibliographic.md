@@ -40,7 +40,7 @@ Fine-tune a smaller model (xlm-roberta-base or spaCy) on these silver labels. Ev
 Use GPT-4o or Claude to label a few thousand records (not all 5–10M). Fine-tune a smaller model on those outputs. Expensive per call but a one-time cost to produce a labeled set.
 
 **Distant supervision (supplementary)**
-For records where a GND Werk URI was confirmed by lobid-gnd, the extracted title string is a positive `TITLE` example. Linked person GND URIs supply `PERSON` labels. Useful to augment silver labels, not sufficient alone.
+For records where a GND Werk URI was confirmed via the local GND instance, the extracted title string is a positive `TITLE` example. Linked person GND URIs supply `PERSON` labels. Useful to augment silver labels, not sufficient alone.
 
 ---
 
