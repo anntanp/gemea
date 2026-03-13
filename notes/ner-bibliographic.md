@@ -16,7 +16,7 @@ DDB objects span several centuries. Title content may be in modern German, Early
 
 - **ISBD parsing (primary)** — unaffected; punctuation-based, language-agnostic
 - **Silver labeling** — unaffected; labels derive from ISBD structure, not title content
-- **NER fallback** — affected only for the ~15–30% of records without ISBD markers
+- **NER fallback** — affected for the ~71% of records without ISBD markers
 
 For the fallback, historical language introduces real risk:
 
