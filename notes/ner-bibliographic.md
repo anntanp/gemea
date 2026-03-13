@@ -36,9 +36,46 @@ For the fallback, historical language introduces real risk:
 | `flair/ner-german-large` | Stacked embeddings | No | No | Yes (PER) | Poor | CoNLL-2003 labels; same limitation as spaCy |
 | `deepset/gbert-large` | BERT-large | Yes | No | No | Poor | Monolingual modern German; no off-the-shelf bibliographic NER |
 | LLM (GPT-4o, Claude, Llama 3) | Generative | No | Yes | Yes | Good | Handles Latin and historical German well; too slow at 5–10M records but strong as a one-time labeler |
+| **GLiNER** (`gliner_multi-v2.1`) | Zero-shot NER | No | Yes | Yes | Moderate | Zero-shot, any label set, BERT-sized, runs on CPU; multilingual variant covers German, Latin, historical text; best first thing to try |
 | GROBID | Rule-based + CRF | No | Partial | Partial | Poor | Trained on scientific citations, not ISBD/library catalog — different domain; not recommended |
 
 **Note on gbert-large**: was listed as the original plan but was never properly justified. Monolingual modern German is the wrong choice for a historically diverse corpus.
+
+---
+
+## GLiNER — zero-shot NER
+
+[GLiNER](https://github.com/urchade/GLiNER) accepts arbitrary labels at inference time with no fine-tuning. The multilingual variant covers German, Latin, and historical text reasonably well.
+
+```python
+from gliner import GLiNER
+
+model = GLiNER.from_pretrained("urchade/gliner_multi-v2.1")
+
+entities = model.predict_entities(
+    "Faust drittes Buch von Goethe erschienen Weimar",
+    labels=["title", "person", "publisher", "year", "edition"],
+)
+# → [{"text": "Faust drittes Buch", "label": "title", "score": 0.91}, ...]
+```
+
+BERT-sized — runs on CPU, deployable alongside the existing stack. Zero-shot precision on domain-specific ISBD strings is unknown; **evaluate on ~500 fallback records before committing**.
+
+---
+
+## LLM options at inference time
+
+NER only runs on the fallback subset (~15–30% of records that failed ISBD parsing): 750K–3M unique pairs, not 5–10M. At that scale, API LLMs become feasible.
+
+| Approach | Scale | Cost | Historical/Latin | Effort |
+|---|---|---|---|---|
+| **GLiNER zero-shot** (local) | All fallback records | Free | Moderate | Low — deploy and evaluate |
+| **LLM API at inference** (GPT-4o, Claude) | Fallback subset only | ~$300–900 at fallback scale | Good | Low |
+| **Local LLM** (Llama 3.1 8B) | All records | GPU infra only | Moderate | Medium |
+| **LLM one-time labeler → fine-tune xlm-roberta** | Generate labels once | Low one-time API cost | Good | Medium |
+| **Fine-tuned xlm-roberta-base** | All records | Cheap at inference | Good (if trained on historical) | High upfront |
+
+**Recommended path**: start with GLiNER zero-shot on 500 fallback records. If precision is acceptable, done. If not, use a LLM API to label those records and fine-tune `xlm-roberta-base` on that output.
 
 ---
 
@@ -79,10 +116,11 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## Decision
 
-1. **Silver labeling first** — ISBD-derived labels are language-agnostic; fine-tune `xlm-roberta-base` as the base model.
-2. **If silver label quality is insufficient**, use an LLM to label a few thousand records (including historical/Latin samples) and fine-tune on those.
-3. Use `xlm-roberta` over any monolingual German model — the historical and Latin scope makes multilingual pretraining essential.
-4. **GROBID**: trained on scientific citations, not library catalog records — not recommended.
+1. **Try GLiNER zero-shot first** — no training data, runs locally, handles multilingual. Evaluate on 500 stratified fallback records.
+2. **If GLiNER precision is insufficient**, use an LLM API to label those same records and fine-tune `xlm-roberta-base` on that output.
+3. **Silver labeling** (ISBD-derived) augments any fine-tuning — language-agnostic, large volume, no annotation cost.
+4. Use `xlm-roberta` over any monolingual German model — the historical and Latin scope makes multilingual pretraining essential.
+5. **GROBID**: trained on scientific citations, not library catalog records — not recommended.
 
 ---
 
