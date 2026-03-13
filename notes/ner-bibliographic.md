@@ -39,7 +39,7 @@ For the fallback, historical language introduces real risk:
 | `deepset/gbert-large` | BERT-large | Yes | No | No | Poor | Monolingual modern German; no off-the-shelf bibliographic NER |
 | LLM (GPT-4o, Claude, Llama 3) | Generative | No | Yes | Yes | Good | Handles Latin and historical German well; too slow at 5–10M records but strong as a one-time labeler |
 | **NuNER Zero** (`numind/NuNER_Zero`) | Zero-shot NER | No | Yes | Yes | Moderate | +3.1% F1 over GLiNER-large-v2.1; token classifier (handles arbitrarily long entities); same size, local CPU; **current SOTA in this category** |
-| GLiNER (`gliner_multi-v2.1`) | Zero-shot NER | No | Yes | Yes | Moderate | NAACL 2024; span-based (max 12 tokens per entity); multilingual; slightly behind NuNER Zero on benchmarks |
+| GLiNER (`gliner_multi-v2.1`) | Zero-shot NER | No | Yes | Yes | Moderate | NAACL 2024; span-based with configurable width; multilingual; slightly behind NuNER Zero on benchmarks |
 | GROBID | Rule-based + CRF | No | Partial | Partial | Poor | Trained on scientific citations, not ISBD/library catalog — different domain; not recommended |
 
 **Note on gbert-large**: was listed as the original plan but was never properly justified. Monolingual modern German is the wrong choice for a historically diverse corpus.
