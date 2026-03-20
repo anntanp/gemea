@@ -7,6 +7,19 @@ Replaces: lobid-gnd REST API approach (previously planned but endpoint was TBD)
 
 ---
 
+## Knowledge base index
+
+**Description:** DNB Bibliography and GND (Gemeinsame Normdatei) (`authorities-gnd_lds`, `dnb-all_lds` version 23.02.2026) — updated monthly
+
+| Metric | Value |
+|---|---|
+| Triples | 1,242,168,767 |
+| Subjects | 186,556,644 |
+| Predicates | 591 |
+| Objects | 457,761,162 |
+
+---
+
 ## Endpoint and HTTP API
 
 **Endpoint:** `https://sparql.dnb.de/api/dnbgnd`
@@ -42,14 +55,33 @@ IFLA LRM defines a Work (LRM-E2) as "a distinct intellectual or artistic creatio
 | `gndo:ProvenanceCharacteristic` | Provenance characteristic / Provenienzmerkmal | `079 $v=wip` | No WEMI equivalent — ownership marks and traces left in/on physical items; not a creative entity | No |
 
 ```sparql
+PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
 SELECT ?type (COUNT(?w) AS ?n) WHERE {
+  VALUES ?type {
+    gndo:Work gndo:MusicalWork gndo:Manuscript
+    gndo:Expression gndo:VersionOfAMusicalWork
+    gndo:CollectiveManuscript gndo:ProvenanceCharacteristic
+  }
   ?w a ?type .
-  FILTER(STRSTARTS(STR(?type), "https://d-nb.info/standards/elementset/gnd#"))
 }
-GROUP BY ?type ORDER BY DESC(?n) LIMIT 20
+GROUP BY ?type ORDER BY DESC(?n)
 ```
 
-Run to confirm population counts before finalising `VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }`.
+Constraining with `VALUES` avoids a full dataset type scan and lets the endpoint use per-type indexes. The original open-ended query caused a 504 Gateway Timeout.
+
+**Results:**
+
+| ?type | ?n |
+|---|---|
+| MusicalWork | 330,818 |
+| Work | 242,333 |
+| ProvenanceCharacteristic | 10,080 |
+| Manuscript | 7,133 |
+| Expression | 5,766 |
+| VersionOfAMusicalWork | 2,905 |
+| CollectiveManuscript | — (no results; zero entities in dataset) |
+
+**Conclusion:** `VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }` is confirmed. The three IFLA LRM Work-equivalent classes cover 580,284 entities (242,333 + 330,818 + 7,133). The four excluded classes are either IFLA Expression-level (`Expression`, `VersionOfAMusicalWork`), have no WEMI equivalent (`ProvenanceCharacteristic`), or are absent from this dataset (`CollectiveManuscript`).
 
 ### 0.2 Confirm text index covers `preferredNameForTheWork`
 
@@ -178,7 +210,7 @@ TEXTLIMIT 5
 LIMIT 10
 ```
 
-### Pattern C — FILTER fallback (if `contains-word` not available on the predicate)
+### Pattern C — FILTER (active query path)
 
 Exact-match only; normalized title (diacritics stripped, lowercased) maximizes recall.
 
@@ -194,18 +226,38 @@ SELECT ?work ?prefLabel WHERE {
 LIMIT 10
 ```
 
+### Conclusion from Step 0
+
+| Finding | Source | Impact on Step 1 |
+|---|---|---|
+| `contains-word` raises a SPARQL parse error | Step 0.2 | Patterns A and B are not available. **Pattern C is the sole active query path.** |
+| `VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }` covers 580,284 entities (242k + 331k + 7k) | Step 0.1 | Confirmed — use in all patterns |
+| Dominant author predicate is `gndo:author`; `gndo:firstAuthor` is a subproperty but SPARQL does not infer it | Step 0.3 | Pattern A must use `VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }` |
+| `gndo:poet` appears for lyrical/musical works (Goethe as lyricist) | Step 0.3 | Include `gndo:poet` in `VALUES ?authorPred` |
+| `CollectiveManuscript` has zero entities in this dataset | Step 0.1 | Confirmed exclusion; no impact on queries |
+
+Pattern C with author constraint (when author GND URI is available) becomes the effective Pattern A: same `VALUES ?authorPred` constraint, FILTER instead of `contains-word`.
+
 ---
 
 ## Step 2 — Title token preparation
 
-QLever `contains-word` is word-based, not phrase-based by default.
+QLever `contains-word` is word-based, not phrase-based by default. Title preparation has three distinct phases: normalization, tokenization, and filtering.
 
-**Tokenization rules:**
-1. Unicode NFC normalize
-2. Lowercase
-3. Strip diacritics (test both forms — QLever may or may not handle Umlauts natively; see open questions)
-4. Remove stopwords: `der, die, das, ein, eine, von, und, zu, im, in, an, auf, für, mit, bei, dem, den`
-5. For multi-word titles: select 2–3 distinctive tokens (see below)
+### Normalization (pre-tokenization)
+
+1. **Unicode NFC normalize** — Unicode Standard Annex #15, Normalization Form C: Canonical Decomposition followed by Canonical Composition. Ensures consistent code-point representation before any string operation. Example: `a` + combining diaeresis (two code points, NFD) → `ä` (one code point, NFC). Required so that lowercasing, diacritic stripping, and string comparison behave predictably regardless of source encoding.
+2. **Lowercase** — case-fold the NFC-normalized string.
+3. **Strip diacritics** — decompose (NFD) then remove combining characters (`unicodedata.category(c) == 'Mn'`). Maps `ä→a`, `ü→u`, `ö→o`, `ß→ss`. Note: test whether the GND endpoint requires this — if the text index is accent-insensitive, stripping may reduce rather than increase recall.
+
+### Tokenization
+
+4. **Split on whitespace and punctuation** — split the normalized string into individual word tokens.
+
+### Filtering
+
+5. **Remove stopwords:** `der, die, das, ein, eine, von, und, zu, im, in, an, auf, für, mit, bei, dem, den`
+6. **Select 2–3 distinctive tokens** (see below)
 
 ### Distinctive token selection
 
