@@ -3,6 +3,8 @@
 Script: `scripts/link_gnd_works.py`
 Replaces: lobid-gnd REST API approach (previously planned but endpoint was TBD)
 
+`link_gnd_works.py` is an **offline ingest step**, not a runtime component. It runs once (or on re-ingest) during Phase 0 to enrich ProvidedCHO records with GND Werk URIs. Its output feeds mocho → QLever → the GeMeA API. The GND linking results are ultimately exposed through the API's `/work/{id}` endpoint and SPARQL proxy — `link_gnd_works.py` itself never serves live requests. Design constraints follow from this: throughput and batch efficiency matter; latency per query does not.
+
 ---
 
 ## Endpoint and HTTP API
@@ -27,7 +29,17 @@ Three things to verify before writing production queries.
 
 ### 0.1 Work type coverage
 
-Determine which GND classes to include in `VALUES ?wtype`:
+IFLA LRM defines a Work (LRM-E2) as "a distinct intellectual or artistic creation" — the abstract entity at the top of the WEMI hierarchy, independent of any particular realization or carrier. The GND ontology (`gnd_20251218.ttl`) models six subclasses of `gndo:Work`. Only three correspond to the IFLA LRM Work concept:
+
+| GND class | Label (en / de) | MARC21 | IFLA LRM | Include in queries |
+|---|---|---|---|---|
+| `gndo:Work` | Work / Werk | `079 $v=wit` | LRM-E2 Work — direct match | **Yes** |
+| `gndo:MusicalWork` | Musical work / Werk der Musik | `079 $v=wim` | LRM-E2 Work — a musical composition as distinct creative entity | **Yes** |
+| `gndo:Manuscript` | Manuscript / Schriftdenkmal | `079 $v=wis` | LRM-E2 Work — a unique historical manuscript (e.g. Nibelungenlied) is the distinct intellectual creation itself | **Yes** |
+| `gndo:Expression` | Expression / Expression | `079 $v=wie` | LRM-E3 Expression — the realization of a Work in a specific linguistic or notational form; one level below Work in WEMI | No |
+| `gndo:VersionOfAMusicalWork` | Version of a musical work / Fassung eines Werks der Musik | `079 $v=wif` | LRM-E3 Expression — a specific arrangement or version is a realization of the Work, not a new Work (unless substantially transformed) | No |
+| `gndo:CollectiveManuscript` | Collective manuscript / Sammelhandschrift | `079 $v=wil` | LRM-E4 Manifestation — a bound collection of multiple works; the container, not the intellectual creation | No |
+| `gndo:ProvenanceCharacteristic` | Provenance characteristic / Provenienzmerkmal | `079 $v=wip` | No WEMI equivalent — ownership marks and traces left in/on physical items; not a creative entity | No |
 
 ```sparql
 SELECT ?type (COUNT(?w) AS ?n) WHERE {
@@ -37,7 +49,7 @@ SELECT ?type (COUNT(?w) AS ?n) WHERE {
 GROUP BY ?type ORDER BY DESC(?n) LIMIT 20
 ```
 
-Expected results include `gndo:Work`, `gndo:MusicalWork`, `gndo:SeriesOfConferencePublications`. Record which to include.
+Run to confirm population counts before finalising `VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }`.
 
 ### 0.2 Confirm text index covers `preferredNameForTheWork`
 
@@ -52,21 +64,56 @@ SELECT ?w ?label ?score WHERE {
 ORDER BY DESC(?score) LIMIT 5
 ```
 
-If this returns results → use Pattern A/B (text-indexed).
-If QLever errors or returns empty → fall back to Pattern C (FILTER REGEX).
+**Result:** Parse error —
+```
+Invalid SPARQL query: Token "contains-word": mismatched input 'contains-word'
+expecting {'(', 'a', '^', '!', IRI_REF, PNAME_NS, PNAME_LN, VAR1, VAR2, PREFIX_LANGTAG}
+```
+
+The endpoint validates against the SPARQL 1.1 grammar; `contains-word` is QLever-specific syntax and is not available here. **Patterns A and B do not apply. Pattern C is the active query path.**
 
 ### 0.3 Confirm author predicate name
 
+Query Works that link to Goethe (`https://d-nb.info/gnd/118540238`) to find the predicate used:
+
 ```sparql
 PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
-SELECT ?pred WHERE {
-  <https://d-nb.info/gnd/118607359> ?pred ?obj .
-  FILTER(STRSTARTS(STR(?obj), "https://d-nb.info/gnd/"))
+SELECT ?work ?pred WHERE {
+  ?work ?pred <https://d-nb.info/gnd/118540238> .
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
+  ?work a ?wtype .
 }
 LIMIT 10
 ```
 
-Determines whether to use `gndo:firstAuthor` or `gndo:creator` in Pattern A.
+**Results:**
+
+| ?work | ?pred |
+|---|---|
+| 4427937-1 | author |
+| 134483180X | relatedPerson |
+| 1367943906 | author |
+| 1345022085 | author |
+| 1367911087 | author |
+| 134558573X | author |
+| 1345758731 | poet |
+| 1346874786 | author |
+| 1347120017 | author |
+| 1347121307 | author |
+
+**Conclusion:** The dominant predicate is `gndo:author` (8/10 results). `gndo:poet` appears as a role-specific variant (Goethe wrote lyrics for musical works); `gndo:relatedPerson` is too broad for author linking.
+
+From `gnd_20251218.ttl`, the relevant author-role property hierarchy is:
+
+| Property | Label (en/de) | `rdfs:subPropertyOf` | MARC21 | Scope |
+|---|---|---|---|---|
+| `gndo:author` | Author / Verfasser | RDA `P60434` | `$4=auta` | Textual works; primary creator |
+| `gndo:firstAuthor` | First author / Erste Verfasserschaft | **`gndo:author`**, RDA `P60434` | `$4=aut1` | Subproperty of `author`; single/lead author |
+| `gndo:creator` | Creator / Urheber | — | `$4=urhe` | General; no subproperty relation to `author` |
+| `gndo:poet` | Poet / Dichter | RDA `P60477` | `$4=dich` | Words of non-dramatic musical works |
+| `gndo:composer` | Composer / Komponist | RDA `P60426` | `$4=koma` | Musical works |
+
+**SPARQL does not infer `rdfs:subPropertyOf` without a reasoner.** A query constraining `gndo:author` will miss triples that use `gndo:firstAuthor`, even though `firstAuthor` is a subproperty of `author`. Pattern A must explicitly cover both using `VALUES ?authorPred { gndo:author gndo:firstAuthor }`. `gndo:poet` and `gndo:composer` should be added for coverage of MusicalWork records.
 
 ---
 
@@ -74,7 +121,7 @@ Determines whether to use `gndo:firstAuthor` or `gndo:creator` in Pattern A.
 
 | Query pattern | Fields | Justification |
 |---|---|---|
-| **A** — Title + author | `gndo:preferredNameForTheWork` (text search); `gndo:firstAuthor` (constraint) | Author URI narrows the candidate set before text matching; highest precision. Use when author GND URI is available and text index is confirmed (recon 0.2–0.3). |
+| **A** — Title + author | `gndo:preferredNameForTheWork` (text search); `gndo:author`, `gndo:firstAuthor`, `gndo:poet`, `gndo:composer` (constraint via VALUES) | Author URI narrows the candidate set before text matching; highest precision. Use when author GND URI is available and text index is confirmed (recon 0.2–0.3). |
 | **B** — Title only | `gndo:preferredNameForTheWork` (preferred); `gndo:variantNameForTheWork` (UNION fallback) | No author URI available. UNION over variant names increases recall for cases where the DDB title matches a GND alternative form rather than the preferred label. Use when text index is confirmed but no author URI. |
 | **C** — FILTER fallback | `gndo:preferredNameForTheWork` (exact string match) | `contains-word` unavailable or not indexed for the predicate (determined by recon 0.2). Exact/normalized string comparison only; no relevance ranking. Lower recall than A/B. |
 
@@ -82,14 +129,17 @@ Determines whether to use `gndo:firstAuthor` or `gndo:creator` in Pattern A.
 
 Used when: author GND URI is available AND `contains-word` is confirmed (recon 0.2).
 
+`gndo:firstAuthor` is a subproperty of `gndo:author` but SPARQL does not infer this without a reasoner — both must be listed explicitly. `gndo:poet` and `gndo:composer` cover musical and lyrical works.
+
 ```sparql
 PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
 
 SELECT ?work ?prefLabel ?score WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork }
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
+  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
   ?work a ?wtype .
   ?work gndo:preferredNameForTheWork ?prefLabel .
-  ?work gndo:firstAuthor <{author_gnd_uri}> .
+  ?work ?authorPred <{author_gnd_uri}> .
   ?prefLabel contains-word "{title_tokens}"
   BIND(score(?prefLabel) AS ?score)
 }
@@ -98,7 +148,6 @@ TEXTLIMIT 5
 LIMIT 10
 ```
 
-Replace `gndo:firstAuthor` with the predicate confirmed in recon 0.3.
 `TEXTLIMIT 5` caps QLever's internal text candidates for performance; `LIMIT 10` caps output rows.
 
 ### Pattern B — Title only, text-indexed
@@ -110,7 +159,7 @@ UNION catches cases where the DDB title matches a GND variant name rather than t
 PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
 
 SELECT ?work ?prefLabel ?varLabel ?score WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork }
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
   ?work a ?wtype .
   ?work gndo:preferredNameForTheWork ?prefLabel .
   {
@@ -137,7 +186,7 @@ Exact-match only; normalized title (diacritics stripped, lowercased) maximizes r
 PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
 
 SELECT ?work ?prefLabel WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork }
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
   ?work a ?wtype .
   ?work gndo:preferredNameForTheWork ?prefLabel .
   FILTER(LCASE(STR(?prefLabel)) = "{normalized_title}")
