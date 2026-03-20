@@ -4,7 +4,44 @@ Context: NER is the **fallback** in `link_gnd_works.py` for records without ISBD
 
 **Scale of the fallback**: analysis of 115K Goethe-Faust DDB items ([isbd-title-analysis.md](../../goethe-faust/notes/isbd-title-analysis.md)) shows only **~29% of titles carry any ISBD pattern**, meaning NER applies to ~71% of records — the majority, not a small edge case. The dominant ISBD signal is ` :` (18%); the ` / ` split used by the parser appears in only 2.1% of titles. These figures are from one DDB provider subset and may vary across the full corpus.
 
-Target label set: `TITLE`, `PERSON`, `PUBLISHER`, `YEAR`, `EDITION`.
+Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITLE`, `LANGUAGE`, `MEDIUM`, `EDITION`, `PUBLISHER`, `PLACE`, `YEAR`, `SERIES`, `VOLUME`.
+
+---
+
+## FRBR label scope
+
+Labels are organised by FRBR level. The goal is to extract enough structure to distinguish Works, Expressions, and Manifestations in the KG.
+
+**Work** — the abstract intellectual creation
+
+| Label | What it marks | Typical ISBD / catalog cue |
+|---|---|---|
+| `TITLE` | Proper title | Before ` :` or ` /`; primary string |
+| `OTHER_TITLE` | Subtitle / other title information | After ` :` |
+| `PERSON` | Author / creator | After ` /`; "von", "hrsg. von", "ed. by" |
+
+**Expression** — a particular realization of the Work (language, translator, medium)
+
+| Label | What it marks | Typical ISBD / catalog cue |
+|---|---|---|
+| `TRANSLATOR` | Translator name | After ` /`; "übersetzt von", "Übers.:", "transl. by" |
+| `TRANSLATION` | Translation source phrase | "Aus dem Englischen", "in deutscher Übersetzung", "traduit de" |
+| `PARALLEL_TITLE` | Title in another language | After ` =` |
+| `LANGUAGE` | Language of this expression | Explicit language name when stated in the title field |
+| `MEDIUM` | Notational / physical medium | "Klavierauszug", "Partitur", "Textbuch", "Hörbuch" |
+
+**Manifestation** — a specific published edition
+
+| Label | What it marks | Typical ISBD / catalog cue |
+|---|---|---|
+| `EDITION` | Edition statement | "2. Aufl.", "Neuausg.", "rev. ed.", "erw. Fassung" |
+| `PLACE` | Place of publication | Before `:` in `. - Place : Publisher` imprint block |
+| `PUBLISHER` | Publisher name | After `:` in imprint block; "Verlag", known publisher names |
+| `YEAR` | Year of publication | Trailing 4-digit year; after `,` in imprint |
+| `SERIES` | Series title | Inside `( )` after imprint |
+| `VOLUME` | Volume / part number | "Bd.", "Teil", "Vol.", "Heft", "Nr." |
+
+**Notes on Expression vs. Manifestation boundary.** A title string rarely contains explicit language codes (those live in MARC 041); `LANGUAGE` and `TRANSLATION` are therefore sparse but high-value when present. `PARALLEL_TITLE` (` =` cue) and `TRANSLATOR` are more common and are the primary Expression-distinguishing signals available in the title field. `MEDIUM` is relevant for music scores and audio items in the DDB.
 
 ---
 
@@ -56,7 +93,14 @@ from gliner import GLiNER
 model = GLiNER.from_pretrained("numind/NuNerZero")
 
 # Labels must be lower-cased
-labels = ["title", "person", "publisher", "year", "edition"]
+labels = [
+    # Work
+    "title", "other title", "person",
+    # Expression
+    "translator", "translation", "parallel title", "language", "medium",
+    # Manifestation
+    "edition", "publisher", "place", "year", "series", "volume",
+]
 
 text = "Faust drittes Buch von Goethe erschienen Weimar"
 entities = model.predict_entities(text, labels)
@@ -104,12 +148,25 @@ NER applies to ~71% of records (~3.5–7M unique pairs after deduplication). LLM
 ## If no labeled training data is available
 
 **1. Silver labeling from the ISBD pipeline**
-The ~29% of records where ISBD parsing succeeds become auto-labeled training examples (a useful but minority source):
-- Pre-`/` segment → `TITLE`
-- Post-`/` segment → `PERSON` (statement of responsibility)
-- Post-`. -` segments → `EDITION`, `PUBLISHER`, `YEAR` by position
+The ~29% of records where ISBD parsing succeeds become auto-labeled training examples (a useful but minority source). Expanded mapping across FRBR levels:
 
-Language-agnostic — works for Latin and historical German titles. Fine-tune `xlm-roberta-base` on these labels. Evaluate on a manually checked gold set of ~500 records including historical and Latin examples.
+| ISBD pattern | Label(s) | Notes |
+|---|---|---|
+| Before ` :` or ` /` | `TITLE` | Primary title string |
+| After ` :` | `OTHER_TITLE` | Subtitle / other title info |
+| After ` =` | `PARALLEL_TITLE` | Expression-level; often a translation |
+| After ` /`; no "übersetzt" keyword | `PERSON` | Statement of responsibility |
+| After ` /`; "übersetzt von", "Übers.:", "transl. by" | `TRANSLATOR` | Expression-level |
+| Span matching "Aus dem …", "in … Übersetzung", "traduit de" | `TRANSLATION` | Expression-level; sparse |
+| Medium keyword ("Klavierauszug", "Partitur", "Textbuch", "Hörbuch") | `MEDIUM` | Expression-level; relevant for music/audio |
+| Edition keyword before `. -` block | `EDITION` | "Aufl.", "Neuausg.", "rev. ed." |
+| `. - Place :` block, first token(s) before `:` | `PLACE` | Manifestation-level |
+| `. - Place :` block, after `:` up to `,` | `PUBLISHER` | Manifestation-level |
+| Trailing 4-digit year or year after `,` | `YEAR` | Manifestation-level |
+| `( Series ; N )` block, title part | `SERIES` | Manifestation-level |
+| "Bd.", "Teil", "Vol.", "Heft", "Nr." + number | `VOLUME` | Manifestation-level |
+
+TRANSLATOR disambiguation is the main ambiguity: the ` /` cue fires for both `PERSON` and `TRANSLATOR`; keyword matching ("übersetzt", "Übers.", "transl.") is sufficient for a first-pass split. Language-agnostic structurally — works for Latin and historical German titles. Fine-tune `xlm-roberta-base` on these labels. Evaluate on a manually checked gold set of ~500 records including historical and Latin examples.
 
 **2. LLM as a one-time labeler**
 Use GPT-4o or Claude to label a few thousand records. Handles Latin and historical German well. Fine-tune a smaller model on those outputs. Expensive per call but a one-time cost.
@@ -148,8 +205,11 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## Open questions
 
-- [ ] Is TITLE extraction sufficient, or are PUBLISHER/YEAR/EDITION labels needed for the paper's quality metrics?
+- [ ] Confirm which FRBR levels the paper's quality metrics cover — Work (TITLE, PERSON) only, or also Expression (TRANSLATOR, PARALLEL_TITLE, MEDIUM) and Manifestation (PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME)?
+- [ ] TRANSLATOR disambiguation from PERSON via keyword heuristic — validate precision on a sample before using as silver labels
 - [ ] Silver label quality: how clean are the ISBD-derived annotations for training, especially for historical records?
-- [ ] ISBD coverage varies by provider — measure across more DDB subsets before assuming the 29%/71% split holds corpus-wide
+- [x] ISBD coverage varies by provider — measure across more DDB subsets before assuming the 29%/71% split holds corpus-wide → **DF_DE_TITLES (4.47M)** confirms 28.4% ISBD coverage (excl. trailing `.`); 29% estimate holds corpus-wide
 - [ ] What share of non-ISBD records have Latin or historical German titles? (determines how much historical signal is needed)
 - [ ] Gold set composition: sample should be stratified by era to catch historical degradation early
+- [ ] ISBD parser uses ` /` as primary split, but ` /` appears in only 0.8% of DF_DE_TITLES (vs 2.1% in Goethe-Faust subset); ` :` at 20.3% is the dominant signal — verify parser prioritizes ` :` for silver label generation
+- [ ] Trailing period (17.5% of corpus) is noisy — fires on abbreviations (`Hrsg.`, `Bd.`) and ordinals; strip known German abbreviations before using as silver label signal, or require co-occurrence with another ISBD marker
