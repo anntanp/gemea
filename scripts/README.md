@@ -21,4 +21,6 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | Script | Purpose |
 |--------|---------|
 | `download_data.sh` | Fetch mocho-normalized RDF from public data dump |
-| `setup_gnd_fuseki.sh` | Start local Fuseki container and load GND authority files into named graphs |
+| `setup_gnd_fuseki.sh` | (deprecated) Start local Fuseki container and load GND authority files |
+| `setup_gnd_qlever.sh` | Convert GND JSON-LD to N-Triples, build QLever index, start SPARQL server |
+| `jsonld_to_nt.py` | Convert a JSON-LD file (.jsonld or .jsonld.gz) to N-Triples using rdflib |
