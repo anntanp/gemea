@@ -33,7 +33,7 @@ Title proper : other title information / statement of responsibility
 ```
 Die höchstnöthige Sterbe-Schule : Bey Christlicher Beerdigung / Christian Gerber
 ```
-→ Title area only; no `. -`; has ` :` (other title) and ` /` (SoR)
+→ Title area only; no `. -`; has ` :` (other title) and ` /` (SoR[^sor])
 
 ```
 Faust : der Tragödie erster Teil / Johann Wolfgang von Goethe. - 12. Aufl. - Leipzig : Insel-Verlag, 1920
@@ -49,24 +49,52 @@ The `. - ` separator is the primary structural signal. Records **without** it ar
 
 ---
 
+[^sor]: **SoR — Statement of Responsibility** (Verantwortlichkeitsangabe). The ISBD term for the portion of a catalog record that names those responsible for the intellectual content: authors, editors, translators, illustrators, etc. In MARC 21 it is encoded in 245 $c, introduced by ` / ` (trailing mark on 245 $b). Multiple contributors are separated by ` ; `. Example: `Titel / Autor ; Herausgeber ; Übersetzer`. In the rating script, ` /` is the primary cue for detecting `PERSON` (and `TRANSLATOR`) spans. Sources: ISBD consolidated edition (2011), Area 1, §1.4 <https://www.ifla.org/files/assets/cataloguing/isbd/isbd-cons_20110321.pdf>; ThULB Jena, ISBD-Interpunktion <https://koha-wiki.thulb.uni-jena.de/erschliessung/katalogisierung/handbuecher/isbd-interpunktion/>
+
+---
+
 ## Detection Rules
+
+Source: ThULB Jena, *ISBD-Interpunktion* (Koha-Wiki, CC BY-SA 4.0). <https://koha-wiki.thulb.uni-jena.de/erschliessung/katalogisierung/handbuecher/isbd-interpunktion/>
+
+ISBD punctuation marks are **trailing** — each mark appears at the end of the preceding MARC subfield, immediately before the next subfield's content. In a flat ISBD string (as stored in `title`), the mark therefore precedes the field it introduces. The table below maps each NER label to its ISBD punctuation signal, MARC source field, and detection pattern.
 
 ### Structural tier (has `. - `)
 
-Split on `. - `. Parse `area[0]` as the title area; `area[1:]` as subsequent areas.
+Split on `. - ` (the area separator formed by the trailing `.` of one MARC field group and the ` - ` leader of the next). Parse `area[0]` as the title area; `area[1:]` as subsequent areas.
 
-| Field | Source area | Pattern | Notes |
+**Group 1 — Title and Statement of Responsibility (MARC 245)**
+
+| Field | MARC subfield | Trailing mark | Signal in flat string | Detection pattern |
+|---|---|---|---|---|
+| `TITLE` | 245 $a | ` :` (if $b follows) or ` /` (if $c follows) | Always present as leading content | String before first ` :` or ` /` |
+| `OTHER_TITLE` | 245 $b | ` /` (if $c follows) | ` :` precedes the subtitle | ` :` in area[0] |
+| `PERSON` (SoR[^sor]) | 245 $c | `.` (area close) | ` /` precedes the SoR | ` /` in area[0] |
+| `PARALLEL_TITLE` | 246 / 245 | ` =` | ` =` precedes parallel title | ` =` in area[0] |
+| `VOLUME` (part number in title) | 245 $n | `,` | `Bd. N,` or `Teil N,` | `\b(Bd\|Teil\|Vol\|Nr)\.\s*\d+` |
+
+Note: ` :` appears in **both** Group 1 (before subtitle) and Group 4 (before publisher). The area separator `. - ` is used to distinguish them — ` :` before the first `. - ` belongs to the title area; ` :` after it belongs to the publication area.
+
+**Group 2 — Edition (MARC 250)**
+
+| Field | MARC subfield | Trailing mark | Detection pattern |
 |---|---|---|---|
-| `TITLE` | area[0] | Always present | The string before the first ` :` or ` /` |
-| `OTHER_TITLE` | area[0] | ` :` | Subtitle / other title info after the colon |
-| `PERSON` | area[0] | ` /` | Statement of responsibility |
-| `PARALLEL_TITLE` | area[0] | ` =` | Title in another language; Expression-level |
-| `EDITION` | area[1+] | Edition keyword regex | "Aufl.", "Ausg.", "rev.", "überarb.", etc. |
-| `PLACE` | area[1+] | `\w.+ : \w` in rest | Left side of imprint " : " block |
-| `PUBLISHER` | area[1+] | `\w.+ : \w` in rest | Right side of imprint " : " block |
-| `YEAR` | area[1+] | `\b(1[4-9]\d{2}\|20[012]\d)\b` | 4-digit year in publication area |
-| `SERIES` | area[1+] | `\([^)]+;\s*[^)]*\d[^)]*\)` | Parenthetical with semicolon + digit |
-| `VOLUME` | anywhere | `\b(Bd\|Teil\|Vol\|Heft\|Nr\|Lfg)\.\s*\d+` | Part / volume number |
+| `EDITION` | 250 $a | `.` (area close) | Edition keyword regex: `Aufl`, `Ausg`, `ed.`, `überarb`, `erw`, `verb`, `Neuausg` |
+
+**Group 4 — Publication Area (MARC 264)**
+
+| Field | MARC subfield | Trailing mark | Detection pattern |
+|---|---|---|---|
+| `PLACE` | 264 $a | ` :` | Left of ` : ` in area[1+] |
+| `PUBLISHER` | 264 $b | `,` | Right of ` : ` up to `,` in area[1+] |
+| `YEAR` | 264 $c | `.` (area close) | `\b(1[4-9]\d{2}\|20[012]\d)\b` in area[1+] |
+
+**Group 6 — Series (MARC 490)**
+
+| Field | MARC subfield | Trailing mark | Detection pattern |
+|---|---|---|---|
+| `SERIES` | 490 $a | ` ;` | `\([^)]+;\s*[^)]*\d[^)]*\)` in area[1+] |
+| `VOLUME` (series numbering) | 490 $v | `.` | Digit after ` ;` inside parenthetical |
 
 ### Heuristic tier (no `. - `)
 
@@ -124,28 +152,61 @@ Tier 2 is the primary source for silver labels. Tier 1 is used for augmentation 
 
 ---
 
-## Expected Coverage
+## Actual Coverage
 
-Based on `isbd-title-analysis.md` (DF_DE_TITLES, 4.47M rows):
+Results from `rate_isbd_fields.py` on `DF_DE_TITLES_20240125b.pkl` (4,477,780 records), 2026-03-21.
 
-| Field | Expected coverage | Source |
+| Field | Count | % | Notes |
+|---|---|---|---|
+| `has_dot_dash` | 53,785 | **1.2%** | ⚠ Much lower than expected — see below |
+| `f_title` | 4,477,780 | 100.0% | Always present |
+| `f_other_title` | 905,344 | **20.2%** | Consistent with prior analysis (909k) |
+| `f_person` | 33,739 | **0.8%** | Consistent with prior analysis (34k) |
+| `f_person_compound` | 1,040 | 0.0% | Compound SoR (`/ ... ;`) — very sparse |
+| `f_parallel` | 26,084 | **0.6%** | Consistent with prior analysis (26k) |
+| `f_edition` | 158,991 | **3.6%** | Lower end of expected range |
+| `f_place` | 6,241 | **0.1%** | Structural-only; subset of has_dot_dash |
+| `f_publisher` | 8,229 | **0.2%** | Includes `Verlag` keyword hits |
+| `f_year` | 652,082 | **14.6%** | Below expected 20–30%; see below |
+| `f_series` | 620 | 0.0% | Structural-only; very sparse |
+| `f_volume` | 83,772 | **1.9%** | |
+
+**Silver tiers:**
+
+| Tier | Count | % |
 |---|---|---|
-| `OTHER_TITLE` (` :`) | ~20% | 909k / 4.47M from analysis |
-| `YEAR` | ~20–30% | Includes both structural and heuristic |
-| `PERSON` (` /`) | ~0.8% | 34k / 4.47M from analysis |
-| `PARALLEL_TITLE` (` =`) | ~0.6% | 26k / 4.47M from analysis |
-| `SERIES` (structural) | < 5% | Subset of has_dot_dash records |
-| `EDITION` | ~5–10% | Estimated from keyword frequency |
-| `PLACE` / `PUBLISHER` | ~5–10% | Subset of has_dot_dash records with imprint |
+| Tier 2 (structural, multi-field) | 4,613 | 0.1% |
+| Tier 1 (heuristic, partial) | 335,524 | 7.5% |
+| Tier 0 (not selected) | 4,137,643 | 92.4% |
 
-`has_dot_dash` (structural completeness) is expected at ~28% (consistent with ISBD coverage analysis). Tier-2 silver candidates will be a subset of those.
+### Key findings
+
+**`has_dot_dash` at 1.2% vs. expected ~28%.** The area separator `. - ` (with spaces on both sides) matches only 53k records. The prior `check_isbd_titles.py` analysis counted 28% as having *any* ISBD marker, not specifically the `. - ` area separator. Most DDB records are catalogued with title-area punctuation (` :`, ` /`) but without full area separation — the `. - ` separator is rare in this dataset. This means structural-tier detection is far more limited than assumed; the heuristic tier carries nearly all the load.
+
+**`f_year` at 14.6% vs. expected 20–30%.** The year regex `\b(?:1[4-9]\d{2}|20[012]\d)\b` covers 1400–2029. Lower coverage than expected likely reflects that many DDB records store the date in `dc:date` / `dates` column rather than the title string.
+
+**Tier 2 at 0.1% (4,613 records).** Directly consequent on `has_dot_dash` being 1.2% — tier 2 requires the area separator. Still a usable silver set for fine-tuning; 4,600 structurally annotated records is within normal range for bibliographic NER.
+
+**Tier 1 at 7.5% (335k records).** The practical silver candidate pool. Heuristic false positive rate unknown — see `scripts/validate_heuristic_fields.py`.
 
 ---
 
 ## Limitations
 
 - **PLACE** is only detected in the structural tier. Most non-ISBD records will have `f_place = 0` even if place information exists elsewhere (e.g., `dc_publisher` contains "Dresden : Riedel").
-- **PUBLISHER** heuristic recall is low — "Verlag" keyword misses many publishers. The `dc_publisher` column could supplement detection but is kept out of scope (title-string-only rating).
-- **` ;` ambiguity** — ` ;` in the title area signals a subsequent statement of responsibility; in a series area it separates title from volume number. The script does not distinguish these; SERIES detection requires the parenthetical + digit pattern.
+- **PUBLISHER** heuristic recall is low — "Verlag" keyword misses many publishers. The `dc_publisher` column could supplement detection but is kept out of scope for field ratings (title-string-only).
+
+### Silver dataset improvement: auxiliary-guided span lookup
+
+`rate_isbd_fields.py` intentionally rates only the `title` column (ADR-03). However, for **silver span extraction only**, PLACE and PUBLISHER coverage can be improved by a post-step that uses auxiliary columns as a lookup to find matching text *inside* the title string:
+
+- Take `dc_publisher` (e.g., `"Leipzig : Insel-Verlag"`) and search for it as a substring in `title`
+- If found, the span boundaries come from the title string — inference-consistent
+- Same for person names from `dc_creator` / `dc_contributor` vs. `PERSON` spans, and series strings from `agents`
+
+This approach differs from blind auxiliary-column labeling (ruled out in ADR-03) because the label is only applied when the value actually appears in the title. It is a downstream enrichment step for the silver dataset, not a change to field ratings.
+
+**Script:** `scripts/build_silver_spans.py` — described in Phase 0a of the roadmap. Inputs: `isbd_field_ratings.csv` + `DF_DE_TITLES` (with auxiliary columns). Output: `data/processed/silver_spans.jsonl` with span-level NER labels per silver-tier record.
+- **` ;` ambiguity** — ` ;` in the title area signals a subsequent statement of responsibility (compound SoR); in a series area it separates title from volume number. Mitigated by two complementary patterns: (1) SERIES requires `\([^)]+;\s*[^)]*\d[^)]*\)` — the ` ;` must be inside parentheses with a digit, so a bare ` ;` in the title area will never fire it; (2) `f_person_compound` detects compound SoR via ` /[^(]+;` — ` /` followed by content then ` ;` outside parentheses, distinguishing `Titel / Autor A ; Autor B` (SoR) from `(Series ; Bd. 3)` (series).
 - **Multi-volume records** — some records have multiple `. -` separators for volume entries; the script takes only the first split, potentially missing volume-level fields in entries 3+.
 - **False positives in heuristic tier** — ` :` fires on non-ISBD colons (URLs, ratios); ` /` fires on fractions or paths. Silver tier 1 should be validated on a ~200-record sample before use.

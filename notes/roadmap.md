@@ -27,6 +27,12 @@ Phase 0a produces the data and model needed for Step 2. It is a distinct NLP sub
   - Tier 1 (heuristic): `n_fields ≥ 3` or `(PERSON + YEAR)` — usable, lower confidence
   - See `notes/isbd-field-rating.md` for full spec and `notes/isbd-field-rating-adr.md` for ADR
 - [ ] Silver candidate selection — sample stratified by tier, era (`dc_type`), and field combination; target ~5K records for NER evaluation / training
+- [ ] `scripts/build_silver_spans.py` — auxiliary-guided span extraction for silver dataset; inputs: `isbd_field_ratings.csv` + full DF_DE_TITLES (with `dc_publisher`, `dc_creator`, `dc_contributor`, `agents`); output: `data/processed/silver_spans.jsonl`
+  - For each silver-tier record, extract span boundaries from the title string using ISBD area parsing (structural) or pattern matching (heuristic)
+  - **PLACE / PUBLISHER enrichment**: take `dc_publisher` value and search for it as a substring in `title`; only label the span if found — span boundaries come from the title string (inference-consistent)
+  - **PERSON enrichment**: match `dc_creator` / `dc_contributor` names against the post-` /` segment of the title; label if found
+  - Output format: one JSON object per record — `{obj_id, title, spans: [{start, end, text, label}]}`
+  - See `notes/isbd-field-rating.md` → *Silver dataset improvement* for design rationale
 - [ ] NuNER Zero evaluation — run zero-shot NER on 500 stratified fallback records (no ISBD markers); assess TITLE, PERSON precision on a manually checked gold set; see [ner-bibliographic.md](ner-bibliographic.md)
 - [ ] **Decision gate**: if NuNER Zero precision ≥ threshold on gold set → done; else use LLM to label silver candidates and fine-tune `xlm-roberta-base`
 - [ ] `notes/isbd-field-rating.md` — spec for field detection methodology
@@ -41,7 +47,10 @@ DF_DE_TITLES_20240125b.pkl
 rate_isbd_fields.py  →  data/processed/isbd_field_ratings.csv
       │
       ▼
-silver candidate selection  →  stratified NER evaluation set (~500 records)
+build_silver_spans.py  ←  auxiliary columns (dc_publisher, dc_creator, agents)
+      │                    (lookup in title string only — span boundaries from title)
+      ▼
+data/processed/silver_spans.jsonl  →  stratified NER evaluation set (~500 records)
       │
       ▼
 NuNER Zero evaluation  →  precision/recall on gold set
