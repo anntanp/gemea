@@ -187,7 +187,27 @@ Results from `rate_isbd_fields.py` on `DF_DE_TITLES_20240125b.pkl` (4,477,780 re
 
 **Tier 2 at 0.1% (4,613 records).** Directly consequent on `has_dot_dash` being 1.2% — tier 2 requires the area separator. Still a usable silver set for fine-tuning; 4,600 structurally annotated records is within normal range for bibliographic NER.
 
+| # | obj_id | Title (truncated) | Detected fields |
+|---|---|---|---|
+| 1 | [KPVZSSDOTJWL7PGKA5YX6OOW57MQ4PYR](https://ddb.de/item/KPVZSSDOTJWL7PGKA5YX6OOW57MQ4PYR) | Naturgeschichte und Abbildungen der Säugethiere : Nach den neuesten Systemen … / vo… | PERSON, OTHER_TITLE, YEAR, PLACE, PUBLISHER, EDITION |
+| 2 | [I57Y5U5NVXENFX57QU66VNLMZCL3VDXD](https://ddb.de/item/I57Y5U5NVXENFX57QU66VNLMZCL3VDXD) | Pieske, Christa, Bilder für jedermann : Wandbilddrucke 1840–1940 ; [Museum für Dt. Volkskunde…] | PERSON, OTHER_TITLE, PLACE, PUBLISHER, VOLUME |
+| 3 | [VQOVBGV47PA25EXTCPCNQ25V736DXDUM](https://ddb.de/item/VQOVBGV47PA25EXTCPCNQ25V736DXDUM) | Erwin : vier Gespräche über das Schöne und die Kunst / von K. W. F. Solger. - Berlin : Realschulbuchhandlung, 1815 | PERSON, OTHER_TITLE, YEAR, PLACE, PUBLISHER |
+
 **Tier 1 at 7.5% (335k records).** The practical silver candidate pool. Heuristic false positive rate unknown — see `scripts/validate_heuristic_fields.py`.
+
+| # | obj_id | Title (truncated) | Detected fields |
+|---|---|---|---|
+| 1 | [UBMFYC2EUGMB3Q5FK65JZMRFMVJXA3E4](https://ddb.de/item/UBMFYC2EUGMB3Q5FK65JZMRFMVJXA3E4) | Die höchstnöthige Sterbe-Schule : Bey Christlicher Beerdigung Der … Fr. Marien Elisabeth von Schönberg… | OTHER_TITLE, YEAR |
+| 2 | [PBKMFCEQ2CM622H4SXHBIA5KYYJUQO6U](https://ddb.de/item/PBKMFCEQ2CM622H4SXHBIA5KYYJUQO6U) | Assaphs Und einer jglichen gleubigen Seele Fewrige Liebe gegen Gott … : Bey … Leichbegängnüß … 16. May Anno 1647 | OTHER_TITLE, YEAR |
+| 3 | [K74VAL7PLJW2K7J5HPJURCYGPUBK6BUV](https://ddb.de/item/K74VAL7PLJW2K7J5HPJURCYGPUBK6BUV) | Warhafftiger Abtruck gleichlautender Copey Kaysers Rudolffi des Anderen Käys. Mandati … | OTHER_TITLE, YEAR |
+
+**Tier 0 at 92.4% (4.1M records).** No or insufficient ISBD signals — not selected as silver candidates.
+
+| # | obj_id | Title | Detected fields |
+|---|---|---|---|
+| 1 | [5CPBHIPP5PFCDYGZWNJA2OLCZBXDZDXZ](https://ddb.de/item/5CPBHIPP5PFCDYGZWNJA2OLCZBXDZDXZ) | Sitzung 24, 2. Juli 1931 | YEAR only |
+| 2 | [A5XNH66CR2PGPDT6D4MBWZV2LKARBZX5](https://ddb.de/item/A5XNH66CR2PGPDT6D4MBWZV2LKARBZX5) | Abbildung und Beschreibung allerhand Menschen | none |
+| 3 | [SPWM52CIKUEGY2OVBAUNBXIBWGGGV7OX](https://ddb.de/item/SPWM52CIKUEGY2OVBAUNBXIBWGGGV7OX) | Elegia De Obsidione Magdeburgensi, Klag-Reimen/ Von Beläg- und Eroberung der weitberühmbten Uhralten Stadt Magdeburg | none |
 
 ---
 
