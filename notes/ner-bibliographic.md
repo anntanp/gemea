@@ -212,6 +212,21 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## Open questions
 
+| ID | Title | Status | Blocks |
+|---|---|---|---|
+| SR-01 | ISBD signal coverage (corpus-wide) | ✅ Resolved | — |
+| SR-02 | ISBD parser split priority | ✅ Resolved | — |
+| SR-03 | Silver label quality and false positive rate | 🔲 Open | SR-08 |
+| SR-04 | TRANSLATOR / PERSON disambiguation | 🔲 Open | SR-07 |
+| SR-05 | Trailing period noise | 🔲 Open | — |
+| SR-06 | Historical and Latin title scope | 🔲 Open | SR-07 |
+| SR-07 | Gold set composition | 🔲 Open | SR-08 |
+| SR-08 | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
+| SR-09 | FRBR metric scope for paper | 🔲 Open | SR-07 |
+| SR-10 | DF_DE_TITLES source and title-length scope | 🔲 Open | — |
+
+---
+
 ### SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](isbd-field-rating.md)
 - DF_DE_TITLES (4.47M): 20.2% have ` :`, 0.8% have ` /`, 14.6% have a year, 3.6% have an edition keyword
@@ -259,3 +274,9 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 **Status:** Open
 - **Requirement:** confirm which FRBR levels the paper's quality metrics cover — Work (TITLE, PERSON) only, or also Expression (TRANSLATOR, PARALLEL_TITLE, MEDIUM) and Manifestation (PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME)
 - Determines which label types must appear in the gold set and which NER labels are in scope for the evaluation section
+
+### SR-10 — DF_DE_TITLES source and title-length scope
+**Status:** Open
+- **Question 1:** Confirm the exact source of `DF_DE_TITLES` — is it derived from a specific DDB facet, dc_type filter, or the full object dump? Understanding the selection criteria affects generalizability claims in the paper.
+- **Question 2:** The current corpus skews toward long ISBD strings. Short titles (single-token or bare proper-title strings with no punctuation signals) represent the NER-fallback majority and may need explicit representation in the silver and gold sets to avoid training on a length-biased sample.
+- **Action:** Check DF_DE_TITLES provenance in pipeline notes / download script; plot title-length distribution (token count); decide whether to stratify sampling by length (e.g. short ≤ 5 tokens, medium 6–20, long > 20)
