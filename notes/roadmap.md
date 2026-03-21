@@ -1,6 +1,61 @@
 # GeMeA — Roadmap
 
-Phase order: **0 → 1 → 1b → 3 → 4 → 2**
+Phase order: **0a → 0 → 1 → 1b → 3 → 4 → 2**
+
+---
+
+## Phase 0a — NER Training Data for Title Parsing
+
+**Goal:** Prepare silver-labeled training data for the NER fallback in `link_gnd_works.py`. The NER model must be evaluated (and trained if zero-shot is insufficient) before `link_gnd_works.py` can run reliably on the full corpus.
+
+**Blocks:** Phase 0 (`link_gnd_works.py` Step 2 — NER fallback)
+
+**Output:** `data/processed/isbd_field_ratings.csv` with per-record field presence flags and silver tier; NER model evaluation report; decision on whether to use NuNER Zero zero-shot or fine-tune.
+
+### Context
+
+`link_gnd_works.py` uses a two-step title extraction strategy:
+1. Rule-based ISBD parser (covers ~28% of records where ISBD punctuation is present)
+2. NER fallback for the remaining ~72% (the majority path)
+
+Phase 0a produces the data and model needed for Step 2. It is a distinct NLP subtask separate from GND linking.
+
+### Deliverables
+
+- [ ] `scripts/rate_isbd_fields.py` — rate all 4.47M titles in `DF_DE_TITLES` for the presence of TITLE, OTHER_TITLE, PERSON, PARALLEL_TITLE, EDITION, PUBLISHER, PLACE, YEAR, SERIES, VOLUME using ISBD punctuation rules; output `data/processed/isbd_field_ratings.csv` with `silver_tier` column
+  - Tier 2 (structural): `. -` area separator present + PERSON + ≥1 Manifestation field — best multi-field silver candidates
+  - Tier 1 (heuristic): `n_fields ≥ 3` or `(PERSON + YEAR)` — usable, lower confidence
+  - See `notes/isbd-field-rating.md` for full spec and `notes/isbd-field-rating-adr.md` for ADR
+- [ ] Silver candidate selection — sample stratified by tier, era (`dc_type`), and field combination; target ~5K records for NER evaluation / training
+- [ ] NuNER Zero evaluation — run zero-shot NER on 500 stratified fallback records (no ISBD markers); assess TITLE, PERSON precision on a manually checked gold set; see [ner-bibliographic.md](ner-bibliographic.md)
+- [ ] **Decision gate**: if NuNER Zero precision ≥ threshold on gold set → done; else use LLM to label silver candidates and fine-tune `xlm-roberta-base`
+- [ ] `notes/isbd-field-rating.md` — spec for field detection methodology
+- [ ] `notes/isbd-field-rating-adr.md` — ADR for ISBD-based rating approach
+
+### Pipeline position
+
+```
+DF_DE_TITLES_20240125b.pkl
+      │
+      ▼
+rate_isbd_fields.py  →  data/processed/isbd_field_ratings.csv
+      │
+      ▼
+silver candidate selection  →  stratified NER evaluation set (~500 records)
+      │
+      ▼
+NuNER Zero evaluation  →  precision/recall on gold set
+      │
+      ▼  [if precision sufficient]
+NER model ready for link_gnd_works.py Step 2
+      │
+      ▼  [if fine-tuning needed]
+LLM labeling → fine-tune xlm-roberta-base → evaluate → NER model ready
+```
+
+### Milestone
+
+`isbd_field_ratings.csv` produced for all 4.47M records; NuNER Zero evaluated on gold set; NER model decision documented; `link_gnd_works.py` NER step has a validated model.
 
 ---
 
@@ -28,7 +83,7 @@ GeMeA does not own rdf2jsonld or mocho. Phase 0 is about **driving** them correc
 - [ ] `scripts/run_rdf2jsonld.sh` — invoke rdf2jsonld in parallel over all provider batches; output to `data/raw/rdf-json/`
 - [ ] `scripts/link_gnd_works.py` — link `dc:title` strings → GND Werk URIs; feeds mocho
   - Step 1: rule-based ISBD parser (split on ` / ` and `. - `) to extract clean title from messy `dc:title` strings
-  - Step 2: NER fallback for records without ISBD punctuation (~71% per Goethe-Faust sample — majority path); labels: TITLE, PERSON, PUBLISHER, YEAR, EDITION — see [ner-bibliographic.md](ner-bibliographic.md)
+  - Step 2: NER fallback for records without ISBD punctuation (~72% — majority path); uses model validated in Phase 0a; labels: TITLE, PERSON, PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME — see [ner-bibliographic.md](ner-bibliographic.md)
   - Step 3: deduplicate `(title, author_gnd_uri)` pairs before API calls (~65M records → ~5–10M unique)
   - Step 4: lobid-gnd Werk lookup with author GND URI cross-reference; score candidates (`owl:sameAs` exact / `skos:closeMatch` fuzzy)
   - Output: per-CHO JSON with `raw_title`, `extracted_title`, `extraction_method`, `gnd_werk_uri`, `match_type`, `match_confidence` → `data/raw/gnd-works/`

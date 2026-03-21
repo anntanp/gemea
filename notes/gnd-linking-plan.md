@@ -96,13 +96,32 @@ SELECT ?w ?label ?score WHERE {
 ORDER BY DESC(?score) LIMIT 5
 ```
 
-**Result:** Parse error —
-```
-Invalid SPARQL query: Token "contains-word": mismatched input 'contains-word'
-expecting {'(', 'a', '^', '!', IRI_REF, PNAME_NS, PNAME_LN, VAR1, VAR2, PREFIX_LANGTAG}
+**Test (curl):**
+
+```bash
+curl -s -X POST "https://sparql.dnb.de/api/dnbgnd" \
+  -H "Accept: application/sparql-results+json" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode 'query=PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+SELECT ?w ?label WHERE {
+  ?w a gndo:Work .
+  ?w gndo:preferredNameForTheWork ?label .
+  ?label contains-word "faust"
+}
+LIMIT 5'
 ```
 
-The endpoint validates against the SPARQL 1.1 grammar; `contains-word` is QLever-specific syntax and is not available here. **Patterns A and B do not apply. Pattern C is the active query path.**
+**Result:**
+
+```json
+{
+  "exception": "Invalid SPARQL query: Token \"contains-word\": mismatched input 'contains-word' expecting {'(', 'a', '^', '!', IRI_REF, PNAME_NS, PNAME_LN, VAR1, VAR2, PREFIX_LANGTAG}",
+  "metadata": { "line": 5, "positionInLine": 9, "startIndex": 155, "stopIndex": 167 },
+  "status": "ERROR"
+}
+```
+
+The parser fails at line 5, position 9 — exactly where `contains-word` appears as predicate. The endpoint enforces SPARQL 1.1 grammar; `contains-word` is QLever-specific syntax and is not available here. **Patterns A and B do not apply. Pattern C is the active query path.**
 
 ### 0.3 Confirm author predicate name
 
@@ -146,6 +165,34 @@ From `gnd_20251218.ttl`, the relevant author-role property hierarchy is:
 | `gndo:composer` | Composer / Komponist | RDA `P60426` | `$4=koma` | Musical works |
 
 **SPARQL does not infer `rdfs:subPropertyOf` without a reasoner.** A query constraining `gndo:author` will miss triples that use `gndo:firstAuthor`, even though `firstAuthor` is a subproperty of `author`. Pattern A must explicitly cover both using `VALUES ?authorPred { gndo:author gndo:firstAuthor }`. `gndo:poet` and `gndo:composer` should be added for coverage of MusicalWork records.
+
+### 0.4 Confirm literal format of `preferredNameForTheWork`
+
+Determines whether VALUES-based queries must include `@de` language-tagged variants.
+
+```bash
+curl -s -X POST "https://sparql.dnb.de/api/dnbgnd" \
+  -H "Accept: application/sparql-results+json" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode 'query=PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+SELECT ?l (lang(?l) AS ?tag) WHERE {
+  <https://d-nb.info/gnd/4427937-1> gndo:preferredNameForTheWork ?l .
+}
+LIMIT 5'
+```
+
+**Result:**
+
+```json
+{
+  "l": { "type": "literal", "value": "Faust I / Walpurgisnacht / Berlin / Staatsbibliothek Berlin / Ms. germ. qu. 527" },
+  "tag": { "type": "literal", "value": "" }
+}
+```
+
+**Conclusions:**
+1. `preferredNameForTheWork` literals have **no language tag** — `@de` variants are not needed in VALUES clauses.
+2. GND preferred names are **not clean titles** — this Manuscript entry carries a full ISBD-style string including location and shelfmark, not just the work title. Pattern C's exact FILTER match will not resolve titles like "Faust" against such records; those can only be matched via `gndo:variantNameForTheWork` or through a separate normalized-title query.
 
 ---
 
@@ -283,6 +330,30 @@ GENERIC_TITLE_WORDS = {
 Example: *"Gedichte"* alone returns thousands of GND Works. *"faust"* alone is sufficient with an author URI.
 
 This list should be derived empirically from a frequency query against the endpoint, not hardcoded blindly — run after recon 0.1.
+
+**Script:** `scripts/check_generic_title_words.py` — queries the DNB endpoint per word using exact VALUE matching on capitalized German forms (plain literals, no `@de` tag — confirmed by recon 0.4). Run with `python scripts/check_generic_title_words.py`.
+
+**Results** (counts = GND Works whose full `preferredNameForTheWork` is exactly this word or common article+word variants; threshold ≥100 = drop):
+
+| Word | Count | Keep in list? |
+|---|---|---|
+| briefe | 74 | Yes (low collision) |
+| gedichte | 90 | Yes (low collision) |
+| werke | 3,212 | **No — drop from list** |
+| schriften | 1 | Yes (low collision) |
+| geschichte | 5 | Yes (low collision) |
+| bericht | 2 | Yes (low collision) |
+| katalog | 0 | Yes (low collision) |
+| sammlung | 0 | Yes (low collision) |
+| aufsätze | 0 | Yes (low collision) |
+| texte | 2 | Yes (low collision) |
+| band | 0 | Yes (low collision) |
+| teil | 1 | Yes (low collision) |
+| heft | 0 | Yes (low collision) |
+| nummer | 0 | Yes (low collision) |
+| jahrgang | 0 | Yes (low collision) |
+
+**Conclusion:** Only `werke` (3,212) exceeds the threshold and is genuinely high-collision as a standalone title. All other words are low-frequency as full titles — GND preferred names are typically qualified strings (ISBD-style, see recon 0.4), not bare single-word titles. `GENERIC_TITLE_WORDS` should be revised to contain only `werke`; the others do not need filtering for Pattern C exact-match queries.
 
 **Decision rule:**
 

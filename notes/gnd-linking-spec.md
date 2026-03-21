@@ -140,7 +140,8 @@ LIMIT 10
 | Normalization | Strip diacritics | NFD decompose → remove combining characters (`unicodedata.category == 'Mn'`); maps `ä→a`, `ü→u`, `ö→o` |
 | Tokenization | Split | Split on whitespace and punctuation into word tokens |
 | Filtering | Remove stopwords | `der, die, das, ein, eine, von, und, zu, im, in, an, auf, für, mit, bei, dem, den` |
-| Filtering | Select distinctive tokens | 2–3 tokens by semantic centrality and low collision frequency (see `gnd-linking-plan.md` §Step 2) |
+| Filtering | Remove generic title words | Only `werke` is confirmed high-collision as a standalone GND title (3,212 exact matches); all other originally proposed words have ≤90 exact matches and need not be filtered (confirmed by `scripts/check_generic_title_words.py`, recon 0.4) |
+| Filtering | Select distinctive tokens | 2–3 tokens by semantic centrality (see `gnd-linking-plan.md` §Step 2) |
 
 ---
 
