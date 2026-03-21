@@ -34,16 +34,19 @@ Title proper : other title information / statement of responsibility
 Die höchstnöthige Sterbe-Schule : Bey Christlicher Beerdigung / Christian Gerber
 ```
 → Title area only; no `. -`; has ` :` (other title) and ` /` (SoR[^sor])
+([UBMFYC2EUGMB3Q5FK65JZMRFMVJXA3E4](https://ddb.de/item/UBMFYC2EUGMB3Q5FK65JZMRFMVJXA3E4))
 
 ```
-Faust : der Tragödie erster Teil / Johann Wolfgang von Goethe. - 12. Aufl. - Leipzig : Insel-Verlag, 1920
+Erwin : vier Gespräche über das Schöne und die Kunst / von K. W. F. Solger. - Berlin : Realschulbuchhandlung, 1815
 ```
 → Full structural record; area separator present; PLACE, PUBLISHER, YEAR all detectable
+([VQOVBGV47PA25EXTCPCNQ25V736DXDUM](https://ddb.de/item/VQOVBGV47PA25EXTCPCNQ25V736DXDUM))
 
 ```
-Critik der reinen Vernunft / Immanuel Kant. - Riga : Hartknoch, 1781. - (Philosophische Bibliothek ; Bd. 37)
+Beitrag zur Infusorienkunde oder Naturbeschreibung der Zerkarien und Bazillarien : Mit 6 illuminierten Kupfertafeln / von D. Christian Ludwig Nitzsch, Professor zu Halle. - Halle : Hendel, 1817. - (Neue Schriften der Naturforschenden Gesellschaft zu Halle ; 3,1)
 ```
 → Title, SoR, publication area, series area
+([CO5UVCKY6XI5WDLXPZTZ6NDVXL4V2THV](https://ddb.de/item/CO5UVCKY6XI5WDLXPZTZ6NDVXL4V2THV))
 
 The `. - ` separator is the primary structural signal. Records **without** it are catalogued with incomplete ISBD punctuation — the title string may still contain useful signals (` :`, ` /`, year) but field boundary precision is lower.
 

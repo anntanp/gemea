@@ -212,11 +212,50 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## Open questions
 
-- [ ] Confirm which FRBR levels the paper's quality metrics cover — Work (TITLE, PERSON) only, or also Expression (TRANSLATOR, PARALLEL_TITLE, MEDIUM) and Manifestation (PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME)?
-- [ ] TRANSLATOR disambiguation from PERSON via keyword heuristic — validate precision on a sample before using as silver labels
-- [ ] Silver label quality: how clean are the ISBD-derived annotations for training, especially for historical records?
-- [x] ISBD coverage varies by provider — measure across more DDB subsets before assuming the 29%/71% split holds corpus-wide → **DF_DE_TITLES (4.47M)** confirms 28.4% ISBD coverage (excl. trailing `.`); 29% estimate holds corpus-wide
-- [ ] What share of non-ISBD records have Latin or historical German titles? (determines how much historical signal is needed)
-- [ ] Gold set composition: sample should be stratified by era to catch historical degradation early
-- [ ] ISBD parser uses ` /` as primary split, but ` /` appears in only 0.8% of DF_DE_TITLES (vs 2.1% in Goethe-Faust subset); ` :` at 20.3% is the dominant signal — verify parser prioritizes ` :` for silver label generation
-- [ ] Trailing period (17.5% of corpus) is noisy — fires on abbreviations (`Hrsg.`, `Bd.`) and ordinals; strip known German abbreviations before using as silver label signal, or require co-occurrence with another ISBD marker
+### SR-01 — ISBD signal coverage (corpus-wide)
+**Status:** Resolved — [isbd-field-rating.md](isbd-field-rating.md)
+- DF_DE_TITLES (4.47M): 20.2% have ` :`, 0.8% have ` /`, 14.6% have a year, 3.6% have an edition keyword
+- Area separator `. -` present in only **1.2%** of records (53k) — structural tier is limited; heuristic tier carries 99% of silver candidates
+- Tier 2 silver (structural, multi-field): **4,613 records** (0.1%)
+- Tier 1 silver (heuristic, partial): **335,524 records** (7.5%)
+
+### SR-02 — ISBD parser split priority
+**Status:** Resolved
+- ` /` (SoR) appears in only 0.8% of titles; ` :` (subtitle) at 20.2% is the dominant title-area signal
+- Parser must prioritise ` :` splitting for `OTHER_TITLE` / `TITLE` boundary, not ` /`
+
+### SR-03 — Silver label quality and false positive rate
+**Status:** Open — blocked on validation
+- Tier-2 labels are structurally derived (`. -` area separator present) — expected high precision
+- Tier-1 labels use heuristic whole-string patterns — false positive rate unknown for ` :`, ` /`, YEAR
+- **Action:** run `scripts/validate_heuristic_fields.py` (200-record stratified sample); accept tier-1 for augmentation only if false positive rate < 15% per field
+
+### SR-04 — TRANSLATOR / PERSON disambiguation
+**Status:** Open
+- ` /` fires for both PERSON (author) and TRANSLATOR; keyword matching ("übersetzt von", "Übers.:", "transl.") provides first-pass split
+- **Action:** validate keyword heuristic precision on 100-record sample of ` /`-flagged titles before using TRANSLATOR as a distinct silver label
+
+### SR-05 — Trailing period noise
+**Status:** Open
+- Trailing `.` fires in 17.5% of corpus but also hits abbreviations (`Hrsg.`, `Bd.`) and ordinals — upper bound, not a clean signal
+- **Action:** before using as silver label signal, require co-occurrence with another ISBD marker, or strip a curated German abbreviation list
+
+### SR-06 — Historical and Latin title scope
+**Status:** Open
+- 92.4% of records (tier 0) have no ISBD signals and fall to NER fallback — unknown share are Latin or pre-modern German
+- **Action:** sample 200 records from `dc_type` = Leichenpredigt / pre-1800 Monografie; estimate Latin / Early Modern German proportion to determine how much historical signal is needed in training
+
+### SR-07 — Gold set composition
+**Status:** Open — blocks SR-08
+- **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / pre-1800 / Latin), silver tier (2 / 1 / 0), and `dc_type`
+- Must cover tier-0 fallback records (the NER majority path) not just ISBD-structured ones
+
+### SR-08 — NuNER Zero evaluation
+**Status:** Open — blocked on SR-07
+- **Requirement:** run NuNER Zero zero-shot on 500 stratified fallback records; assess TITLE and PERSON F1 on gold set
+- **Decision gate:** precision ≥ threshold → use zero-shot; else → LLM labeling + fine-tune `xlm-roberta-base` on silver + LLM-labeled set
+
+### SR-09 — FRBR metric scope for paper
+**Status:** Open
+- **Requirement:** confirm which FRBR levels the paper's quality metrics cover — Work (TITLE, PERSON) only, or also Expression (TRANSLATOR, PARALLEL_TITLE, MEDIUM) and Manifestation (PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME)
+- Determines which label types must appear in the gold set and which NER labels are in scope for the evaluation section
