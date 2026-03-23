@@ -53,10 +53,23 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Parser must prioritise ` :` splitting for `OTHER_TITLE` / `TITLE` boundary, not ` /`
 
 ### 2.3 SR-03 — Silver label quality and false positive rate
-**Status:** Open — blocked on validation
-- Tier-2 labels are structurally derived (`. -` area separator present) — expected high precision
-- Tier-1 labels use heuristic whole-string patterns — false positive rate unknown for ` :`, ` /`, YEAR
-- **Action:** run `scripts/validate_heuristic_fields.py` (200-record stratified sample); accept tier-1 for augmentation only if false positive rate < 15% per field
+**Status:** Open — sample generated, manual review pending
+
+`rate_isbd_fields.py` assigns silver labels to titles by detecting ISBD punctuation patterns at two tiers:
+
+- **Tier 2 (structural):** `. -` area separator present — strong structural signal, expected high precision
+- **Tier 1 (heuristic):** no `. -`, but other markers fire (` :`, ` /`, 4-digit year, edition keyword, etc.) — weaker signal, false positive rate unknown
+
+**Why tier-1 precision is uncertain.** Heuristic patterns over-fire on non-ISBD content:
+- ` :` fires on any colon, not just ISBD subtitle separators
+- ` /` fires on fractions, file paths, and abbreviations as well as Statement of Responsibility
+- A 4-digit number fires on page counts, catalogue numbers, and shelf marks — not only publication years
+
+**Sample generated.** `scripts/validate_heuristic_fields.py` produced a 200-record stratified sample at `data/processed/heuristic_validation_sample.csv`, with one stratum per heuristic field flag. Columns: `obj_id`, `ddb_url`, `title`, `dc_type`, `silver_tier`, field flags, plus blank `fp_fields` and `notes` columns for the reviewer.
+
+**Action — manual review.** Open `data/processed/heuristic_validation_sample.csv`. For each row, check whether the detected field flags are correct given the title string. In `fp_fields`, list any field names that fired incorrectly (comma-separated). Leave blank if all flags are correct.
+
+**Decision gate.** Accept tier-1 labels for training/augmentation only if **false positive rate < 15% per field**. Fields above that threshold must be excluded or post-filtered before use as silver labels. This gate blocks SR-08 (NuNER Zero evaluation).
 
 ### 2.4 SR-04 — TRANSLATOR / PERSON disambiguation
 **Status:** Open
