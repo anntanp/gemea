@@ -1,6 +1,6 @@
 # GeMeA — DF_DE_TITLES: Source and Title-Length Distribution
 
-**SR-10** in [ner-bibliographic.md](ner-bibliographic.md). See also [title-length-thresholds.md](ner/title-length-thresholds.md).
+**SR-10** in [ner-bibliographic.md](../ner-bibliographic.md). See also [title-length-thresholds.md](title-length-thresholds.md).
 
 ---
 
@@ -32,7 +32,7 @@ Selection funnel:
 
 Script: `scripts/explore_token_distribution.py` — raw distribution of `all_tokens` and `content_tokens` across all 4,477,780 titles.
 
-![Token distribution](images/fig_token_distribution.png)
+![Token distribution](../images/fig_token_distribution.png)
 
 Percentile table:
 
@@ -60,7 +60,7 @@ Script: `scripts/analyse_title_lengths.py` — token counts from pre-computed `a
 
 Year coverage: 89.4% from `dates` column, 1.0% from title regex fallback, **9.6% no year** (429,097 titles).
 
-![Title-length distribution by year](images/fig_title_lengths.png)
+![Title-length distribution by year](../images/fig_title_lengths.png)
 
 Overall distribution (4,477,780 titles; `all_tokens` including stopwords and punctuation):
 
