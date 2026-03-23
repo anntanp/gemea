@@ -2,7 +2,7 @@
 
 A synthesis of what has been done to automatically construct a silver NER training dataset from ISBD punctuation rules in 4,477,780 German DDB title strings, including all resolved study/research questions (SRs). The final section extracts a domain-agnostic framework.
 
-**Related notes:** [ner-bibliographic.md](../ner-bibliographic.md), [isbd-field-rating.md](isbd-field-rating.md), [isbd-field-rating-adr.md](isbd-field-rating-adr.md), [isbd-applicability.md](isbd-applicability.md), [silver-label-fp-review.md](silver-label-fp-review.md), [translator-person-disambiguation.md](translator-person-disambiguation.md), [de-titles-distribution.md](de-titles-distribution.md), [title-length-thresholds.md](title-length-thresholds.md)
+**Related notes:** [ner-bibliographic.md](../ner-bibliographic.md), [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md), [sr01_isbd-field-rating-adr.md](sr01_isbd-field-rating-adr.md), [sr01_isbd-applicability.md](sr01_isbd-applicability.md), [sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md), [sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md), [sr10_de-titles-distribution.md](sr10_de-titles-distribution.md), [sr10_title-length-thresholds.md](sr10_title-length-thresholds.md)
 
 ---
 
@@ -10,7 +10,7 @@ A synthesis of what has been done to automatically construct a silver NER traini
 
 ### Phase 0 — Corpus characterisation
 
-**SR-10** ([de-titles-distribution.md](de-titles-distribution.md), [title-length-thresholds.md](title-length-thresholds.md))
+**SR-10** ([sr10_de-titles-distribution.md](sr10_de-titles-distribution.md), [sr10_title-length-thresholds.md](sr10_title-length-thresholds.md))
 
 Before doing anything with labels, the corpus was characterised along two dimensions:
 
@@ -64,7 +64,7 @@ Before doing anything with labels, the corpus was characterised along two dimens
 
 ### Phase 3 — Precision validation
 
-**SR-03** ([silver-label-fp-review.md](silver-label-fp-review.md))
+**SR-03** ([sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md))
 
 `scripts/validate_heuristic_fields.py` drew a 200-record stratified sample from tier-1 records (one stratum per flag). `scripts/sr03_fp_review.py` applied automated rules + per-row overrides to label each active flag as TP or FP.
 
@@ -86,7 +86,7 @@ Results (FP rate per field, 15% acceptance threshold):
 
 ### Phase 4 — Signal disambiguation
 
-**SR-04** ([translator-person-disambiguation.md](translator-person-disambiguation.md))
+**SR-04** ([sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md))
 
 ` /` is not a homogeneous signal. `scripts/validate_translator_disambiguation.py` applied a keyword heuristic to the SoR text and `scripts/evaluate_translator_heuristic.py` evaluated it against 100 manually annotated records.
 
@@ -113,6 +113,7 @@ True class distribution of `f_person = 1` (heuristic tier), mapped to the ISBD/R
 | Signal detection | ✅ Done | Pattern counts, SR-01/02 findings |
 | Field rating | ✅ Done | `isbd_field_ratings.csv` (4.47M rows) |
 | Precision validation | ✅ Done | Per-field FP rates, accept/exclude decisions |
+| Trailing period (SR-05) | ✅ Done | Excluded — 93% FP, zero marginal value |
 | SoR disambiguation | ✅ Done | `f_resp_*` sub-classification schema |
 | Applicability rules | ✅ Done | Era + dc_type guards |
 | Silver span extraction | 🔲 Next | `scripts/build_silver_spans.py` (Phase 0a) |
