@@ -25,18 +25,20 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 
 ## 2. Open questions
 
+**SR** = Study/Research question. Numbered in discovery order; not all will appear in the paper.
+
 | ID | Title | Status | Blocks |
 |---|---|---|---|
-| SR-01 | ISBD signal coverage (corpus-wide) | ✅ Resolved | — |
-| SR-02 | ISBD parser split priority | ✅ Resolved | — |
-| SR-03 | Silver label quality and false positive rate | 🔲 Open | SR-08 |
-| SR-04 | TRANSLATOR / PERSON disambiguation | 🔲 Open | SR-07 |
-| SR-05 | Trailing period noise | 🔲 Open | — |
-| SR-06 | Historical and Latin title scope | 🔲 Open | SR-07 |
-| SR-07 | Gold set composition | 🔲 Open | SR-08 |
-| SR-08 | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
-| SR-09 | FRBR metric scope for paper | 🔲 Open | SR-07 |
-| SR-10 | DF_DE_TITLES source and title-length scope | 🔶 Partial — provenance resolved; length distribution open | — |
+| [SR-01](#21-sr-01--isbd-signal-coverage-corpus-wide) | ISBD signal coverage (corpus-wide) | ✅ Resolved | — |
+| [SR-02](#22-sr-02--isbd-parser-split-priority) | ISBD parser split priority | ✅ Resolved | — |
+| [SR-03](#23-sr-03--silver-label-quality-and-false-positive-rate) | Silver label quality and false positive rate | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
+| [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
+| [SR-05](#25-sr-05--trailing-period-noise) | Trailing period noise | 🔲 Open | — |
+| [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
+| [SR-07](#27-sr-07--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
+| [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
+| [SR-09](#29-sr-09--frbr-metric-scope-for-paper) | FRBR metric scope for paper | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
+| [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | 🔶 Partial — provenance resolved; length distribution open | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](isbd-field-rating.md)
