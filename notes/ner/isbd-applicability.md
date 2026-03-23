@@ -2,7 +2,7 @@
 
 Summary of which ISBD punctuation rules work reliably in the DDB corpus, which fail, and which require era- or type-specific heuristics. Synthesises findings from SR-01–SR-04 and the field rating run on 4,477,780 records.
 
-**Sources:** [isbd-field-rating.md](isbd-field-rating.md), [isbd-title-analysis.md](isbd-title-analysis.md), [silver-label-fp-review.md](silver-label-fp-review.md), [translator-person-disambiguation.md](translator-person-disambiguation.md), [ner-bibliographic.md](ner-bibliographic.md)
+**Sources:** [isbd-field-rating.md](isbd-field-rating.md), [isbd-title-analysis.md](isbd-title-analysis.md), [silver-label-fp-review.md](silver-label-fp-review.md), [translator-person-disambiguation.md](translator-person-disambiguation.md), [ner-bibliographic.md](../ner-bibliographic.md)
 
 ---
 

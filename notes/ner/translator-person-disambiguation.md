@@ -1,6 +1,6 @@
 # GeMeA — TRANSLATOR / PERSON Disambiguation (SR-04)
 
-**SR-04** in [ner-bibliographic.md](ner-bibliographic.md).
+**SR-04** in [ner-bibliographic.md](../ner-bibliographic.md).
 
 ---
 

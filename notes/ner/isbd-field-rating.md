@@ -2,7 +2,7 @@
 
 **Script:** `scripts/rate_isbd_fields.py`
 **Output:** `data/processed/isbd_field_ratings.csv`, `data/processed/isbd_examples.csv`
-**Phase:** 0a — NER Training Data (see [roadmap.md](roadmap.md))
+**Phase:** 0a — NER Training Data (see [roadmap.md](../roadmap.md))
 **ADR:** [isbd-field-rating-adr.md](isbd-field-rating-adr.md)
 
 ---
@@ -212,7 +212,7 @@ Results from `rate_isbd_fields.py` on `DF_DE_TITLES_20240125b.pkl` (4,477,780 re
 
 **`has_dot_dash` at 1.2% vs. expected ~28%.** The area separator `. - ` (with spaces on both sides) matches only 53k records. The prior `check_isbd_titles.py` analysis counted 28% as having *any* ISBD marker, not specifically the `. - ` area separator. Most DDB records are catalogued with title-area punctuation (` :`, ` /`) but without full area separation — the `. - ` separator is rare in this dataset. This means structural-tier detection is far more limited than assumed; the heuristic tier carries nearly all the load.
 
-**`f_year` at 14.6% vs. expected 20–30%.** The year regex `\b(?:1[4-9]\d{2}|20[012]\d)\b` covers 1400–2029. Lower coverage than expected reflects that most DDB records store the date in the `dates` column rather than the title string (89.4% have a year in `dates`; only 14.6% in the title). See [de-titles-distribution.md](de-titles-distribution.md).
+**`f_year` at 14.6% vs. expected 20–30%.** The year regex `\b(?:1[4-9]\d{2}|20[012]\d)\b` covers 1400–2029. Lower coverage than expected reflects that most DDB records store the date in the `dates` column rather than the title string (89.4% have a year in `dates`; only 14.6% in the title). See [de-titles-distribution.md](../de-titles-distribution.md).
 
 **Tier 2 at 0.1% (4,613 records).** Directly consequent on `has_dot_dash` being 1.2% — tier 2 requires the area separator. Still a usable silver set for fine-tuning; 4,600 structurally annotated records is within normal range for bibliographic NER.
 
@@ -220,7 +220,7 @@ Results from `rate_isbd_fields.py` on `DF_DE_TITLES_20240125b.pkl` (4,477,780 re
 
 **SR-04: SoR sub-classification (100-record sample of f_person).** Only 35% of `f_person` heuristic records are true individual-person SoRs. 41% are non-SoR false positives, 19% corporate bodies, 5% editors. Zero true translators detected. `f_person` must be sub-classified into `f_resp_person` / `f_resp_org` / `f_resp_editor` / `f_resp_other` before use as a silver label. See [translator-person-disambiguation.md](translator-person-disambiguation.md).
 
-**SR-10: title length by era.** Pre-1750 titles are 42–50% long (>14 tokens); post-1775 shift to median 6–9 tokens; 2000–2024 reversal. `all_tokens` includes stopwords and punctuation (spaCy `de_core_news_sm`). See [de-titles-distribution.md](de-titles-distribution.md) and [title-length-thresholds.md](title-length-thresholds.md).
+**SR-10: title length by era.** Pre-1750 titles are 42–50% long (>14 tokens); post-1775 shift to median 6–9 tokens; 2000–2024 reversal. `all_tokens` includes stopwords and punctuation (spaCy `de_core_news_sm`). See [de-titles-distribution.md](../de-titles-distribution.md) and [title-length-thresholds.md](title-length-thresholds.md).
 
 | # | obj_id | Title (truncated) | Detected fields |
 |---|---|---|---|

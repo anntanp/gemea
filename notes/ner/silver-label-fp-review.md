@@ -1,6 +1,6 @@
 # GeMeA — Silver Label False-Positive Review (SR-03)
 
-**SR-03** in [ner-bibliographic.md](ner-bibliographic.md). See also [isbd-field-rating.md](isbd-field-rating.md).
+**SR-03** in [ner-bibliographic.md](../ner-bibliographic.md). See also [isbd-field-rating.md](isbd-field-rating.md).
 
 ---
 

@@ -38,7 +38,7 @@
 
 1. **Introduction** — scale of the DDB, motivation for GND Werk linking, gap: no existing pipeline or labeled data
 2. **Background** — GND authority data, ISBD punctuation conventions, GeMeA architecture (brief)
-3. **Dataset: DF_DE_TITLES** — 4.47M titles, ISBD coverage analysis (28.4% excl. trailing period), pattern breakdown (`:` 20.3%, `/` 0.8%, etc.); source: `isbd-title-analysis.md`
+3. **Dataset: DF_DE_TITLES** — 4.47M titles, ISBD coverage analysis (28.4% excl. trailing period), pattern breakdown (`:` 20.3%, `/` 0.8%, etc.); source: `ner/isbd-title-analysis.md`
 4. **Title extraction**
    - Rule-based ISBD parser (primary; 28.4% coverage)
    - Silver labeling procedure (ISBD → auto-annotation → dataset release)
@@ -78,11 +78,11 @@ Supporting citation: Halpin et al. (*When owl:sameAs Isn't the Same*, ISWC 2010)
 | Metric | Value | Source |
 |---|---|---|
 | Total DDB objects | ~65M | GeMeA project |
-| DF_DE_TITLES rows | 4,477,780 | `isbd-title-analysis.md` |
-| ISBD coverage (excl. trailing `.`) | 28.4% | `isbd-title-analysis.md` |
-| NER fallback scope | ~71.6% | `isbd-title-analysis.md` |
-| ` :` pattern (most reliable ISBD signal) | 20.3% | `isbd-title-analysis.md` |
-| ` /` pattern (SoR split) | 0.8% | `isbd-title-analysis.md` |
+| DF_DE_TITLES rows | 4,477,780 | `ner/isbd-title-analysis.md` |
+| ISBD coverage (excl. trailing `.`) | 28.4% | `ner/isbd-title-analysis.md` |
+| NER fallback scope | ~71.6% | `ner/isbd-title-analysis.md` |
+| ` :` pattern (most reliable ISBD signal) | 20.3% | `ner/isbd-title-analysis.md` |
+| ` /` pattern (SoR split) | 0.8% | `ner/isbd-title-analysis.md` |
 | Unique title pairs (estimated) | 5–10M | `gnd-title-extraction.md` |
 | Target Werk linking rate | ≥70% | `gnd-title-extraction.md` |
 

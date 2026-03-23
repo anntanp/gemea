@@ -2,7 +2,7 @@
 
 **Format:** MADR (Markdown Architecture Decision Record)
 **Subject:** Design decisions for `scripts/rate_isbd_fields.py` and NER silver dataset strategy
-**Source:** `notes/isbd-field-rating.md`, `notes/ner-bibliographic.md`
+**Source:** `notes/ner/isbd-field-rating.md`, `notes/ner-bibliographic.md`
 **Status:** Accepted
 
 ---

@@ -1,6 +1,6 @@
 # GeMeA — DF_DE_TITLES: Source and Title-Length Distribution
 
-**SR-10** in [ner-bibliographic.md](ner-bibliographic.md). See also [title-length-thresholds.md](title-length-thresholds.md).
+**SR-10** in [ner-bibliographic.md](ner-bibliographic.md). See also [title-length-thresholds.md](ner/title-length-thresholds.md).
 
 ---
 
@@ -50,7 +50,7 @@ Percentile table:
 
 Shape: roughly flat from 1–9 tokens (5–8% each), peak at 4 tokens (8.0%), then steadily declining. Notable bump at 20 tokens (1.9% vs. 1.3% at 19 and 1.0% at 21) — likely a truncation artifact in the source data.
 
-**Threshold decision: quartiles (≤4 / 5–14 / >14)** — p25 = 4, p75 = 14, equal outer groups (~25% each). Full rationale and alternatives in [title-length-thresholds.md](title-length-thresholds.md).
+**Threshold decision: quartiles (≤4 / 5–14 / >14)** — p25 = 4, p75 = 14, equal outer groups (~25% each). Full rationale and alternatives in [title-length-thresholds.md](ner/title-length-thresholds.md).
 
 ---
 

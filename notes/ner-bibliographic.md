@@ -41,7 +41,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](de-titles-distribution.md) | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
-**Status:** Resolved — [isbd-field-rating.md](isbd-field-rating.md)
+**Status:** Resolved — [isbd-field-rating.md](ner/isbd-field-rating.md)
 - DF_DE_TITLES (4.47M): 20.2% have ` :`, 0.8% have ` /`, 14.6% have a year, 3.6% have an edition keyword
 - Area separator `. -` present in only **1.2%** of records (53k) — structural tier is limited; heuristic tier carries 99% of silver candidates
 - Tier 2 silver (structural, multi-field): **4,613 records** (0.1%)
@@ -53,7 +53,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Parser must prioritise ` :` splitting for `OTHER_TITLE` / `TITLE` boundary, not ` /`
 
 ### 2.3 SR-03 — Silver label quality and false positive rate
-**Status:** Resolved — see [silver-label-fp-review.md](silver-label-fp-review.md)
+**Status:** Resolved — see [silver-label-fp-review.md](ner/silver-label-fp-review.md)
 
 - 81 of 200 sampled heuristic-tier records (40.5%) have at least one false positive
 - **Excluded:** `f_parallel` (~80% FP), `f_edition` (~83% FP)
@@ -62,7 +62,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Pre-1750 author placement (name before title, not after ` /`) is a structural false-negative blind spot for `f_person` — flagged for SR-07
 
 ### 2.4 SR-04 — TRANSLATOR / PERSON disambiguation
-**Status:** Resolved — see [translator-person-disambiguation.md](translator-person-disambiguation.md)
+**Status:** Resolved — see [translator-person-disambiguation.md](ner/translator-person-disambiguation.md)
 
 - Only 35% of `f_person` records are true author SoRs; 41% are non-SoR false positives, 19% corporate bodies, 5% editors
 - **0 true translators** in 100-record sample — TRANSLATOR label not viable from title strings
@@ -84,7 +84,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 **Status:** Open — blocks SR-08
 - **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / pre-1800 / Latin), silver tier (2 / 1 / 0), and `dc_type`
 - Must cover tier-0 fallback records (the NER majority path) not just ISBD-structured ones
-- **Pre-1750 PERSON annotation (from SR-03):** the ` /` SoR heuristic is a systematic false negative for pre-1750 titles — authors appear before the work title, not after ` /`. Gold set annotators must not rely on the SoR position as a cue for the `PERSON` label in this stratum; author spans need to be identified from the opening name + credentials pattern (e.g. *Firstname Lastname, [role/title], [work title]*). This affects annotation guidelines and model evaluation: PERSON F1 on the pre-1750 stratum should be tracked separately from the modern stratum. See [silver-label-fp-review.md §5](silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) for examples.
+- **Pre-1750 PERSON annotation (from SR-03):** the ` /` SoR heuristic is a systematic false negative for pre-1750 titles — authors appear before the work title, not after ` /`. Gold set annotators must not rely on the SoR position as a cue for the `PERSON` label in this stratum; author spans need to be identified from the opening name + credentials pattern (e.g. *Firstname Lastname, [role/title], [work title]*). This affects annotation guidelines and model evaluation: PERSON F1 on the pre-1750 stratum should be tracked separately from the modern stratum. See [silver-label-fp-review.md §5](ner/silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) for examples.
 
 ### 2.8 SR-08 — NuNER Zero evaluation
 **Status:** Open — blocked on SR-07
@@ -100,7 +100,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 **Status:** Resolved — see [de-titles-distribution.md](de-titles-distribution.md)
 
 - **Provenance:** `DF_DE_TITLES` originates in `2023.11 NER.ipynb`; `2024.01 MT-QA.ipynb` produced the dated pkl only. Corpus = 4,477,780 German-tagged DDB TEXT objects (`dc:language` + `langid` = German); no filter by `dc:type`, provider, or era. `all_tokens` = spaCy `de_core_news_sm` token count including stopwords and punctuation; `content_tokens` = stopwords removed, punctuation retained.
-- **Token thresholds:** quartiles — short ≤4 (p25), medium 5–14, long >14 (p75). See [title-length-thresholds.md](title-length-thresholds.md).
+- **Token thresholds:** quartiles — short ≤4 (p25), medium 5–14, long >14 (p75). See [title-length-thresholds.md](ner/title-length-thresholds.md).
 - **Length by year:** pre-1750 dominated by long strings (42–50%, median 12–15 tokens); post-1775 shift to median 6–9; 2000–2024 reversal (62% medium). 9.6% of titles have no year.
 - **Implication for SR-07:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.
 
@@ -252,7 +252,7 @@ The ~28% of records where ISBD area structure is present (`has_dot_dash`) become
 - **Silver tier 2** (primary): `has_dot_dash AND f_person AND ≥1 manifestation field` — structural annotation, multi-field spans; use as primary training set
 - **Silver tier 1** (augmentation): `n_fields ≥ 3` or `(f_person AND f_year)` — partial annotation; validate ~200 records before use
 
-See [isbd-field-rating.md](isbd-field-rating.md) for the full detection spec and [isbd-field-rating-adr.md](isbd-field-rating-adr.md) for design decisions.
+See [isbd-field-rating.md](ner/isbd-field-rating.md) for the full detection spec and [isbd-field-rating-adr.md](ner/isbd-field-rating-adr.md) for design decisions.
 
 ISBD pattern → NER label mapping across FRBR levels:
 
