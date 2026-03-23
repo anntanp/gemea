@@ -7,6 +7,111 @@ Replaces: lobid-gnd REST API approach (previously planned but endpoint was TBD)
 
 ---
 
+## Summary
+
+| Section | What it covers |
+|---|---|
+| [Knowledge base index](#knowledge-base-index) | DNB endpoint dataset stats (triples, subjects, predicates) |
+| [Endpoint and HTTP API](#endpoint-and-http-api) | `https://sparql.dnb.de/api/dnbgnd` — POST format, QLever settings |
+| [Step 0 — Recon queries](#step-0--recon-queries-run-once-before-implementation) | Four one-off queries to validate Work classes, text index, author predicates, literal format before implementation |
+| [Step 1 — Title extraction](#step-1--title-extraction) | Extract clean title from raw `dc:title`: ISBD rule-based parser (primary) + NuNER Zero NER fallback |
+| [Step 2 — Query patterns](#step-2--query-patterns) | Patterns A/B/C with justification; conclusion: Pattern C (FILTER) is the sole active path |
+| [Step 3 — Title token preparation](#step-3--title-token-preparation) | Normalization → tokenization → stopword removal → distinctive token selection; `GENERIC_TITLE_WORDS` validation |
+| [Step 4 — Post-retrieval scoring](#step-4--post-retrieval-scoring) | Match type assignment (exact / normalized / fuzzy); `skos:exactMatch` vs `skos:closeMatch` vs `owl:sameAs` |
+| [Step 5 — Changes to `link_gnd_works.py`](#step-5--changes-to-link_gnd_workspy) | Replace lobid REST with async `httpx` POST; concurrency semaphore |
+| [Step 6 — What this replaces](#step-6--what-this-replaces) | Old lobid plan vs new QLever plan |
+
+---
+
+## Open questions
+
+| ID | Question | Blocking | Status |
+|---|---|---|---|
+| ~~OQ-00a~~ | ~~Is `preferredNameForTheWork` in the text index?~~ | — | **Resolved** — Recon 0.2: `contains-word` causes SPARQL parse error. Endpoint enforces SPARQL 1.1 only. Pattern C is the sole active query path. |
+| ~~OQ-00b~~ | ~~Exact predicate for author link (`gndo:firstAuthor` or `gndo:creator`)?~~ | — | **Resolved** — Recon 0.3: `gndo:author` dominant (8/10); `gndo:firstAuthor` added via `VALUES` (subproperty, SPARQL won't infer); `gndo:poet` for lyrical works; `gndo:composer` for musical works. |
+| OQ-01 | Does `sparql.dnb.de` normalize Umlauts in FILTER comparisons? (`ä` vs `a`) | No | Open — see [recon 0.5](#recon-05--umlaut-handling-in-filter-comparisons-oq-01) |
+| OQ-02 | What are the actual rate limits on `sparql.dnb.de`? | No | Open — no published SLA; profile at `CONCURRENCY = 10` during first batch run |
+| OQ-03 | Should `gndo:variantNameForTheWork` be added as a UNION branch in Pattern C to increase recall? | No | Open — preferred names are often ISBD-qualified strings (recon 0.4); variant names may carry the clean title form |
+| OQ-04 | Does `gndo:composer`/`gndo:firstComposer` behave analogously to `gndo:author`/`gndo:firstAuthor` for MusicalWork records? | No | Open — verify with a musician query analogous to recon 0.3 |
+
+### Recon 0.5 — Umlaut handling in FILTER comparisons (OQ-01)
+
+The question is whether `LCASE(STR(?prefLabel)) = "gotz von berlichingen"` (diacritics stripped) matches a record stored as `"Götz von Berlichingen"`. LCASE performs case folding only; it does not decompose or strip combining characters. The hypothesis is that the endpoint does **not** normalize Umlauts, meaning a stripped form will not match an umlaut-bearing literal — and therefore diacritic stripping in FR-05 would *hurt* recall against `preferredNameForTheWork`.
+
+Test case: Goethe's *Götz von Berlichingen* (`https://d-nb.info/gnd/118540238` as author) — a well-known work with `ö` in the title.
+
+**Query A — with umlaut (expect: results)**
+
+```sparql
+PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+SELECT ?work ?prefLabel WHERE {
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
+  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
+  ?work a ?wtype .
+  ?work gndo:preferredNameForTheWork ?prefLabel .
+  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
+  FILTER(LCASE(STR(?prefLabel)) = "götz von berlichingen")
+}
+LIMIT 10
+```
+
+```bash
+curl -s -X POST "https://sparql.dnb.de/api/dnbgnd" \
+  -H "Accept: application/sparql-results+json" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode 'query=PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+SELECT ?work ?prefLabel WHERE {
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
+  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
+  ?work a ?wtype .
+  ?work gndo:preferredNameForTheWork ?prefLabel .
+  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
+  FILTER(LCASE(STR(?prefLabel)) = "götz von berlichingen")
+}
+LIMIT 10'
+```
+
+**Query B — diacritics stripped (expect: no results if endpoint does not normalize)**
+
+```sparql
+PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+SELECT ?work ?prefLabel WHERE {
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
+  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
+  ?work a ?wtype .
+  ?work gndo:preferredNameForTheWork ?prefLabel .
+  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
+  FILTER(LCASE(STR(?prefLabel)) = "gotz von berlichingen")
+}
+LIMIT 10
+```
+
+```bash
+curl -s -X POST "https://sparql.dnb.de/api/dnbgnd" \
+  -H "Accept: application/sparql-results+json" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode 'query=PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
+SELECT ?work ?prefLabel WHERE {
+  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
+  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
+  ?work a ?wtype .
+  ?work gndo:preferredNameForTheWork ?prefLabel .
+  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
+  FILTER(LCASE(STR(?prefLabel)) = "gotz von berlichingen")
+}
+LIMIT 10'
+```
+
+**Interpretation:**
+
+| Query A result | Query B result | Conclusion | Impact on FR-05 |
+|---|---|---|---|
+| Results returned | No results | Endpoint does **not** normalize Umlauts — FILTER is byte-exact | Strip diacritics from **query string only if GND stores stripped forms**; otherwise keep Umlauts; send both forms via UNION |
+| Results returned | Results returned | Endpoint normalizes Umlauts (accent-insensitive collation) | Stripping is safe; normalized form sufficient for FILTER |
+| No results | No results | Title not stored as `preferredNameForTheWork` in this form | Re-check with `gndo:variantNameForTheWork` (OQ-03) |
+
+---
+
 ## Knowledge base index
 
 **Description:** DNB Bibliography and GND (Gemeinsame Normdatei) (`authorities-gnd_lds`, `dnb-all_lds` version 23.02.2026) — updated monthly
@@ -196,7 +301,39 @@ LIMIT 5'
 
 ---
 
-## Step 1 — Query patterns
+## Step 1 — Title extraction
+
+Raw `dc:title` strings in DDB ProvidedCHOs are ISBD-encoded: they concatenate title, statement of responsibility, edition, publisher, place, and year into a single field using ISBD punctuation. Sending raw strings to GND produces low-precision matches. Extraction runs before token preparation (Step 3) and GND querying (Step 2).
+
+### Method: two-stage pipeline
+
+| Stage | Trigger | Method |
+|---|---|---|
+| **Primary — ISBD rule-based parser** | Record contains ISBD punctuation markers | Split on ` / `, `. - `, ` : ` per ISBD conventions; take the leading segment as the title |
+| **Secondary — NER fallback** | No ISBD markers detected (~71.6% of corpus) | Zero-shot NER with NuNER Zero; extract spans tagged as work titles |
+
+The ISBD parser handles the minority of records that use structured punctuation. NuNER Zero (zero-shot) handles the majority without ISBD markers, where rule-based splitting would either produce nothing or split on the wrong boundary.
+
+### ISBD split rules
+
+| Separator | Meaning in ISBD | Action |
+|---|---|---|
+| ` / ` | Statement of responsibility | Take everything before as title |
+| `. - ` | New ISBD area (edition, publication, etc.) | Take everything before as title |
+| ` : ` | Subtitle or other title information | Optional split; retain subtitle if short |
+
+Example: `"Faust : eine Tragödie / von Goethe. - Neue Ausg."` → extracted title: `"Faust : eine Tragödie"` (or `"Faust"` if subtitle is stripped).
+
+### Output
+
+`extracted_title` — a clean title string passed to Step 3 (token preparation) and used as the FILTER value in Pattern C queries.
+`extraction_method` — `"isbd"` or `"ner"`, recorded in the output JSON (FR-07).
+
+Full extraction design is documented in `notes/gnd-title-extraction.md`. NER model selection, evaluation, and bibliographic NER considerations are documented in `notes/ner-bibliographic.md`.
+
+---
+
+## Step 2 — Query patterns
 
 | Query pattern | Fields | Justification |
 |---|---|---|
@@ -287,7 +424,7 @@ Pattern C with author constraint (when author GND URI is available) becomes the 
 
 ---
 
-## Step 2 — Title token preparation
+## Step 3 — Title token preparation
 
 QLever `contains-word` is word-based, not phrase-based by default. Title preparation has three distinct phases: normalization, tokenization, and filtering.
 
@@ -379,7 +516,7 @@ def select_tokens(tokens: list[str]) -> list[str]:
 
 ---
 
-## Step 3 — Post-retrieval scoring
+## Step 4 — Post-retrieval scoring
 
 QLever's `score()` is used only to rank candidates before string comparison. Match type is assigned in Python:
 
@@ -392,7 +529,7 @@ QLever's `score()` is used only to rank candidates before string comparison. Mat
 
 `match_confidence` = normalized edit similarity to `prefLabel` (not QLever score).
 
-This logic is unchanged from the original plan in `gnd-title-extraction.md`.
+This logic is unchanged from the original plan in `notes/gnd-title-extraction.md`.
 
 ### Predicate justification
 
@@ -408,7 +545,7 @@ This logic is unchanged from the original plan in `gnd-title-extraction.md`.
 
 ---
 
-## Step 4 — Changes to `link_gnd_works.py`
+## Step 5 — Changes to `link_gnd_works.py`
 
 Replace the lobid-gnd REST call (Steps 3–4 in `gnd-title-extraction.md`) with:
 
@@ -445,11 +582,11 @@ async def query_gnd_werk(
 Pattern selection:
 - Pattern A if `author_gnd_uri` is set
 - Pattern B otherwise
-- Pattern C as fallback if recon 0.2 shows `contains-word` is unavailable
+- Pattern C as fallback if recon 0.2 shows `contains-word` is unavailable (confirmed — Pattern C is the sole active path)
 
 ---
 
-## Step 5 — What this replaces
+## Step 6 — What this replaces
 
 | Old plan | New plan |
 |---|---|
@@ -458,92 +595,3 @@ Pattern selection:
 | No text relevance ranking | QLever `score()` ranks candidates |
 | `link_gnd_works.py` depended on lobid API availability | Depends on `sparql.dnb.de` uptime (DNB-operated) |
 | Title-only or title + author_uri via query param | Same semantics; `gndo:firstAuthor` predicate (verify in recon 0.3) |
-
----
-
-## Open questions
-
-| ID | Question | Blocking | Status |
-|---|---|---|---|
-| ~~OQ-00a~~ | ~~Is `preferredNameForTheWork` in the text index?~~ | — | **Resolved** — Recon 0.2: `contains-word` causes SPARQL parse error. Endpoint enforces SPARQL 1.1 only. Pattern C is the sole active query path. |
-| ~~OQ-00b~~ | ~~Exact predicate for author link (`gndo:firstAuthor` or `gndo:creator`)?~~ | — | **Resolved** — Recon 0.3: `gndo:author` dominant (8/10); `gndo:firstAuthor` added via `VALUES` (subproperty, SPARQL won't infer); `gndo:poet` for lyrical works; `gndo:composer` for musical works. |
-| OQ-01 | Does `sparql.dnb.de` normalize Umlauts in FILTER comparisons? (`ä` vs `a`) | No | Open — see recon 0.5 below |
-| OQ-02 | What are the actual rate limits on `sparql.dnb.de`? | No | Open — no published SLA; profile at `CONCURRENCY = 10` during first batch run |
-| OQ-03 | Should `gndo:variantNameForTheWork` be added as a UNION branch in Pattern C to increase recall? | No | Open — preferred names are often ISBD-qualified strings (recon 0.4); variant names may carry the clean title form |
-| OQ-04 | Does `gndo:composer`/`gndo:firstComposer` behave analogously to `gndo:author`/`gndo:firstAuthor` for MusicalWork records? | No | Open — verify with a musician query analogous to recon 0.3 |
-
-### Recon 0.5 — Umlaut handling in FILTER comparisons (OQ-01)
-
-The question is whether `LCASE(STR(?prefLabel)) = "gotz von berlichingen"` (diacritics stripped) matches a record stored as `"Götz von Berlichingen"`. LCASE performs case folding only; it does not decompose or strip combining characters. The hypothesis is that the endpoint does **not** normalize Umlauts, meaning a stripped form will not match an umlaut-bearing literal — and therefore diacritic stripping in FR-05 would *hurt* recall against `preferredNameForTheWork`.
-
-Test case: Goethe's *Götz von Berlichingen* (`https://d-nb.info/gnd/118540238` as author) — a well-known work with `ö` in the title.
-
-**Query A — with umlaut (expect: results)**
-
-```sparql
-PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
-SELECT ?work ?prefLabel WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
-  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
-  ?work a ?wtype .
-  ?work gndo:preferredNameForTheWork ?prefLabel .
-  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
-  FILTER(LCASE(STR(?prefLabel)) = "götz von berlichingen")
-}
-LIMIT 10
-```
-
-```bash
-curl -s -X POST "https://sparql.dnb.de/api/dnbgnd" \
-  -H "Accept: application/sparql-results+json" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode 'query=PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
-SELECT ?work ?prefLabel WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
-  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
-  ?work a ?wtype .
-  ?work gndo:preferredNameForTheWork ?prefLabel .
-  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
-  FILTER(LCASE(STR(?prefLabel)) = "götz von berlichingen")
-}
-LIMIT 10'
-```
-
-**Query B — diacritics stripped (expect: no results if endpoint does not normalize)**
-
-```sparql
-PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
-SELECT ?work ?prefLabel WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
-  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
-  ?work a ?wtype .
-  ?work gndo:preferredNameForTheWork ?prefLabel .
-  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
-  FILTER(LCASE(STR(?prefLabel)) = "gotz von berlichingen")
-}
-LIMIT 10
-```
-
-```bash
-curl -s -X POST "https://sparql.dnb.de/api/dnbgnd" \
-  -H "Accept: application/sparql-results+json" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  --data-urlencode 'query=PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
-SELECT ?work ?prefLabel WHERE {
-  VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }
-  VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }
-  ?work a ?wtype .
-  ?work gndo:preferredNameForTheWork ?prefLabel .
-  ?work ?authorPred <https://d-nb.info/gnd/118540238> .
-  FILTER(LCASE(STR(?prefLabel)) = "gotz von berlichingen")
-}
-LIMIT 10'
-```
-
-**Interpretation:**
-
-| Query A result | Query B result | Conclusion | Impact on FR-05 |
-|---|---|---|---|
-| Results returned | No results | Endpoint does **not** normalize Umlauts — FILTER is byte-exact | Strip diacritics from **query string only if GND stores stripped forms**; otherwise keep Umlauts; send both forms via UNION |
-| Results returned | Results returned | Endpoint normalizes Umlauts (accent-insensitive collation) | Stripping is safe; normalized form sufficient for FILTER |
-| No results | No results | Title not stored as `preferredNameForTheWork` in this form | Re-check with `gndo:variantNameForTheWork` (OQ-03) |
