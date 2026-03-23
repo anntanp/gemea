@@ -91,7 +91,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 ### 2.10 SR-10 — DF_DE_TITLES source and title-length scope
 **Status:** Resolved — see [de-titles-distribution.md](de-titles-distribution.md)
 
-- **Provenance:** `DF_DE_TITLES` originates in `2023.11 NER.ipynb`; `2024.01 MT-QA.ipynb` produced the dated pkl only. Corpus = 4,477,780 German-tagged DDB TEXT objects (`dc:language` + `langid` = German); no filter by `dc:type`, provider, or era.
+- **Provenance:** `DF_DE_TITLES` originates in `2023.11 NER.ipynb`; `2024.01 MT-QA.ipynb` produced the dated pkl only. Corpus = 4,477,780 German-tagged DDB TEXT objects (`dc:language` + `langid` = German); no filter by `dc:type`, provider, or era. `all_tokens` = spaCy `de_core_news_sm` token count including stopwords and punctuation; `content_tokens` = stopwords removed, punctuation retained.
 - **Token thresholds:** quartiles — short ≤4 (p25), medium 5–14, long >14 (p75). See [title-length-thresholds.md](title-length-thresholds.md).
 - **Length by year:** pre-1750 dominated by long strings (42–50%, median 12–15 tokens); post-1775 shift to median 6–9; 2000–2024 reversal (62% medium). 9.6% of titles have no year.
 - **Implication for SR-07:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.

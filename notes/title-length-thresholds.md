@@ -2,7 +2,7 @@
 
 **Applies to:** `scripts/analyse_title_lengths.py`, gold set stratification (SR-07), NER evaluation (SR-08)
 **Source data:** `data/DF_DE_TITLES_20240125b.pkl` — 4,477,780 German DDB titles
-**Token count column:** `all_tokens` (pre-computed whitespace-token count)
+**Token count column:** `all_tokens` (pre-computed spaCy `de_core_news_sm` token count, includes stopwords and punctuation)
 
 ---
 
@@ -21,6 +21,8 @@ Thresholds are the **quartile boundaries** (p25 = 4, p75 = 14) of the `all_token
 ## Empirical basis
 
 Script: `scripts/explore_token_distribution.py` — output: `output/fig_token_distribution.png`, `output/token-distribution.json`.
+
+**Tokenization.** `all_tokens` and `content_tokens` were pre-computed in `2023.11 NER.ipynb` using the spaCy `de_core_news_sm` pipeline. `all_tokens` is the total token count after spaCy tokenization — includes stopwords and punctuation, which spaCy attaches as separate tokens (e.g. `,`, `.`, `:`, `/` each count as one token). `content_tokens` is the count after removing spaCy's stopword list (`token.is_stop`); punctuation tokens are retained in `content_tokens` unless explicitly filtered. The `de_core_news_sm` tokenizer handles German-specific splitting (e.g. separating clitics, punctuation) — token counts are therefore not equivalent to simple whitespace splits, and will differ slightly from `str.split()` counts, particularly for titles with ISBD punctuation (` :`, ` /`, `. -`).
 
 Percentile table (`all_tokens`):
 

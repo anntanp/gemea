@@ -56,13 +56,13 @@ Shape: roughly flat from 1–9 tokens (5–8% each), peak at 4 tokens (8.0%), th
 
 ## 3. Title-length distribution by year
 
-Script: `scripts/analyse_title_lengths.py` — token counts from pre-computed `all_tokens` (includes stopwords) and `content_tokens` (stopwords removed); year from `dates` column (1400–2029), falling back to title regex for nulls.
+Script: `scripts/analyse_title_lengths.py` — token counts from pre-computed `all_tokens` (includes stopwords and punctuation) and `content_tokens` (stopwords removed; punctuation retained); year from `dates` column (1400–2029), falling back to title regex for nulls.
 
 Year coverage: 89.4% from `dates` column, 1.0% from title regex fallback, **9.6% no year** (429,097 titles).
 
 ![Title-length distribution by year](images/fig_title_lengths.png)
 
-Overall distribution (4,477,780 titles; `all_tokens` including stopwords):
+Overall distribution (4,477,780 titles; `all_tokens` including stopwords and punctuation):
 
 | Category | Threshold | Count | % |
 |---|---|---|---|
@@ -105,7 +105,7 @@ Per 25-year bucket (N = 4,048,683 titles with year; 1500+):
 - **Pre-1750:** 42–50% long (>14 tokens), median `all_tokens` 12–15. Consistent with early modern title-page conventions: descriptive long-form titles that fold in subtitle, author, place, and printer information into a single string — the title page functioned as a table of contents.
 - **Post-1775 shift:** median drops from 10 (1750–1774) to 7 (1775–1799); long falls from 34% to 24%. The shift predates any cataloging standardization and aligns with the Enlightenment and Sturm-und-Drang turn toward concise, standalone titles — a publishing convention change, not a cataloging artifact. Short (≤4) rises further to 35–38% in the 1875–1949 period as modern commercial publishing norms consolidate.
 - **2000–2024 reverses:** only 9% short, 62% medium, 29% long — digital-born metadata with richer structured descriptions and subtitle fields recorded separately.
-- **Stopword overhead:** `content_tokens` runs ~3 tokens below `all_tokens` median consistently across all eras.
+- **Non-content token overhead:** `content_tokens` (stopwords removed, punctuation retained) runs ~3 tokens below `all_tokens` (stopwords + punctuation included) median consistently across all eras.
 - **Implication for SR-07 (gold set):** stratify by length as well as era. Pre-1750 long-form records stress the NER model differently from the short modern majority — the TITLE boundary is structurally different. The 9.6% no-year group needs separate treatment — sample by `dc_type` or `silver_tier` instead.
 
 ---

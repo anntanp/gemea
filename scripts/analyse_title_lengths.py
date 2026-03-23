@@ -12,7 +12,8 @@
 #               output/title-length-analysis.json  — bucketed counts and medians
 # Dependencies: pandas, matplotlib
 # Assumptions:  'dates' column is a string year (e.g. '1931') or NaN.
-#               'all_tokens' and 'content_tokens' are int64 token counts.
+#               'all_tokens' is the spaCy token count incl. stopwords and punctuation.
+#               'content_tokens' is the count with stopwords removed (punct. retained).
 
 import re
 import json
@@ -279,11 +280,11 @@ def main(data_path: Path, output_dir: Path) -> None:
 
     # Bottom: median all_tokens vs median content_tokens
     ax2.plot(x, med_all, color=COLOR_ALL, marker="o", linewidth=1.5, markersize=4,
-             label="median all_tokens")
+             label="median all_tokens (incl. stopwords + punct.)")
     ax2.plot(x, med_con, color=COLOR_CON, marker="s", linewidth=1.5, markersize=4,
-             linestyle="--", label="median content_tokens")
+             linestyle="--", label="median content_tokens (stopwords removed)")
     ax2.fill_between(x, med_con, med_all, alpha=0.10, color="#888888",
-                     label="stopword overhead")
+                     label="stopword + punct. overhead")
     ax2.set_ylabel("Median\ntokens", fontsize=9)
     ax2.set_xticks(x)
     ax2.set_xticklabels(xlabels, rotation=60, ha="right", fontsize=8)
