@@ -53,36 +53,13 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Parser must prioritise ` :` splitting for `OTHER_TITLE` / `TITLE` boundary, not ` /`
 
 ### 2.3 SR-03 — Silver label quality and false positive rate
-**Status:** Resolved — review complete; see findings below
+**Status:** Resolved — see [silver-label-fp-review.md](silver-label-fp-review.md)
 
-`rate_isbd_fields.py` assigns silver labels to titles by detecting ISBD punctuation patterns at two tiers:
-
-- **Tier 2 (structural):** `. -` area separator present — strong structural signal, expected high precision
-- **Tier 1 (heuristic):** no `. -`, but other markers fire (` :`, ` /`, 4-digit year, edition keyword, etc.) — weaker signal, false positive rate unknown
-
-**Review.** `scripts/validate_heuristic_fields.py` produced a 200-record stratified sample (`data/processed/heuristic_validation_sample.csv`). `scripts/sr03_fp_review.py` applied automated regex rules + per-row overrides to classify each active flag as TP or FP, writing results to `fp_fields` and `notes` columns.
-
-**Results — 81 of 200 records (40.5%) have at least one false positive.**
-
-| Field | FP count | FP rate | Decision | Primary false-positive pattern |
-|---|---|---|---|---|
-| `f_parallel` | 20 | ~80% | ❌ Exclude | ` =` fires on serial enumeration (`= Jg. X`, `= Bd.`, `= N.F.`, `= Quartal`) and volume-part labels — not parallel titles |
-| `f_edition` | 30 | ~83% | ❌ Exclude | "Ausgabe vom [date]" in newspaper titles is a daily-issue label, not an edition statement |
-| `f_person` | 17 | ~36% | ⚠️ Post-filter | ` /` fires on single-letter series suffixes (`/ K`, `/ M`), region names, supplement labels (`/ Beiblatt`), date separators |
-| `f_person_compound` | 7 | ~29% | ⚠️ Post-filter | Corporate body SoRs where `;` separates topic subtitles not persons; volume numbers after `;` |
-| `f_year` | 9 | ~6% | ✅ Accept | Founding years (gegr.), life dates, manuscript date ranges, composition dates — low FP rate |
-| `f_other_title` | 8 | ~8% | ✅ Accept | ` :: ` catalog-field separators (DDB Abschnitt records); `:YYYY–YYYY` life-date colons — low FP rate |
-| `f_publisher` | — | — | ✅ Accept | No FPs detected in sample |
-| `f_series` | — | — | ✅ Accept | No FPs detected in sample |
-| `f_volume` | — | — | ✅ Accept | No FPs detected in sample |
-
-**Decision gate outcome** (threshold: FP < 15% per field):
-
-- **Excluded from silver labels:** `f_parallel`, `f_edition` — FP rates far exceed 15%; patterns fire predominantly on non-ISBD content in this corpus
-- **Accepted with post-filtering:** `f_person`, `f_person_compound` — above threshold; require keyword guard (exclude single letters, region names, supplement labels) before use
-- **Accepted:** `f_year`, `f_other_title`, `f_publisher`, `f_series`, `f_volume` — within threshold
-
-**Additional finding.** Pre-1750 titles systematically place the author's name and credentials *before* the main title (not after ` /`), making `f_person` a **false negative** for this stratum. The SoR heuristic misses the majority of early modern authors. This should be noted in SR-07 gold set composition.
+- 81 of 200 sampled heuristic-tier records (40.5%) have at least one false positive
+- **Excluded:** `f_parallel` (~80% FP), `f_edition` (~83% FP)
+- **Post-filter required:** `f_person` (~36% FP), `f_person_compound` (~29% FP)
+- **Accepted:** `f_year`, `f_other_title`, `f_publisher`, `f_series`, `f_volume` (all < 15% FP)
+- Pre-1750 author placement (name before title, not after ` /`) is a structural false-negative blind spot for `f_person` — flagged for SR-07
 
 ### 2.4 SR-04 — TRANSLATOR / PERSON disambiguation
 **Status:** Open
