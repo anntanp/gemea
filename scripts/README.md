@@ -27,3 +27,4 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | `check_generic_title_words.py` | Query DNB SPARQL endpoint to count GND Work records per GENERIC_TITLE_WORD; validates which words are high-collision and should be excluded from distinctive token selection |
 | `check_isbd_titles.py` | Analyse ISBD punctuation patterns in DF_DE_TITLES; reports per-pattern counts and sample titles |
 | `rate_isbd_fields.py` | Rate all 4.47M DF_DE_TITLES records for the presence of bibliographic fields (TITLE, PERSON, PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME) using ISBD rules; assigns silver_tier for NER training data selection; optionally writes per-pattern examples with DDB links |
+| `validate_heuristic_fields.py` | Sample 200 heuristic-tier records from isbd_field_ratings.csv for manual false-positive review; writes a review sheet CSV with DDB links and blank fp_fields / notes columns |

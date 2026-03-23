@@ -44,21 +44,25 @@ RE_PARALLEL    = re.compile(r" =")   # parallel title (often a translation)
 
 # Edition keywords (case-insensitive)
 RE_EDITION = re.compile(
-    r"(?i)\b(\d+\.?\s*)?"
-    r"(Aufl(?:age)?|Ausg(?:abe)?|[Ee]d(?:ition)?|[Rr]ev(?:ised)?|"
+    r"(?i)\b(?:\d+\.?\s*)?"
+    r"(?:Aufl(?:age)?|Ausg(?:abe)?|[Ee]d(?:ition)?|[Rr]ev(?:ised)?|"
     r"überarb(?:eitet)?|[Ee]rw(?:eiterte)?|[Vv]erb(?:esserte)?|"
     r"Neuausg(?:abe)?|neu\s*bearb)"
     r"\b"
 )
 
 # Year: 1400–2029 (broad range for historical DDB items)
-RE_YEAR = re.compile(r"\b(1[4-9]\d{2}|20[012]\d)\b")
+RE_YEAR = re.compile(r"\b(?:1[4-9]\d{2}|20[012]\d)\b")
 
 # Publication imprint: " : " separating place from publisher
 RE_IMPRINT = re.compile(r"\w.+ : \w")
 
 # Publisher hint for heuristic tier (whole-string)
 RE_PUBLISHER_HINT = re.compile(r"(?i)\bVerlag\b|\bPress\b|\bEditore\b")
+
+# Compound SoR: " /" followed by content then " ;" outside parentheses
+# Distinguishes "Titel / Autor A ; Autor B" (SoR) from "(Series ; Bd. 3)" (series)
+RE_PERSON_COMPOUND = re.compile(r" /[^(]+;")
 
 # Series: parenthetical block containing a semicolon + digit (Series ; N)
 RE_SERIES = re.compile(r"\([^)]+;\s*[^)]*\d[^)]*\)")
@@ -67,7 +71,7 @@ RE_SERIES_SIMPLE = re.compile(r"\([^)]{5,}\)\s*$")
 
 # Volume / part indicators
 RE_VOLUME = re.compile(
-    r"(?i)\b(Bd(?:e)?|Teil|Tl|Vol|Heft|Nr|Lfg|Lieferung|Band)\.\s*\d+"
+    r"(?i)\b(?:Bd(?:e)?|Teil|Tl|Vol|Heft|Nr|Lfg|Lieferung|Band)\.\s*\d+"
 )
 
 # Ellipsis / truncation (for examples output only)
@@ -84,16 +88,17 @@ RE_TRAILING_DOT = re.compile(r"[^.]\.$")
 # ---------------------------------------------------------------------------
 
 FIELD_COLS = [
-    "f_title",       # always 1
-    "f_other_title", # ` :` — subtitle / other title info
-    "f_person",      # ` /` — statement of responsibility
-    "f_parallel",    # ` =` — parallel title / translation
-    "f_edition",     # edition keyword
-    "f_place",       # place of publication
-    "f_publisher",   # publisher name
-    "f_year",        # publication year
-    "f_series",      # series block
-    "f_volume",      # volume / part number
+    "f_title",            # always 1
+    "f_other_title",      # ` :` — subtitle / other title info
+    "f_person",           # ` /` — statement of responsibility
+    "f_person_compound",  # ` / ... ;` — compound SoR (multiple contributors)
+    "f_parallel",         # ` =` — parallel title / translation
+    "f_edition",          # edition keyword
+    "f_place",            # place of publication
+    "f_publisher",        # publisher name
+    "f_year",             # publication year
+    "f_series",           # series block
+    "f_volume",           # volume / part number
 ]
 
 # ISBD patterns used for example sampling (label → pattern, description)
@@ -101,7 +106,8 @@ EXAMPLE_PATTERNS = [
     ("space_colon",    RE_OTHER_TITLE,    "Other title information ( : )"),
     ("space_slash",    RE_PERSON,         "Statement of responsibility ( / )"),
     ("space_equals",   RE_PARALLEL,       "Parallel title ( = )"),
-    ("space_semi",     re.compile(r" ;"), "Subsequent SoR / series ( ; )"),
+    ("space_semi",        re.compile(r" ;"),  "Subsequent SoR / series ( ; )"),
+    ("person_compound",   RE_PERSON_COMPOUND, "Compound SoR ( / ... ; )"),
     ("ellipsis",       RE_ELLIPSIS,       "Ellipsis / truncation (… or ...)"),
     ("sq_brackets",    RE_BRACKETS,       "Supplied / inferred data ([ ])"),
     ("trailing_dot",   RE_TRAILING_DOT,   "Area-end period (.)"),
@@ -152,6 +158,14 @@ def rate(df: pd.DataFrame) -> pd.DataFrame:
     out["f_person"] = (
         structural  & title_area.str.contains(RE_PERSON, regex=True, na=False) |
         ~structural & titles.str.contains(RE_PERSON, regex=True, na=False)
+    ).astype(int)
+
+    # PERSON_COMPOUND: " / ... ;" outside parentheses — compound SoR
+    # Fires on "Titel / Autor A ; Autor B" but not "(Series ; Bd. 3)"
+    # Applied to title_area (structural) or whole string (heuristic)
+    out["f_person_compound"] = (
+        structural  & title_area.str.contains(RE_PERSON_COMPOUND, regex=True, na=False) |
+        ~structural & titles.str.contains(RE_PERSON_COMPOUND, regex=True, na=False)
     ).astype(int)
 
     # PARALLEL: " =" in title area (structural) or whole string (heuristic)
