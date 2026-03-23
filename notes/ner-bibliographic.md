@@ -132,11 +132,11 @@ Value-count histogram (all_tokens 1–20): the distribution is roughly flat from
 
 Threshold decision: **quartiles (≤4 / 5–14 / >14)** — p25 = 4, p75 = 14, equal outer groups. See [title-length-thresholds.md](title-length-thresholds.md) for the full empirical basis, alternatives considered, and rejection rationale.
 
-**Title-length distribution (resolved).** `scripts/analyse_title_lengths.py` — token counts from pre-computed `all_tokens` and `content_tokens` columns; year from `dates` column (1400–2029), falling back to title regex for nulls. Outputs: `output/fig_title_lengths.png`, `output/title-length-analysis.json`.
+**Title-length distribution (resolved).** `scripts/analyse_title_lengths.py` — token counts from pre-computed `all_tokens` (includes stopwords) and `content_tokens` (stopwords removed) columns; year from `dates` column (1400–2029), falling back to title regex for nulls. Outputs: `output/fig_title_lengths.png`, `output/title-length-analysis.json`.
 
 Year coverage: 89.4% from `dates` column, 1.0% from title fallback, **9.6% no year** (429,097 titles).
 
-Overall distribution (all 4,477,780 titles; thresholds from [title-length-thresholds.md](title-length-thresholds.md)):
+Overall distribution (all 4,477,780 titles, by `all_tokens` including stopwords; thresholds from [title-length-thresholds.md](title-length-thresholds.md)):
 
 | Category | Threshold | Count | % |
 |---|---|---|---|
@@ -176,7 +176,7 @@ Distribution per 25-year bucket (N = 4,048,683 titles with year; 1500+):
 - Pre-1750 titles are dominated by long strings: 42–50% long (>14 tokens), median `all_tokens` 12–15 — full ISBD-qualified bibliographic descriptions, not bare titles.
 - Post-1775: sharp shift — median drops to 6–9 tokens; long falls to 12–24%. Short (≤4) rises to 35–38% in the 1875–1949 period.
 - 2000–2024 reverses: only 9% short, 62% medium, 29% long — digital-born metadata with richer structured descriptions.
-- `content_tokens` runs consistently ~3 tokens below `all_tokens` median — stable stopword overhead across all eras.
+- `content_tokens` (stopwords removed) runs consistently ~3 tokens below `all_tokens` (stopwords included) median — stable stopword overhead across all eras.
 - **Implication for SR-07 (gold set):** stratify by length as well as era; pre-1750 long-form records stress the NER model differently from the short modern majority. The 9.6% no-year group needs separate treatment — sample by `dc_type` or `silver_tier` instead.
 
 ---
