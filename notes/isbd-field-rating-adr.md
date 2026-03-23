@@ -45,7 +45,7 @@ Implement field presence rating (binary flags) rather than a full parser. The ra
 
 ## ADR-02 — Two-tier detection: structural (`. -`) and heuristic (whole-string)
 
-**Status:** Accepted
+**Status:** Accepted / Amended by ADR-05
 **Date:** 2026-03-21
 
 ### Context
@@ -108,7 +108,7 @@ Rate only the `title` column. The goal of this script is to assess what is detec
 
 ## ADR-04 — Silver tier 2 requires has_dot_dash + PERSON + ≥1 manifestation field
 
-**Status:** Accepted
+**Status:** Accepted / Amended by ADR-06
 **Date:** 2026-03-21
 
 ### Context
@@ -143,3 +143,84 @@ Require `has_dot_dash AND f_person AND any(f_edition, f_place, f_publisher, f_ye
 **Mitigations:**
 - Tier 1 (`n_fields ≥ 3` or `f_person AND f_year`) supplements tier 2 for augmentation
 - The small size of tier 2 is expected and acceptable — 5–50K structurally clean records is sufficient for fine-tuning if needed
+
+---
+
+## ADR-05 — Exclude f_parallel and f_edition from heuristic silver labels
+
+**Status:** Accepted
+**Date:** 2026-03-23
+**Amends:** ADR-02 (heuristic tier reliability assumptions)
+**Evidence:** SR-03 — [silver-label-fp-review.md](silver-label-fp-review.md)
+
+### Context
+
+ADR-02 listed ` =` (PARALLEL_TITLE) and edition keywords (EDITION) as "generally reliable" in the heuristic tier. SR-03 validation on a 200-record stratified sample found FP rates of ~80% and ~83% respectively — far exceeding the 15% acceptance threshold.
+
+- **`f_parallel`** (~80% FP): DDB serial records systematically use ` =` for enumeration equivalences (`= Jg. X`, `= Bd.`, `= N.F.`, `= Quartal`) rather than parallel titles in another language. Parallel titles in two languages are rare in a German-language corpus.
+- **`f_edition`** (~83% FP): Newspaper and periodical records use "Ausgabe vom [weekday, date]" as an issue-date label, not an edition statement. The edition keyword regex (`Ausgabe`, `Aufl`) fires on this pattern throughout the serials stratum.
+
+### Decision
+
+Exclude `f_parallel` and `f_edition` from heuristic-tier silver labels entirely. In the structural tier (`. -` present), both fields remain valid — the area separator disambiguates the edition area from title-area colons, and parallel titles in the edition area are genuine. Apply `dc_type` guard for `f_edition` in future: exclude for `dc_type` containing `issue`, `Heft`, or `Zeitung`; accept for `Monografie`.
+
+### Consequences
+
+**Positive:**
+- Eliminates the two highest-FP fields from the silver training set
+- Consistent with the `isbd-applicability.md` rule table
+
+**Negative:**
+- Reduces field diversity in tier-1 silver labels (EDITION and PARALLEL_TITLE spans unavailable from heuristic tier)
+- PARALLEL_TITLE may still be detectable via `dc_type`-conditional logic for non-serial records — left as future work
+
+---
+
+## ADR-06 — Sub-classify f_person SoR into f_resp_* entity types
+
+**Status:** Accepted
+**Date:** 2026-03-23
+**Amends:** ADR-04 (tier 2 PERSON requirement)
+**Evidence:** SR-04 — [translator-person-disambiguation.md](translator-person-disambiguation.md)
+
+### Context
+
+ADR-04 treats `f_person` (` /` present) as equivalent to a PERSON (individual author) SoR. SR-04 validation on a 100-record sample of heuristic `f_person` records found that only 35% are true individual-person SoRs. The remaining 65% are:
+
+- **Corporate bodies** (19%) — government agencies, statistical offices, research institutions
+- **Non-SoR false positives** (41%) — series letter suffixes (`/ K`), date separators, manuscript slashes
+- **Editors** (5%) — `Hrsg.`, `(Hg.)`, `bearb.`
+- **Translators** (0%) — not detectable from title strings in this corpus
+
+This corresponds to the MARC 21 / RDA distinction between responsible entity types: individual (ind1=0/1), corporate body (ind1=2), family (ind1=3).
+
+### Decision
+
+Extend the output schema with `f_resp_*` sub-classification flags derived from post-filtering `f_person`:
+
+| Flag | Entity type | Detection heuristic |
+|---|---|---|
+| `f_resp_person` | Individual person (author) | No corporate/editor keyword; personal name pattern |
+| `f_resp_corp` | Corporate body | Institutional keyword: `Landesamt`, `Bundesamt`, `Ministerium`, `Gesellschaft`, `Institut`, `Universität`, `Akademie`, `Verband`, `Amt`, `Behörde` |
+| `f_resp_editor` | Editor / adaptor | `Hrsg.`, `herausgegeben`, `(Hg.)`, `bearb.`, `edited by`, `zusammengestellt` |
+| `f_resp_family` | Family name | Not yet validated; candidate signals: `Familie`, `Nachlass` |
+| `f_resp_other` | Non-SoR false positive | None of the above |
+
+The existing `f_person` flag is retained unchanged for backward compatibility. The `f_resp_*` flags are a post-processing layer, not a replacement.
+
+For tier 2 silver (ADR-04), the PERSON criterion is tightened: require `f_resp_person = 1` rather than `f_person = 1` to ensure individual-person SoRs only.
+
+### Consequences
+
+**Positive:**
+- Silver PERSON labels are restricted to individual-person SoRs — eliminates corporate-body contamination from NER training data
+- Corporate body SoRs (19%) surface as a distinct class for future `CORPORATE` label work
+- Aligns flag naming with ISBD/MARC entity-type conventions
+
+**Negative:**
+- Requires implementing the `f_resp_*` post-filter in `rate_isbd_fields.py` or a new downstream script
+- `f_resp_family` is unvalidated — keep out of silver labels until a dedicated sample is reviewed
+
+**Mitigations:**
+- The keyword lists for `f_resp_corp` and `f_resp_editor` are drawn directly from SR-04 findings and can be extended incrementally
+- `f_resp_other` acts as a catch-all that keeps false positives out of any silver label category
