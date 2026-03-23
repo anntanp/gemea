@@ -49,7 +49,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 
 ### 2.2 SR-02 — ISBD parser split priority
 **Status:** Resolved
-- ` /` (SoR) appears in only 0.8% of titles; ` :` (subtitle) at 20.2% is the dominant title-area signal
+- ` /` (SoR — Statement of Responsibility: the ISBD punctuation that separates the title from the creator/contributor field, e.g. *Faust / von Goethe*) appears in only 0.8% of titles; ` :` (subtitle) at 20.2% is the dominant title-area signal
 - Parser must prioritise ` :` splitting for `OTHER_TITLE` / `TITLE` boundary, not ` /`
 
 ### 2.3 SR-03 — Silver label quality and false positive rate
