@@ -36,7 +36,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | SR-07 | Gold set composition | 🔲 Open | SR-08 |
 | SR-08 | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
 | SR-09 | FRBR metric scope for paper | 🔲 Open | SR-07 |
-| SR-10 | DF_DE_TITLES source and title-length scope | 🔲 Open | — |
+| SR-10 | DF_DE_TITLES source and title-length scope | 🔶 Partial — provenance resolved; length distribution open | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](isbd-field-rating.md)
@@ -87,10 +87,31 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Determines which label types must appear in the gold set and which NER labels are in scope for the evaluation section
 
 ### 2.10 SR-10 — DF_DE_TITLES source and title-length scope
-**Status:** Open
-- **Question 1:** Confirm the exact source of `DF_DE_TITLES` — is it derived from a specific DDB facet, dc_type filter, or the full object dump? Understanding the selection criteria affects generalizability claims in the paper.
-- **Question 2:** The current corpus skews toward long ISBD strings. Short titles (single-token or bare proper-title strings with no punctuation signals) represent the NER-fallback majority and may need explicit representation in the silver and gold sets to avoid training on a length-biased sample.
-- **Action:** Check DF_DE_TITLES provenance in pipeline notes / download script; plot title-length distribution (token count); decide whether to stratify sampling by length (e.g. short ≤ 5 tokens, medium 6–20, long > 20)
+**Status:** Partially resolved — provenance traced; length distribution open
+
+**Provenance (resolved).** `DF_DE_TITLES` was traced via `grep -rHn "pkl_vars.*DF_DE_TITLES" *.ipynb` across the notebook archive. The variable originates in `2023.11 NER.ipynb` — the earliest notebook in the series and the one that defines the construction. `2024.01 MT-QA.ipynb` produced a separately timestamped pickle (`DF_DE_TITLES_20240125b.pkl`) but is not the source. The definition from `2023.11 NER.ipynb`, consistent with `2023.12 Relation Extraction.ipynb`, is:
+
+> "4,477,641 objects are titles of all TEXT objects, tagged to be in German (`dc:language`) and identified by `langid` to be in German."
+
+Selection criteria from the `2023.11 NER.ipynb` / `2024.01 MT-QA.ipynb` shared header:
+
+| | DDB | No. Records |
+|---|---|---|
+| Total Titles | | 16,805,998 |
+| TEXT | | 8,402,999 |
+| Languages | | 236 |
+| No Language Tags | | 1,521,242 (18.10%) |
+| Valid HTYPES (% of TEXT) | | 1,812,559 (21.57%) |
+| Languages of Valid HTYPES | | 224 |
+| No Language Tags (% of VALID) | | 384,405 (21.21%) |
+| **Titles tagged+ident as 'DE'** | | **4,477,641 (53.29%)** |
+
+`DF_DE_TITLES` is therefore a **language filter** applied to the full DDB TEXT object dump: records where `dc:language` is tagged German AND `langid` confirms German. It is not filtered by `dc:type`, provider, or era. Tokenization in the source notebook uses `spacy.load` (model unspecified in the trace).
+
+**Implication for generalizability.** The corpus includes both long ISBD strings and short bare-title strings across all eras and `dc:type` values. No length or era filter was applied. ISBD coverage figures (20.2% ` :`, 0.8% ` /`) reflect this broad population.
+
+**Title-length distribution (open).** Short titles (≤ 5 tokens, no punctuation signals) represent the NER-fallback majority and may dominate tier-0 records. Whether the silver and gold sets adequately represent short titles is unconfirmed.
+- **Action:** plot title-length distribution (token count) on `DF_DE_TITLES`; decide whether to stratify sampling by length (e.g. short ≤ 5 tokens, medium 6–20, long > 20)
 
 ---
 
