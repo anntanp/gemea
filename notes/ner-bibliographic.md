@@ -80,6 +80,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 **Status:** Open — blocks SR-08
 - **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / pre-1800 / Latin), silver tier (2 / 1 / 0), and `dc_type`
 - Must cover tier-0 fallback records (the NER majority path) not just ISBD-structured ones
+- **Pre-1750 PERSON annotation (from SR-03):** the ` /` SoR heuristic is a systematic false negative for pre-1750 titles — authors appear before the work title, not after ` /`. Gold set annotators must not rely on the SoR position as a cue for the `PERSON` label in this stratum; author spans need to be identified from the opening name + credentials pattern (e.g. *Firstname Lastname, [role/title], [work title]*). This affects annotation guidelines and model evaluation: PERSON F1 on the pre-1750 stratum should be tracked separately from the modern stratum. See [silver-label-fp-review.md §5](silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) for examples.
 
 ### 2.8 SR-08 — NuNER Zero evaluation
 **Status:** Open — blocked on SR-07
