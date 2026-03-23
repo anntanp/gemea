@@ -38,7 +38,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-07](#27-sr-07--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
 | [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
 | [SR-09](#29-sr-09--frbr-metric-scope-for-paper) | FRBR metric scope for paper | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
-| [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](de-titles-distribution.md) | — |
+| [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/de-titles-distribution.md) | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](ner/isbd-field-rating.md)
@@ -97,7 +97,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Determines which label types must appear in the gold set and which NER labels are in scope for the evaluation section
 
 ### 2.10 SR-10 — DF_DE_TITLES source and title-length scope
-**Status:** Resolved — see [de-titles-distribution.md](de-titles-distribution.md)
+**Status:** Resolved — see [de-titles-distribution.md](ner/de-titles-distribution.md)
 
 - **Provenance:** `DF_DE_TITLES` originates in `2023.11 NER.ipynb`; `2024.01 MT-QA.ipynb` produced the dated pkl only. Corpus = 4,477,780 German-tagged DDB TEXT objects (`dc:language` + `langid` = German); no filter by `dc:type`, provider, or era. `all_tokens` = spaCy `de_core_news_sm` token count including stopwords and punctuation; `content_tokens` = stopwords removed, punctuation retained.
 - **Token thresholds:** quartiles — short ≤4 (p25), medium 5–14, long >14 (p75). See [title-length-thresholds.md](ner/title-length-thresholds.md).

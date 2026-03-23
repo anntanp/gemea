@@ -2,7 +2,7 @@
 
 A synthesis of what has been done to automatically construct a silver NER training dataset from ISBD punctuation rules in 4,477,780 German DDB title strings, including all resolved study/research questions (SRs). The final section extracts a domain-agnostic framework.
 
-**Related notes:** [ner-bibliographic.md](../ner-bibliographic.md), [isbd-field-rating.md](isbd-field-rating.md), [isbd-field-rating-adr.md](isbd-field-rating-adr.md), [isbd-applicability.md](isbd-applicability.md), [silver-label-fp-review.md](silver-label-fp-review.md), [translator-person-disambiguation.md](translator-person-disambiguation.md), [de-titles-distribution.md](../de-titles-distribution.md), [title-length-thresholds.md](title-length-thresholds.md)
+**Related notes:** [ner-bibliographic.md](../ner-bibliographic.md), [isbd-field-rating.md](isbd-field-rating.md), [isbd-field-rating-adr.md](isbd-field-rating-adr.md), [isbd-applicability.md](isbd-applicability.md), [silver-label-fp-review.md](silver-label-fp-review.md), [translator-person-disambiguation.md](translator-person-disambiguation.md), [de-titles-distribution.md](de-titles-distribution.md), [title-length-thresholds.md](title-length-thresholds.md)
 
 ---
 
@@ -10,7 +10,7 @@ A synthesis of what has been done to automatically construct a silver NER traini
 
 ### Phase 0 — Corpus characterisation
 
-**SR-10** ([de-titles-distribution.md](../de-titles-distribution.md), [title-length-thresholds.md](title-length-thresholds.md))
+**SR-10** ([de-titles-distribution.md](de-titles-distribution.md), [title-length-thresholds.md](title-length-thresholds.md))
 
 Before doing anything with labels, the corpus was characterised along two dimensions:
 
