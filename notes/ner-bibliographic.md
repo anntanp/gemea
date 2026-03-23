@@ -67,7 +67,8 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Only 35% of `f_person` records are true author SoRs; 41% are non-SoR false positives, 19% corporate bodies, 5% editors
 - **0 true translators** in 100-record sample — TRANSLATOR label not viable from title strings
 - EDITOR detection: 0 F1; `(Hg.)` suffix and body-text `bearb.` missed by heuristic
-- **Decision:** `f_person` restricted to PERSON label with corporate post-filtering; TRANSLATOR and EDITOR dropped as silver label targets
+- **Decision:** `f_person` sub-classified following the ISBD/RDA agent model — person (`f_resp_person`) | collective agents (`f_resp_org` corporate body, `f_resp_family` family) | role qualifier (`f_resp_editor`) | non-SoR (`f_resp_other`); TRANSLATOR and EDITOR dropped as silver label targets
+- **`f_resp_org` introduced** for the 19% of ` /` records where the responsible entity is a corporate body (government agency, statistical office, university, etc.) — collective agent, treated as a distinct CORPORATE entity class, not a false positive; `f_resp_family` added for family name entries (not yet validated)
 
 ### 2.5 SR-05 — Trailing period noise
 **Status:** Open

@@ -90,17 +90,18 @@ Results (FP rate per field, 15% acceptance threshold):
 
 ` /` is not a homogeneous signal. `scripts/validate_translator_disambiguation.py` applied a keyword heuristic to the SoR text and `scripts/evaluate_translator_heuristic.py` evaluated it against 100 manually annotated records.
 
-True class distribution of `f_person = 1` (heuristic tier):
+True class distribution of `f_person = 1` (heuristic tier), mapped to the ISBD/RDA agent model (person | collective agents | role qualifier | non-SoR):
 
-| Entity type | `f_resp_*` flag | % |
-|---|---|---|
-| Individual person (author) | `f_resp_person` | 35% |
-| Corporate body | `f_resp_corp` | 19% |
-| Editor / adaptor | `f_resp_editor` | 5% |
-| Non-SoR false positive | `f_resp_other` | 41% |
-| Translator | `f_resp_translator` | 0% |
+| Category | Entity type | `f_resp_*` flag | % |
+|---|---|---|---|
+| Person | Individual person (author) | `f_resp_person` | 35% |
+| Collective agent | Corporate body | `f_resp_org` | 19% |
+| Collective agent | Family name | `f_resp_family` | — (not yet validated) |
+| Role qualifier | Editor / adaptor | `f_resp_editor` | 5% |
+| Non-SoR | False positive | `f_resp_other` | 41% |
+| — | Translator | `f_resp_translator` | 0% |
 
-**Decisions:** TRANSLATOR not viable as a silver label (undetectable from title strings). Corporate bodies are a distinct entity class — not noise. `f_person` must be sub-classified before silver label assignment.
+**Decisions:** TRANSLATOR not viable as a silver label (undetectable from title strings). Corporate bodies (`f_resp_org`) and family names (`f_resp_family`) are **collective agents** — a distinct entity class from individual persons, not noise. `f_person` must be sub-classified before silver label assignment.
 
 ---
 

@@ -72,7 +72,10 @@ Pool: **28,570** heuristic-tier records with `f_person = 1` (no area separator).
 
 ## 5. Decision
 
-- **TRANSLATOR:** do not use as a silver label from `f_person` records — undetectable from title strings in this corpus.
-- **EDITOR:** do not use as a silver label without extending the keyword list to handle suffix patterns (`(Hg.)`) and body-text `bearb.`.
-- **PERSON:** restrict to records where the SoR text matches a personal name pattern and does not match known corporate-body signals — consistent with the SR-03 post-filtering requirement.
-- **CORPORATE:** surface as a new candidate label for ` /`-flagged records where the SoR names an institution; not in scope for the current label set but worth noting for SR-07 gold set design.
+The ` /` SoR pool maps onto the ISBD/RDA/MARC agent model — **person** | **collective agents** (corporate body, family) | **role qualifier** (editor) | **non-SoR false positive**:
+
+- **PERSON → `f_resp_person`:** restrict to records where the SoR text matches a personal name pattern and does not match known corporate-body or editor signals.
+- **Collective agent (corporate body) → `f_resp_org`:** introduce as a distinct flag for the 19% of ` /` records where the SoR names an institution; maps to MARC corporate name entry (1xx/7xx ind1=2). Treat as a CORPORATE entity class, not a false positive.
+- **Collective agent (family) → `f_resp_family`:** not yet validated in this corpus; family name entries are rare in DDB title strings.
+- **EDITOR → `f_resp_editor`:** do not use as a silver label without extending the keyword list to handle suffix patterns (`(Hg.)`) and body-text `bearb.`.
+- **TRANSLATOR:** do not use as a silver label — undetectable from title strings in this corpus.

@@ -148,16 +148,18 @@ Coverage: 0.8% | FP rate: ~36% for PERSON label
 
 ` /` detects the presence of a responsible entity but does not distinguish entity type. From SR-04 (100-record sample):
 
-| Entity type | `f_resp_*` flag | % of ` /` pool | Example |
-|---|---|---|---|
-| **Individual person** | `f_resp_person` | 35% | `… / von M. Rosenstock` [↗](https://ddb.de/item/ZGN4C7ZJ7NBZV65ZSIZHC5N2SM3VGIOB) |
-| **Corporate body** | `f_resp_corp` | 19% | `… / Privates Katholisches Lyzeum Magdeburg` [↗](https://ddb.de/item/OROZ7FMM4X4XDYVYBJSJP33NZKIFPUD5) |
-| **Editor / adaptor** | `f_resp_editor` | 5% | `… / hrsg. von Abraham Geiger` [↗](https://ddb.de/item/HGCH7UKPABAHS46CGTA6D4V5CQOELPOY) |
-| **Non-SoR false positive** | `f_resp_other` | 41% | `Ah fuggi il traditor / O flieh den Bösewicht` [↗](https://ddb.de/item/6GPNJKG4RDEVFEDHMGU5F7OKLWG2N2GT) |
-| **Translator** | `f_resp_translator` | 0% | Not detectable from title strings in this corpus |
-| **Family** | `f_resp_family` | — | Not yet validated |
+The ` /` pool maps onto the ISBD/RDA/MARC agent model — **person** | **collective agents** (corporate body, family) | **role qualifier** | **non-SoR**:
 
-Corporate body SoRs are a **recognised entity class** (19% of the ` /` pool), not noise — they map to the MARC 21 corporate name entry (1xx/7xx ind1=2) and may warrant a `CORPORATE` NER label in future. They should be sub-classified with `f_resp_corp`, not silently discarded.
+| Category | Entity type | `f_resp_*` flag | % of ` /` pool | Example |
+|---|---|---|---|---|
+| Person | Individual person | `f_resp_person` | 35% | `… / von M. Rosenstock` [↗](https://ddb.de/item/ZGN4C7ZJ7NBZV65ZSIZHC5N2SM3VGIOB) |
+| Collective agent | Corporate body | `f_resp_org` | 19% | `… / Privates Katholisches Lyzeum Magdeburg` [↗](https://ddb.de/item/OROZ7FMM4X4XDYVYBJSJP33NZKIFPUD5) |
+| Collective agent | Family name | `f_resp_family` | — | Not yet validated |
+| Role qualifier | Editor / adaptor | `f_resp_editor` | 5% | `… / hrsg. von Abraham Geiger` [↗](https://ddb.de/item/HGCH7UKPABAHS46CGTA6D4V5CQOELPOY) |
+| Non-SoR | False positive | `f_resp_other` | 41% | `Ah fuggi il traditor / O flieh den Bösewicht` [↗](https://ddb.de/item/6GPNJKG4RDEVFEDHMGU5F7OKLWG2N2GT) |
+| — | Translator | `f_resp_translator` | 0% | Not detectable from title strings in this corpus |
+
+Corporate body SoRs are a **recognised entity class** (19% of the ` /` pool), not noise — they map to the MARC 21 corporate name entry (1xx/7xx ind1=2) and may warrant a `CORPORATE` NER label in future. They should be sub-classified with `f_resp_org`, not silently discarded.
 
 Additional corporate body example:
 `Jahresbericht … / Hochschule für Angewandte Wissenschaften Würzburg-Schweinfurt` [↗](https://ddb.de/item/NC2UQJ4O4RF76SG3G2DPJ4DNEC6KTOSM)
@@ -202,7 +204,7 @@ Coverage: 0.0% | FP rate: ~29%
 |---|---|---|
 | **`Ausgabe vom [date]`** | Ordinal + "Ausgabe" + weekday/date is a newspaper issue label, not edition statement | Exclude `f_edition` entirely for serial dc_types |
 | **`= Jg.`, `= Bd.`, `= N.F.`** | `=` introduces enumeration equivalences, not parallel titles | Exclude `f_parallel` for serial dc_types |
-| **Corporate body SoRs** | Government agencies, statistical offices, universities named after ` /` (~19% of ` /` pool) | Sub-classify as `f_resp_corp`; treat as CORPORATE entity, not PERSON |
+| **Corporate body SoRs** | Government agencies, statistical offices, universities named after ` /` (~19% of ` /` pool) | Sub-classify as `f_resp_org`; treat as CORPORATE entity, not PERSON |
 
 ### Post-2000: digital-born metadata
 
@@ -219,16 +221,16 @@ Coverage: 0.0% | FP rate: ~29%
 |---|---|---|---|
 | Monografie (pre-1750) | `f_other_title`, `f_year` (date filter) | `f_parallel`, `f_edition` | `f_person` is false negative (author before title); long-form strings |
 | Monografie (post-1800) | All accepted fields | `f_parallel`, `f_edition` | Standard rules apply |
-| issue / Heft / Zeitung | `f_other_title`, `f_year`, `f_volume` | `f_parallel`, `f_edition` | `f_person` present but sub-classify: mostly `f_resp_corp` |
+| issue / Heft / Zeitung | `f_other_title`, `f_year`, `f_volume` | `f_parallel`, `f_edition` | `f_person` present but sub-classify: mostly `f_resp_org` |
 | Leichenpredigt | `f_other_title`, `f_year` (date filter) | `f_parallel`, `f_edition` | `f_person` is false negative; deceased + husband credentials embedded mid-title |
-| Statistische Berichte | `f_other_title`, `f_year`, `f_volume` | `f_parallel`, `f_edition` | `f_person` present → sub-classify as `f_resp_corp` |
+| Statistische Berichte | `f_other_title`, `f_year`, `f_volume` | `f_parallel`, `f_edition` | `f_person` present → sub-classify as `f_resp_org` |
 
 ---
 
 ## 5. Implications for silver label selection
 
-1. **Sub-classify `f_person`** into `f_resp_person`, `f_resp_corp`, `f_resp_editor`, `f_resp_other` before assigning NER labels — do not treat ` /` as synonymous with individual authorship
-2. **Treat `f_resp_corp` as a distinct entity class** (CORPORATE), not a false positive — 19% of ` /` records; maps to MARC corporate name entry
+1. **Sub-classify `f_person`** into `f_resp_person`, `f_resp_org`, `f_resp_editor`, `f_resp_other` before assigning NER labels — do not treat ` /` as synonymous with individual authorship
+2. **Treat `f_resp_org` as a distinct entity class** (CORPORATE), not a false positive — 19% of ` /` records; maps to MARC corporate name entry
 3. **Always exclude** `f_parallel` and `f_edition` from heuristic silver labels
 4. **Filter `f_year` false positives** using date-context patterns (founding years, life dates, manuscript dates)
 5. **Apply dc_type guards**: exclude `f_edition` and `f_parallel` for serial types; sub-classify `f_person` for institutional dc_types

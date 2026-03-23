@@ -196,15 +196,15 @@ This corresponds to the MARC 21 / RDA distinction between responsible entity typ
 
 ### Decision
 
-Extend the output schema with `f_resp_*` sub-classification flags derived from post-filtering `f_person`:
+Extend the output schema with `f_resp_*` sub-classification flags derived from post-filtering `f_person`. The schema follows the ISBD/RDA/MARC tripartite agent model — **person** | **collective agents** (corporate body, family) | **role qualifier** (editor) | **non-SoR**:
 
-| Flag | Entity type | Detection heuristic |
-|---|---|---|
-| `f_resp_person` | Individual person (author) | No corporate/editor keyword; personal name pattern |
-| `f_resp_corp` | Corporate body | Institutional keyword: `Landesamt`, `Bundesamt`, `Ministerium`, `Gesellschaft`, `Institut`, `Universität`, `Akademie`, `Verband`, `Amt`, `Behörde` |
-| `f_resp_editor` | Editor / adaptor | `Hrsg.`, `herausgegeben`, `(Hg.)`, `bearb.`, `edited by`, `zusammengestellt` |
-| `f_resp_family` | Family name | Not yet validated; candidate signals: `Familie`, `Nachlass` |
-| `f_resp_other` | Non-SoR false positive | None of the above |
+| Flag | Category | Entity type | Detection heuristic |
+|---|---|---|---|
+| `f_resp_person` | Person | Individual person (author) | No corporate/editor keyword; personal name pattern |
+| `f_resp_org` | Collective agent | Corporate body / institution | Institutional keyword: `Landesamt`, `Bundesamt`, `Ministerium`, `Gesellschaft`, `Institut`, `Universität`, `Akademie`, `Verband`, `Amt`, `Behörde` |
+| `f_resp_family` | Collective agent | Family name | Not yet validated; candidate signals: `Familie`, `Nachlass` |
+| `f_resp_editor` | Role qualifier | Editor / adaptor | `Hrsg.`, `herausgegeben`, `(Hg.)`, `bearb.`, `edited by`, `zusammengestellt` |
+| `f_resp_other` | Non-SoR | False positive | None of the above |
 
 The existing `f_person` flag is retained unchanged for backward compatibility. The `f_resp_*` flags are a post-processing layer, not a replacement.
 
@@ -222,5 +222,5 @@ For tier 2 silver (ADR-04), the PERSON criterion is tightened: require `f_resp_p
 - `f_resp_family` is unvalidated — keep out of silver labels until a dedicated sample is reviewed
 
 **Mitigations:**
-- The keyword lists for `f_resp_corp` and `f_resp_editor` are drawn directly from SR-04 findings and can be extended incrementally
+- The keyword lists for `f_resp_org` and `f_resp_editor` are drawn directly from SR-04 findings and can be extended incrementally
 - `f_resp_other` acts as a catch-all that keeps false positives out of any silver label category

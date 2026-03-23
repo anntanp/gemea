@@ -122,16 +122,16 @@ FP rates from SR-03 validation (200-record stratified sample). See [silver-label
 
 SR-04 validation (100-record sample of `f_person = 1`, heuristic tier) found that ` /` fires on four distinct content types, not only personal name SoRs. A post-classification step is required before using `f_person` as a silver label. See [translator-person-disambiguation.md](translator-person-disambiguation.md).
 
-| Sub-class | flag | Count in sample | Detection heuristic |
-|---|---|---|---|
-| Individual person (author) | `f_resp_person` | 35% | SoR text matches personal name pattern; no corporate or editor keyword |
-| Corporate body | `f_resp_corp` | 19% | SoR text matches institutional keyword: `Landesamt`, `Bundesamt`, `Ministerium`, `Gesellschaft`, `Institut`, `Universität`, `Akademie`, `Verband`, `Amt`, `Behörde` |
-| Editor / adaptor | `f_resp_editor` | 5% | SoR text matches: `Hrsg.`, `herausgegeben`, `(Hg.)`, `bearb.`, `Bearbeitung`, `edited by`, `zusammengestellt` |
-| Non-SoR false positive | `f_resp_other` | 41% | None of the above; ` /` is a series suffix, fraction, date separator, etc. |
-| Translator | `f_resp_translator` | 0% | Not detectable from title strings in this corpus — translators absent from title or in separate metadata fields |
-| Family name | `f_resp_family` | — | Not validated; ISBD family entries are rare in DDB; `Familie`, `Nachlass` may be weak signals |
+The sub-classes follow the ISBD/RDA/MARC tripartite agent model: **person** | **collective agents** (corporate body, family) | **role qualifier** (editor) | **non-SoR false positive**. MARC 21/RDA encode this as personal name (1xx/7xx ind1=0/1), corporate name (ind1=2), family name (ind1=3).
 
-**Alignment with ISBD/MARC entity types:** MARC 21 / RDA encode the responsible entity type in the indicator of 1xx/7xx fields: individual (ind1=0/1), corporate body (ind1=2), family (ind1=3 in RDA). The `f_resp_*` sub-classification mirrors this at the heuristic level.
+| Category | Flag | Count in sample | Detection heuristic |
+|---|---|---|---|
+| **Person** — individual author/creator | `f_resp_person` | 35% | SoR text matches personal name pattern; no corporate or editor keyword |
+| **Collective agent** — corporate body | `f_resp_org` | 19% | SoR text matches institutional keyword: `Landesamt`, `Bundesamt`, `Ministerium`, `Gesellschaft`, `Institut`, `Universität`, `Akademie`, `Verband`, `Amt`, `Behörde` |
+| **Collective agent** — family name | `f_resp_family` | — | Not yet validated; ISBD family entries are rare in DDB; `Familie`, `Nachlass` may be weak signals |
+| **Role qualifier** — editor / adaptor | `f_resp_editor` | 5% | SoR text matches: `Hrsg.`, `herausgegeben`, `(Hg.)`, `bearb.`, `Bearbeitung`, `edited by`, `zusammengestellt` |
+| **Non-SoR false positive** | `f_resp_other` | 41% | None of the above; ` /` is a series suffix, fraction, date separator, etc. |
+| Translator | `f_resp_translator` | 0% | Not detectable from title strings in this corpus — translators absent from title or in separate metadata fields |
 
 **Note on TRANSLATOR:** Zero true translators found in the 100-record sample. `DF_DE_TITLES` contains very few translated works with explicit SoR markers in the title string — do not use as a silver label target.
 
@@ -150,10 +150,11 @@ SR-04 validation (100-record sample of `f_person = 1`, heuristic tier) found tha
 | `f_other_title` | int | Subtitle / other title info detected |
 | `f_person` | int | Statement of responsibility detected (any ` /`) |
 | `f_person_compound` | int | Compound SoR (`/ ... ;`) — very sparse |
-| `f_resp_person` | int | SoR sub-class: individual person (author) — post-filter of `f_person` |
-| `f_resp_corp` | int | SoR sub-class: corporate body — post-filter of `f_person` |
-| `f_resp_editor` | int | SoR sub-class: editor / adaptor — post-filter of `f_person` |
-| `f_resp_other` | int | SoR sub-class: non-SoR false positive — post-filter of `f_person` |
+| `f_resp_person` | int | SoR: individual person (author) — post-filter of `f_person` |
+| `f_resp_org` | int | SoR: collective agent — corporate body / institution — post-filter of `f_person` |
+| `f_resp_family` | int | SoR: collective agent — family name — post-filter of `f_person` (unvalidated) |
+| `f_resp_editor` | int | SoR: role qualifier — editor / adaptor — post-filter of `f_person` |
+| `f_resp_other` | int | SoR: non-SoR false positive — post-filter of `f_person` |
 | `f_parallel` | int | Parallel title detected (unreliable in DDB — excluded from silver labels; see SR-03) |
 | `f_edition` | int | Edition statement detected |
 | `f_place` | int | Place of publication detected |
@@ -217,7 +218,7 @@ Results from `rate_isbd_fields.py` on `DF_DE_TITLES_20240125b.pkl` (4,477,780 re
 
 **SR-03: heuristic tier FP rates (200-record sample).** `f_parallel` (~80% FP) and `f_edition` (~83% FP) are excluded from silver labels. `f_person` (~36% FP) requires SoR sub-classification post-filter. `f_year` (~6% FP) and `f_other_title` (~8% FP) are accepted. See [silver-label-fp-review.md](silver-label-fp-review.md).
 
-**SR-04: SoR sub-classification (100-record sample of f_person).** Only 35% of `f_person` heuristic records are true individual-person SoRs. 41% are non-SoR false positives, 19% corporate bodies, 5% editors. Zero true translators detected. `f_person` must be sub-classified into `f_resp_person` / `f_resp_corp` / `f_resp_editor` / `f_resp_other` before use as a silver label. See [translator-person-disambiguation.md](translator-person-disambiguation.md).
+**SR-04: SoR sub-classification (100-record sample of f_person).** Only 35% of `f_person` heuristic records are true individual-person SoRs. 41% are non-SoR false positives, 19% corporate bodies, 5% editors. Zero true translators detected. `f_person` must be sub-classified into `f_resp_person` / `f_resp_org` / `f_resp_editor` / `f_resp_other` before use as a silver label. See [translator-person-disambiguation.md](translator-person-disambiguation.md).
 
 **SR-10: title length by era.** Pre-1750 titles are 42–50% long (>14 tokens); post-1775 shift to median 6–9 tokens; 2000–2024 reversal. `all_tokens` includes stopwords and punctuation (spaCy `de_core_news_sm`). See [de-titles-distribution.md](de-titles-distribution.md) and [title-length-thresholds.md](title-length-thresholds.md).
 
