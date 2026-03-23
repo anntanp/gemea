@@ -4,8 +4,8 @@
 # Usage:        python scripts/explore_token_distribution.py
 #               python scripts/explore_token_distribution.py --data PATH --output-dir PATH
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with all_tokens, content_tokens
-# Outputs:      output/fig_token_distribution.png — histogram + percentile markers
-#               output/token-distribution.json    — percentile table and value counts
+# Outputs:      notes/images/fig_token_distribution.png — histogram + percentile markers
+#               output/token-distribution.json          — percentile table and value counts
 # Dependencies: pandas, matplotlib, numpy
 # Assumptions:  all_tokens and content_tokens are int64 columns.
 
@@ -22,7 +22,7 @@ import matplotlib.ticker as mticker
 
 ROOT       = Path(__file__).resolve().parent.parent
 DATA_PATH  = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-OUTPUT_DIR = ROOT / "output"
+OUTPUT_DIR = ROOT / "notes" / "images"
 
 PERCENTILES = [10, 25, 33, 50, 66, 75, 90, 95, 99]
 

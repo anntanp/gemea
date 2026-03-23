@@ -8,8 +8,8 @@
 #               python scripts/analyse_title_lengths.py --data PATH --output-dir PATH
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with obj_id, title,
 #                 all_tokens, content_tokens, dates columns
-# Outputs:      output/fig_title_lengths.png      — stacked bar + dual median chart
-#               output/title-length-analysis.json — bucketed counts and medians
+# Outputs:      notes/images/fig_title_lengths.png — stacked bar + dual median chart
+#               output/title-length-analysis.json  — bucketed counts and medians
 # Dependencies: pandas, matplotlib
 # Assumptions:  'dates' column is a string year (e.g. '1931') or NaN.
 #               'all_tokens' and 'content_tokens' are int64 token counts.
@@ -29,7 +29,7 @@ import pandas as pd
 
 ROOT       = Path(__file__).resolve().parent.parent
 DATA_PATH  = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-OUTPUT_DIR = ROOT / "output"
+OUTPUT_DIR = ROOT / "notes" / "images"
 
 SHORT_MAX  = 4   # ≤ 4 tokens  → short   (p25)
 MEDIUM_MAX = 14  # 5–14 tokens → medium  (p25–p75)  |  >14 → long
@@ -274,8 +274,8 @@ def main(data_path: Path, output_dir: Path) -> None:
 
     vmax = max(totals) if totals else 1
     for i, tot in enumerate(totals):
-        ax1.text(i, tot + vmax * 0.01, f"{tot:,}",
-                 ha="center", va="bottom", fontsize=5.5, rotation=90, color="#333333")
+        ax1.text(i, tot + vmax * 0.012, f"{tot:,}",
+                 ha="center", va="bottom", fontsize=8, rotation=90, color="#333333")
 
     # Bottom: median all_tokens vs median content_tokens
     ax2.plot(x, med_all, color=COLOR_ALL, marker="o", linewidth=1.5, markersize=4,
