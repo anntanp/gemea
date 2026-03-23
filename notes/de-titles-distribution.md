@@ -102,8 +102,20 @@ Per 25-year bucket (N = 4,048,683 titles with year; 1500+):
 
 ## 4. Key findings
 
-- **Pre-1750:** 42–50% long (>14 tokens), median `all_tokens` 12–15. Full ISBD-qualified bibliographic descriptions, not bare titles.
-- **Post-1775:** sharp shift — median drops to 6–9 tokens; long falls to 12–24%; short rises to 35–38% in the 1875–1949 period.
-- **2000–2024 reverses:** only 9% short, 62% medium, 29% long — digital-born metadata with richer structured descriptions.
+- **Pre-1750:** 42–50% long (>14 tokens), median `all_tokens` 12–15. Consistent with early modern title-page conventions: descriptive long-form titles that fold in subtitle, author, place, and printer information into a single string — the title page functioned as a table of contents.
+- **Post-1775 shift:** median drops from 10 (1750–1774) to 7 (1775–1799); long falls from 34% to 24%. The shift predates any cataloging standardization and aligns with the Enlightenment and Sturm-und-Drang turn toward concise, standalone titles — a publishing convention change, not a cataloging artifact. Short (≤4) rises further to 35–38% in the 1875–1949 period as modern commercial publishing norms consolidate.
+- **2000–2024 reverses:** only 9% short, 62% medium, 29% long — digital-born metadata with richer structured descriptions and subtitle fields recorded separately.
 - **Stopword overhead:** `content_tokens` runs ~3 tokens below `all_tokens` median consistently across all eras.
-- **Implication for SR-07 (gold set):** stratify by length as well as era. Pre-1750 long-form records stress the NER model differently from the short modern majority. The 9.6% no-year group needs separate treatment — sample by `dc_type` or `silver_tier` instead.
+- **Implication for SR-07 (gold set):** stratify by length as well as era. Pre-1750 long-form records stress the NER model differently from the short modern majority — the TITLE boundary is structurally different. The 9.6% no-year group needs separate treatment — sample by `dc_type` or `silver_tier` instead.
+
+---
+
+## 5. References
+
+The post-1775 title-length shift is attributed to a publishing convention change (early modern → modern title-page norms), not to cataloging standardization. The following are high-confidence anchors for that claim:
+
+- **Reinhard Wittmann, *Geschichte des deutschen Buchhandels* (2nd ed., C.H. Beck, 1999).** The standard history of the German book trade. Covers the Enlightenment transformation of German publishing, including the dissolution of Baroque commercial conventions — long descriptive title pages, colophon-style publisher information embedded in the title area — and their replacement with shorter, standalone titles as bookselling modernized. *Relevant because:* provides the mechanism (trade-driven convention change) and the periodization (late 18th century) for the shift visible in the 1775–1799 bucket.
+
+- **Georg Jäger (ed.), *Geschichte des deutschen Buchhandels im 19. und 20. Jahrhundert*, vol. 1 (MVB, 2001).** Multi-volume institutional history of the German book trade in the modern period. Documents the consolidation of standardized title and imprint conventions through the 19th century, including the separation of title, subtitle, and publication data into distinct bibliographic fields. *Relevant because:* explains the further shortening visible in the 1825–1924 period and the structural reason `all_tokens` stabilizes at median 6–9 — subtitle and publisher information migrate out of the title string.
+
+> **Note:** Both sources support the broad claim (convention change, Enlightenment periodization, German context). Neither contains a quantitative analysis of title-token length. The quantitative evidence is from `DF_DE_TITLES` itself. For a specific citation on early modern long-form title-page structure, the *Archiv für Geschichte des Buchwesens* (Börsenverein des Deutschen Buchhandels) is the primary journal; no specific article is cited here pending a targeted literature search.
