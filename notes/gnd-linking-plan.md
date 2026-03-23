@@ -7,34 +7,34 @@ Replaces: lobid-gnd REST API approach (previously planned but endpoint was TBD)
 
 ---
 
-## Summary
+## 1. Summary
 
 | Section | What it covers |
 |---|---|
-| [Knowledge base index](#knowledge-base-index) | DNB endpoint dataset stats (triples, subjects, predicates) |
-| [Endpoint and HTTP API](#endpoint-and-http-api) | `https://sparql.dnb.de/api/dnbgnd` — POST format, QLever settings |
-| [Step 0 — Recon queries](#step-0--recon-queries-run-once-before-implementation) | Four one-off queries to validate Work classes, text index, author predicates, literal format before implementation |
-| [Step 1 — Title extraction](#step-1--title-extraction) | Extract clean title from raw `dc:title`: ISBD rule-based parser (primary) + NuNER Zero NER fallback |
-| [Step 2 — Query patterns](#step-2--query-patterns) | Patterns A/B/C with justification; conclusion: Pattern C (FILTER) is the sole active path |
-| [Step 3 — Title token preparation](#step-3--title-token-preparation) | Normalization → tokenization → stopword removal → distinctive token selection; `GENERIC_TITLE_WORDS` validation |
-| [Step 4 — Post-retrieval scoring](#step-4--post-retrieval-scoring) | Match type assignment (exact / normalized / fuzzy); `skos:exactMatch` vs `skos:closeMatch` vs `owl:sameAs` |
-| [Step 5 — Changes to `link_gnd_works.py`](#step-5--changes-to-link_gnd_workspy) | Replace lobid REST with async `httpx` POST; concurrency semaphore |
-| [Step 6 — What this replaces](#step-6--what-this-replaces) | Old lobid plan vs new QLever plan |
+| [3. Knowledge base index](#3-knowledge-base-index) | DNB endpoint dataset stats (triples, subjects, predicates) |
+| [4. Endpoint and HTTP API](#4-endpoint-and-http-api) | `https://sparql.dnb.de/api/dnbgnd` — POST format, QLever settings |
+| [5. Step 0 — Recon queries](#5-step-0--recon-queries-run-once-before-implementation) | Four one-off queries to validate Work classes, text index, author predicates, literal format before implementation |
+| [6. Step 1 — Title extraction](#6-step-1--title-extraction) | Extract clean title from raw `dc:title`: ISBD rule-based parser (primary) + NuNER Zero NER fallback |
+| [7. Step 2 — Query patterns](#7-step-2--query-patterns) | Patterns A/B/C with justification; conclusion: Pattern C (FILTER) is the sole active path |
+| [8. Step 3 — Title token preparation](#8-step-3--title-token-preparation) | Normalization → tokenization → stopword removal → distinctive token selection; `GENERIC_TITLE_WORDS` validation |
+| [9. Step 4 — Post-retrieval scoring](#9-step-4--post-retrieval-scoring) | Match type assignment (exact / normalized / fuzzy); `skos:exactMatch` vs `skos:closeMatch` vs `owl:sameAs` |
+| [10. Step 5 — Changes to `link_gnd_works.py`](#10-step-5--changes-to-link_gnd_workspy) | Replace lobid REST with async `httpx` POST; concurrency semaphore |
+| [11. Step 6 — What this replaces](#11-step-6--what-this-replaces) | Old lobid plan vs new QLever plan |
 
 ---
 
-## Open questions
+## 2. Open questions
 
 | ID | Question | Blocking | Status |
 |---|---|---|---|
 | ~~OQ-00a~~ | ~~Is `preferredNameForTheWork` in the text index?~~ | — | **Resolved** — Recon 0.2: `contains-word` causes SPARQL parse error. Endpoint enforces SPARQL 1.1 only. Pattern C is the sole active query path. |
 | ~~OQ-00b~~ | ~~Exact predicate for author link (`gndo:firstAuthor` or `gndo:creator`)?~~ | — | **Resolved** — Recon 0.3: `gndo:author` dominant (8/10); `gndo:firstAuthor` added via `VALUES` (subproperty, SPARQL won't infer); `gndo:poet` for lyrical works; `gndo:composer` for musical works. |
-| OQ-01 | Does `sparql.dnb.de` normalize Umlauts in FILTER comparisons? (`ä` vs `a`) | No | Open — see [recon 0.5](#recon-05--umlaut-handling-in-filter-comparisons-oq-01) |
+| OQ-01 | Does `sparql.dnb.de` normalize Umlauts in FILTER comparisons? (`ä` vs `a`) | No | Open — see [§2.1](#21-recon-05--umlaut-handling-in-filter-comparisons-oq-01) |
 | OQ-02 | What are the actual rate limits on `sparql.dnb.de`? | No | Open — no published SLA; profile at `CONCURRENCY = 10` during first batch run |
 | OQ-03 | Should `gndo:variantNameForTheWork` be added as a UNION branch in Pattern C to increase recall? | No | Open — preferred names are often ISBD-qualified strings (recon 0.4); variant names may carry the clean title form |
 | OQ-04 | Does `gndo:composer`/`gndo:firstComposer` behave analogously to `gndo:author`/`gndo:firstAuthor` for MusicalWork records? | No | Open — verify with a musician query analogous to recon 0.3 |
 
-### Recon 0.5 — Umlaut handling in FILTER comparisons (OQ-01)
+### 2.1 Recon 0.5 — Umlaut handling in FILTER comparisons (OQ-01)
 
 The question is whether `LCASE(STR(?prefLabel)) = "gotz von berlichingen"` (diacritics stripped) matches a record stored as `"Götz von Berlichingen"`. LCASE performs case folding only; it does not decompose or strip combining characters. The hypothesis is that the endpoint does **not** normalize Umlauts, meaning a stripped form will not match an umlaut-bearing literal — and therefore diacritic stripping in FR-05 would *hurt* recall against `preferredNameForTheWork`.
 
@@ -112,7 +112,7 @@ LIMIT 10'
 
 ---
 
-## Knowledge base index
+## 3. Knowledge base index
 
 **Description:** DNB Bibliography and GND (Gemeinsame Normdatei) (`authorities-gnd_lds`, `dnb-all_lds` version 23.02.2026) — updated monthly
 
@@ -125,7 +125,7 @@ LIMIT 10'
 
 ---
 
-## Endpoint and HTTP API
+## 4. Endpoint and HTTP API
 
 **Endpoint:** `https://sparql.dnb.de/api/dnbgnd`
 **Method:** `POST`
@@ -141,11 +141,11 @@ QLever-specific keywords used: `contains-word`, `textlimit`, `score()`
 
 ---
 
-## Step 0 — Recon queries (run once before implementation)
+## 5. Step 0 — Recon queries (run once before implementation)
 
 Three things to verify before writing production queries.
 
-### 0.1 Work type coverage
+### 5.1 Work type coverage
 
 IFLA LRM defines a Work (LRM-E2) as "a distinct intellectual or artistic creation" — the abstract entity at the top of the WEMI hierarchy, independent of any particular realization or carrier. The GND ontology (`gnd_20251218.ttl`) models six subclasses of `gndo:Work`. Only three correspond to the IFLA LRM Work concept:
 
@@ -188,7 +188,7 @@ Constraining with `VALUES` avoids a full dataset type scan and lets the endpoint
 
 **Conclusion:** `VALUES ?wtype { gndo:Work gndo:MusicalWork gndo:Manuscript }` is confirmed. The three IFLA LRM Work-equivalent classes cover 580,284 entities (242,333 + 330,818 + 7,133). The four excluded classes are either IFLA Expression-level (`Expression`, `VersionOfAMusicalWork`), have no WEMI equivalent (`ProvenanceCharacteristic`), or are absent from this dataset (`CollectiveManuscript`).
 
-### 0.2 Confirm text index covers `preferredNameForTheWork`
+### 5.2 Confirm text index covers `preferredNameForTheWork`
 
 ```sparql
 PREFIX gndo: <https://d-nb.info/standards/elementset/gnd#>
@@ -228,7 +228,7 @@ LIMIT 5'
 
 The parser fails at line 5, position 9 — exactly where `contains-word` appears as predicate. The endpoint enforces SPARQL 1.1 grammar; `contains-word` is QLever-specific syntax and is not available here. **Patterns A and B do not apply. Pattern C is the active query path.**
 
-### 0.3 Confirm author predicate name
+### 5.3 Confirm author predicate name
 
 Query Works that link to Goethe (`https://d-nb.info/gnd/118540238`) to find the predicate used:
 
@@ -271,7 +271,7 @@ From `gnd_20251218.ttl`, the relevant author-role property hierarchy is:
 
 **SPARQL does not infer `rdfs:subPropertyOf` without a reasoner.** A query constraining `gndo:author` will miss triples that use `gndo:firstAuthor`, even though `firstAuthor` is a subproperty of `author`. Pattern A must explicitly cover both using `VALUES ?authorPred { gndo:author gndo:firstAuthor }`. `gndo:poet` and `gndo:composer` should be added for coverage of MusicalWork records.
 
-### 0.4 Confirm literal format of `preferredNameForTheWork`
+### 5.4 Confirm literal format of `preferredNameForTheWork`
 
 Determines whether VALUES-based queries must include `@de` language-tagged variants.
 
@@ -301,11 +301,11 @@ LIMIT 5'
 
 ---
 
-## Step 1 — Title extraction
+## 6. Step 1 — Title extraction
 
 Raw `dc:title` strings in DDB ProvidedCHOs are ISBD-encoded: they concatenate title, statement of responsibility, edition, publisher, place, and year into a single field using ISBD punctuation. Sending raw strings to GND produces low-precision matches. Extraction runs before token preparation (Step 3) and GND querying (Step 2).
 
-### Method: two-stage pipeline
+### 6.1 Method: two-stage pipeline
 
 | Stage | Trigger | Method |
 |---|---|---|
@@ -314,7 +314,7 @@ Raw `dc:title` strings in DDB ProvidedCHOs are ISBD-encoded: they concatenate ti
 
 The ISBD parser handles the minority of records that use structured punctuation. NuNER Zero (zero-shot) handles the majority without ISBD markers, where rule-based splitting would either produce nothing or split on the wrong boundary.
 
-### ISBD split rules
+### 6.2 ISBD split rules
 
 | Separator | Meaning in ISBD | Action |
 |---|---|---|
@@ -324,7 +324,7 @@ The ISBD parser handles the minority of records that use structured punctuation.
 
 Example: `"Faust : eine Tragödie / von Goethe. - Neue Ausg."` → extracted title: `"Faust : eine Tragödie"` (or `"Faust"` if subtitle is stripped).
 
-### Output
+### 6.3 Output
 
 `extracted_title` — a clean title string passed to Step 3 (token preparation) and used as the FILTER value in Pattern C queries.
 `extraction_method` — `"isbd"` or `"ner"`, recorded in the output JSON (FR-07).
@@ -333,7 +333,7 @@ Full extraction design is documented in `notes/gnd-title-extraction.md`. NER mod
 
 ---
 
-## Step 2 — Query patterns
+## 7. Step 2 — Query patterns
 
 | Query pattern | Fields | Justification |
 |---|---|---|
@@ -341,7 +341,7 @@ Full extraction design is documented in `notes/gnd-title-extraction.md`. NER mod
 | **B** — Title only | `gndo:preferredNameForTheWork` (preferred); `gndo:variantNameForTheWork` (UNION fallback) | No author URI available. UNION over variant names increases recall for cases where the DDB title matches a GND alternative form rather than the preferred label. Use when text index is confirmed but no author URI. |
 | **C** — FILTER fallback | `gndo:preferredNameForTheWork` (exact string match) | `contains-word` unavailable or not indexed for the predicate (determined by recon 0.2). Exact/normalized string comparison only; no relevance ranking. Lower recall than A/B. |
 
-### Pattern A — Title + author, text-indexed (primary)
+### 7.1 Pattern A — Title + author, text-indexed (primary)
 
 Used when: author GND URI is available AND `contains-word` is confirmed (recon 0.2).
 
@@ -366,7 +366,7 @@ LIMIT 10
 
 `TEXTLIMIT 5` caps QLever's internal text candidates for performance; `LIMIT 10` caps output rows.
 
-### Pattern B — Title only, text-indexed
+### 7.2 Pattern B — Title only, text-indexed
 
 Used when: no author GND URI is available.
 UNION catches cases where the DDB title matches a GND variant name rather than the preferred form.
@@ -394,7 +394,7 @@ TEXTLIMIT 5
 LIMIT 10
 ```
 
-### Pattern C — FILTER (active query path)
+### 7.3 Pattern C — FILTER (active query path)
 
 Exact-match only; normalized title (diacritics stripped, lowercased) maximizes recall.
 
@@ -410,7 +410,7 @@ SELECT ?work ?prefLabel WHERE {
 LIMIT 10
 ```
 
-### Conclusion from Step 0
+### 7.4 Conclusion from Step 0
 
 | Finding | Source | Impact on Step 1 |
 |---|---|---|
@@ -424,26 +424,26 @@ Pattern C with author constraint (when author GND URI is available) becomes the 
 
 ---
 
-## Step 3 — Title token preparation
+## 8. Step 3 — Title token preparation
 
 QLever `contains-word` is word-based, not phrase-based by default. Title preparation has three distinct phases: normalization, tokenization, and filtering.
 
-### Normalization (pre-tokenization)
+### 8.1 Normalization (pre-tokenization)
 
 1. **Unicode NFC normalize** — Unicode Standard Annex #15, Normalization Form C: Canonical Decomposition followed by Canonical Composition. Ensures consistent code-point representation before any string operation. Example: `a` + combining diaeresis (two code points, NFD) → `ä` (one code point, NFC). Required so that lowercasing, diacritic stripping, and string comparison behave predictably regardless of source encoding.
 2. **Lowercase** — case-fold the NFC-normalized string.
 3. **Strip diacritics** — decompose (NFD) then remove combining characters (`unicodedata.category(c) == 'Mn'`). Maps `ä→a`, `ü→u`, `ö→o`, `ß→ss`. Note: test whether the GND endpoint requires this — if the text index is accent-insensitive, stripping may reduce rather than increase recall.
 
-### Tokenization
+### 8.2 Tokenization
 
 4. **Split on whitespace and punctuation** — split the normalized string into individual word tokens.
 
-### Filtering
+### 8.3 Filtering
 
 5. **Remove stopwords:** `der, die, das, ein, eine, von, und, zu, im, in, an, auf, für, mit, bei, dem, den`
 6. **Select 2–3 distinctive tokens** (see below)
 
-### Distinctive token selection
+### 8.4 Distinctive token selection
 
 **Underlying principle:** `contains-word` with multiple tokens is AND semantics — each additional token makes the query more restrictive. Candidate retrieval should maximize recall (get the right GND Work somewhere in the top-10); precision is handled by post-retrieval string scoring in Step 3. The goal is the minimum set of tokens that identifies the work without over-constraining.
 
@@ -516,7 +516,7 @@ def select_tokens(tokens: list[str]) -> list[str]:
 
 ---
 
-## Step 4 — Post-retrieval scoring
+## 9. Step 4 — Post-retrieval scoring
 
 QLever's `score()` is used only to rank candidates before string comparison. Match type is assigned in Python:
 
@@ -531,7 +531,7 @@ QLever's `score()` is used only to rank candidates before string comparison. Mat
 
 This logic is unchanged from the original plan in `notes/gnd-title-extraction.md`.
 
-### Predicate justification
+### 9.1 Predicate justification
 
 **`skos:exactMatch`** (exact and normalized matches) — asserts two concepts are "an exact match" and can be used interchangeably for all retrieval purposes, without the OWL identity entailments of `owl:sameAs` (Miles & Bechhofer, *SKOS Simple Knowledge Organization System Reference*, W3C Recommendation, 2009, §10). Semantically appropriate here: a DDB ProvidedCHO and a GND Werk URI are not the same individual (CHO = catalog record for a manifestation; Werk URI = authority record for an abstract work), so asserting OWL individual identity would be incorrect.
 
@@ -545,7 +545,7 @@ This logic is unchanged from the original plan in `notes/gnd-title-extraction.md
 
 ---
 
-## Step 5 — Changes to `link_gnd_works.py`
+## 10. Step 5 — Changes to `link_gnd_works.py`
 
 Replace the lobid-gnd REST call (Steps 3–4 in `gnd-title-extraction.md`) with:
 
@@ -586,7 +586,7 @@ Pattern selection:
 
 ---
 
-## Step 6 — What this replaces
+## 11. Step 6 — What this replaces
 
 | Old plan | New plan |
 |---|---|
