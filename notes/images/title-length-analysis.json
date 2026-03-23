@@ -1,0 +1,202 @@
+{
+  "total_titles": 4477780,
+  "year_source": {
+    "dates_column": 4002222,
+    "title_fallback": 46461,
+    "no_year": 429097
+  },
+  "year_range": [
+    1400,
+    2029
+  ],
+  "bucket_size": 25,
+  "length_thresholds": {
+    "short_max": 4,
+    "medium_max": 14
+  },
+  "overall": {
+    "short": 1269034,
+    "medium": 2110610,
+    "long": 1098136,
+    "median_all_tokens": 8,
+    "median_content_tokens": 5
+  },
+  "bucketed": {
+    "1500–1524": {
+      "short": 1824,
+      "medium": 4854,
+      "long": 5531,
+      "total": 12209,
+      "median_all_tokens": 13,
+      "median_content_tokens": 7
+    },
+    "1525–1549": {
+      "short": 3233,
+      "medium": 10034,
+      "long": 10634,
+      "total": 23901,
+      "median_all_tokens": 13,
+      "median_content_tokens": 7
+    },
+    "1550–1574": {
+      "short": 5163,
+      "medium": 14251,
+      "long": 14388,
+      "total": 33802,
+      "median_all_tokens": 12,
+      "median_content_tokens": 6
+    },
+    "1575–1599": {
+      "short": 5443,
+      "medium": 15921,
+      "long": 15943,
+      "total": 37307,
+      "median_all_tokens": 12,
+      "median_content_tokens": 6
+    },
+    "1600–1624": {
+      "short": 8514,
+      "medium": 21223,
+      "long": 28150,
+      "total": 57887,
+      "median_all_tokens": 14,
+      "median_content_tokens": 7
+    },
+    "1625–1649": {
+      "short": 6478,
+      "medium": 11794,
+      "long": 18523,
+      "total": 36795,
+      "median_all_tokens": 15,
+      "median_content_tokens": 8
+    },
+    "1650–1674": {
+      "short": 9230,
+      "medium": 19485,
+      "long": 27602,
+      "total": 56317,
+      "median_all_tokens": 14,
+      "median_content_tokens": 7
+    },
+    "1675–1699": {
+      "short": 10298,
+      "medium": 22560,
+      "long": 32865,
+      "total": 65723,
+      "median_all_tokens": 15,
+      "median_content_tokens": 7
+    },
+    "1700–1724": {
+      "short": 19155,
+      "medium": 42472,
+      "long": 50960,
+      "total": 112587,
+      "median_all_tokens": 13,
+      "median_content_tokens": 6
+    },
+    "1725–1749": {
+      "short": 23232,
+      "medium": 49450,
+      "long": 53120,
+      "total": 125802,
+      "median_all_tokens": 12,
+      "median_content_tokens": 6
+    },
+    "1750–1774": {
+      "short": 40415,
+      "medium": 81176,
+      "long": 61460,
+      "total": 183051,
+      "median_all_tokens": 10,
+      "median_content_tokens": 5
+    },
+    "1775–1799": {
+      "short": 144136,
+      "medium": 162820,
+      "long": 99060,
+      "total": 406016,
+      "median_all_tokens": 7,
+      "median_content_tokens": 4
+    },
+    "1800–1824": {
+      "short": 49965,
+      "medium": 81966,
+      "long": 63655,
+      "total": 195586,
+      "median_all_tokens": 9,
+      "median_content_tokens": 5
+    },
+    "1825–1849": {
+      "short": 72563,
+      "medium": 162407,
+      "long": 83959,
+      "total": 318929,
+      "median_all_tokens": 7,
+      "median_content_tokens": 5
+    },
+    "1850–1874": {
+      "short": 88852,
+      "medium": 178563,
+      "long": 97249,
+      "total": 364664,
+      "median_all_tokens": 9,
+      "median_content_tokens": 5
+    },
+    "1875–1899": {
+      "short": 179839,
+      "medium": 232233,
+      "long": 91742,
+      "total": 503814,
+      "median_all_tokens": 6,
+      "median_content_tokens": 4
+    },
+    "1900–1924": {
+      "short": 239540,
+      "medium": 308312,
+      "long": 76453,
+      "total": 624305,
+      "median_all_tokens": 6,
+      "median_content_tokens": 4
+    },
+    "1925–1949": {
+      "short": 96259,
+      "medium": 121474,
+      "long": 49952,
+      "total": 267685,
+      "median_all_tokens": 7,
+      "median_content_tokens": 4
+    },
+    "1950–1974": {
+      "short": 39353,
+      "medium": 46464,
+      "long": 22033,
+      "total": 107850,
+      "median_all_tokens": 7,
+      "median_content_tokens": 4
+    },
+    "1975–1999": {
+      "short": 33380,
+      "medium": 54271,
+      "long": 18806,
+      "total": 106457,
+      "median_all_tokens": 8,
+      "median_content_tokens": 5
+    },
+    "2000–2024": {
+      "short": 35531,
+      "medium": 249255,
+      "long": 115783,
+      "total": 400569,
+      "median_all_tokens": 11,
+      "median_content_tokens": 6
+    },
+    "2025–2049": {
+      "short": 7,
+      "medium": 7,
+      "long": 5,
+      "total": 19,
+      "median_all_tokens": 8,
+      "median_content_tokens": 5
+    }
+  }
+}

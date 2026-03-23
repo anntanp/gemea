@@ -274,6 +274,7 @@ def main(data_path: Path, output_dir: Path) -> None:
     ax1.legend(frameon=False, fontsize=9, loc="upper left")
 
     vmax = max(totals) if totals else 1
+    ax1.set_ylim(0, vmax * 1.18)  # headroom for rotated annotations above tallest bar
     for i, tot in enumerate(totals):
         ax1.text(i, tot + vmax * 0.012, f"{tot:,}",
                  ha="center", va="bottom", fontsize=8, rotation=90, color="#333333")
