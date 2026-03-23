@@ -32,7 +32,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-01](#21-sr-01--isbd-signal-coverage-corpus-wide) | ISBD signal coverage (corpus-wide) | ✅ Resolved | — |
 | [SR-02](#22-sr-02--isbd-parser-split-priority) | ISBD parser split priority | ✅ Resolved | — |
 | [SR-03](#23-sr-03--silver-label-quality-and-false-positive-rate) | Silver label quality and false positive rate | ✅ Resolved | [SR-08](#28-sr-08--nunner-zero-evaluation) |
-| [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
+| [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | ✅ Resolved | [SR-07](#27-sr-07--gold-set-composition) |
 | [SR-05](#25-sr-05--trailing-period-noise) | Trailing period noise | 🔲 Open | — |
 | [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
 | [SR-07](#27-sr-07--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
@@ -62,9 +62,12 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - Pre-1750 author placement (name before title, not after ` /`) is a structural false-negative blind spot for `f_person` — flagged for SR-07
 
 ### 2.4 SR-04 — TRANSLATOR / PERSON disambiguation
-**Status:** Open
-- ` /` fires for both PERSON (author) and TRANSLATOR; keyword matching ("übersetzt von", "Übers.:", "transl.") provides first-pass split
-- **Action:** validate keyword heuristic precision on 100-record sample of ` /`-flagged titles before using TRANSLATOR as a distinct silver label
+**Status:** Resolved — see [translator-person-disambiguation.md](translator-person-disambiguation.md)
+
+- Only 35% of `f_person` records are true author SoRs; 41% are non-SoR false positives, 19% corporate bodies, 5% editors
+- **0 true translators** in 100-record sample — TRANSLATOR label not viable from title strings
+- EDITOR detection: 0 F1; `(Hg.)` suffix and body-text `bearb.` missed by heuristic
+- **Decision:** `f_person` restricted to PERSON label with corporate post-filtering; TRANSLATOR and EDITOR dropped as silver label targets
 
 ### 2.5 SR-05 — Trailing period noise
 **Status:** Open
