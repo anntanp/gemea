@@ -39,6 +39,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
 | [SR-09](#29-sr-09--frbr-metric-scope-for-paper) | FRBR metric scope for paper | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
+| [SR-11](#211-sr-11--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-07 | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](ner/sr01_isbd-field-rating.md)
@@ -115,6 +116,17 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Token thresholds:** quartiles — short ≤4 (p25), medium 5–14, long >14 (p75). See [title-length-thresholds.md](ner/sr10_title-length-thresholds.md).
 - **Length by year:** pre-1750 dominated by long strings (42–50%, median 12–15 tokens); post-1775 shift to median 6–9; 2000–2024 reversal (62% medium). 9.6% of titles have no year.
 - **Implication for SR-07:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.
+
+### 2.11 SR-11 — Field-level weighting for silver tier assignment
+**Status:** Future — blocked on SR-03 extension, SR-04 completion, SR-07 completion
+
+See [sr11_field-level-weighting.md](ner/sr11_field-level-weighting.md) for full requirements.
+
+- **Goal:** replace binary `n_fields ≥ 3` threshold with a precision-weighted score (`score = Σ (1 − FP_rate_i)` over active fields), enabling principled tier-boundary calibration and a potential four-tier split for curriculum fine-tuning
+- **Missing FP data:** `f_volume` (1.9% coverage) and `f_publisher` (0.2%) not yet sampled — extend SR-03 with ~100 records each
+- **Calibration:** tier boundary requires SR-07 gold set to measure NER F1 at different score cutoffs (external calibration preferred over internal proxy)
+- **Conditional FP rates** (optional): field co-occurrence effects (e.g. `f_year AND f_other_title` vs `f_year` alone) need a joint sample if a four-tier split is pursued
+- **Primary motivation:** curriculum learning — train first on high-confidence tier-2 + high-score tier-1 records, then add lower-confidence augmentation
 
 ---
 
