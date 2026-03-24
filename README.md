@@ -109,7 +109,6 @@ gemea/
 | File | Content |
 |------|---------|
 | `notes/paper-outline.md` | Section outline and argument structure |
-| `notes/paper-tpdl-gnd-linking.md` | GND linking contribution framing for paper |
 | `notes/literature/` | Related work annotations |
 
 ### Reference and background
@@ -119,11 +118,8 @@ gemea/
 | `notes/ddb-objects.md` | DDB EDM object structure and field inventory |
 | `notes/nlp-tasks.md` | NLP task inventory across the pipeline |
 | `notes/future-work.md` | Post-v1 ideas and v2 features |
-| `notes/roadmap-mcp.md` | MCP-specific roadmap variant |
-| `notes/roadmap-spinoff.md` | Spinoff project ideas |
 | `notes/grobid-setup.md` | GROBID setup notes (paper PDF parsing) |
 | `notes/review-checklist.md` | Pre-submission review checklist |
-| `notes/big-picture-dumb-questions.md` | High-level framing questions |
 
 ---
 

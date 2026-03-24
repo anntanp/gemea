@@ -237,7 +237,7 @@ The Latin risk row in the table above is overstated for this corpus. Latin title
 | GLiNER (`gliner_multi-v2.1`) | ~200M | Zero-shot NER | No | Yes | Yes | Moderate | NAACL 2024; span-based; multilingual; slightly behind NuNER Zero |
 | GROBID | — | Rule-based + CRF | No | Partial | Partial | Poor | Trained on scientific citations, not ISBD/library catalog — different domain; not recommended |
 
-**On DeBERTa vs XLM-R:** `deberta-v3-large` outperforms `xlm-roberta-large` on English NER benchmarks, but is English-only. The multilingual DeBERTa (`mdeberta-v3-base`) is only available at base size — so the choice for this task is effectively `xlm-roberta-large` (560M, multilingual large) vs `mdeberta-v3-base` (86M, multilingual base). XLM-R large is the stronger model and the documented choice for historical multilingual NER. Both should be benchmarked in SR-08 if fine-tuning is pursued.
+**On DeBERTa vs XLM-R:** `deberta-v3-large` outperforms `xlm-roberta-large` on English NER benchmarks, but is English-only. The multilingual DeBERTa (`mdeberta-v3-base`) is only available at base size — so the choice for this task is effectively `xlm-roberta-large` (560M, multilingual large) vs `mdeberta-v3-base` (86M, multilingual base). XLM-R large is the stronger model and the documented choice for historical multilingual NER. Both should be benchmarked in SR-09 if fine-tuning is pursued.
 
 ---
 
@@ -283,7 +283,7 @@ entities = merge_entities(entities, text)
 # → [{"text": "Faust drittes Buch", "label": "title", "score": 0.91}, ...]
 ```
 
-BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing** (see [SR-08](#29-sr-09--nunner-zero-evaluation)).
+BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing** (see [SR-09](#29-sr-09--nunner-zero-evaluation)).
 
 For a detailed pros/cons comparison of GLiNER and NuNER Zero with citable benchmark figures, see [ref_gliner-nunerzero-comparison.md](ner/ref_gliner-nunerzero-comparison.md).
 
@@ -365,13 +365,13 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 3. Supplement with HIPE-2022 ajmc and CLEF-HIPE-2020 for historical German signal
 4. Evaluate on a gold set stratified by era (modern, 19th c., 1700–1800, pre-1700) — no dedicated Latin stratum needed (SR-06: ~0.5% prevalence)
 
-**Alternative generative path (from Zhan et al. 2026):** Fine-tuned open-source LLMs (Qwen3-1.7B or LLaMA3.2-1B) with LoRA + Inline Bracketed/XML format match encoder-based models on general-domain NER (CoNLL2003 F1 ≈ 90–94 for 7–8B models; 1–4B models lag by ~10 F1 points). Add a fine-tuned small LLM as a benchmark in SR-08 alongside `xlm-roberta-large` and `mdeberta-v3-base`. Note: Zhan et al. evaluate on modern English/general-domain benchmarks only — performance on historical German bibliographic NER is unknown and likely lower (cf. GENIA biomedical gap). See [ref_zhan2026-generative-ner.md](ner/ref_zhan2026-generative-ner.md).
+**Alternative generative path (from Zhan et al. 2026):** Fine-tuned open-source LLMs (Qwen3-1.7B or LLaMA3.2-1B) with LoRA + Inline Bracketed/XML format match encoder-based models on general-domain NER (CoNLL2003 F1 ≈ 90–94 for 7–8B models; 1–4B models lag by ~10 F1 points). Add a fine-tuned small LLM as a benchmark in SR-09 alongside `xlm-roberta-large` and `mdeberta-v3-base`. Note: Zhan et al. evaluate on modern English/general-domain benchmarks only — performance on historical German bibliographic NER is unknown and likely lower (cf. GENIA biomedical gap). See [ref_zhan2026-generative-ner.md](ner/ref_zhan2026-generative-ner.md).
 
 ---
 
 ## 10. Decision
 
-1. **Try NuNER Zero first** — compact zero-shot encoder-based NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-08](#29-sr-09--nunner-zero-evaluation)). Zero-shot LLM NER is a known step down from fine-tuned models (~88 vs ~93 F1 on CoNLL2003; Zhan et al. 2026) — expect similar or larger gap on out-of-distribution historical German.
+1. **Try NuNER Zero first** — compact zero-shot encoder-based NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-09](#29-sr-09--nunner-zero-evaluation)). Zero-shot LLM NER is a known step down from fine-tuned models (~88 vs ~93 F1 on CoNLL2003; Zhan et al. 2026) — expect similar or larger gap on out-of-distribution historical German.
 2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune. Benchmark three options:
    - `xlm-roberta-large` — primary; strongest multilingual encoder; documented HIPE-2022 backbone
    - `mdeberta-v3-base` — lighter multilingual alternative

@@ -121,3 +121,35 @@ Threshold: FP < 15% per field.
 ## 7. Additional finding — pre-1750 author placement
 
 Pre-1750 titles systematically place the author's name and credentials *before* the main title (not after ` /`), making `f_person` a **false negative** for this entire stratum. The SoR heuristic misses the majority of early modern authors. This is a structural blind spot, not a noise issue — the pattern cannot be fixed by post-filtering. Implications for SR-08 gold set composition: early modern records must be annotated with a different author-detection strategy.
+
+---
+
+## 8. Statistical sampling notes
+
+### 8.1 Why stratified, not simple random
+
+The nine heuristic flags fire at very different rates in the DDB corpus. Flags like `f_year` and `f_other_title` fire on a large share of records; flags like `f_parallel` and `f_edition` are comparatively rare. A simple random sample of 200 records would allocate observations roughly in proportion to flag prevalence — meaning rare flags might appear in only a handful of records, too few to estimate their FP rates reliably.
+
+Stratified sampling solves this by treating each flag as a separate stratum and drawing records independently within each one. This guarantees that every flag type is represented regardless of its corpus frequency, making per-flag FP rate estimation feasible even for uncommon patterns. (See [prerequisites-abitur.md §6](../../boats/prerequisites-abitur.md) — Bernoulli trials and why n matters for estimate reliability.)
+
+### 8.2 Stratum definition
+
+Each stratum consists of records where a given flag is active (`flag = 1`). Because a single record can trigger multiple flags simultaneously (e.g. a title with both ` /` and `;`), records are not mutually exclusive across strata — the same record may appear in the `f_person` stratum and the `f_person_compound` stratum. The reported FP rates are per-flag, not per-record.
+
+### 8.3 Interpreting the overall 40.5% figure
+
+The headline figure — 81 of 200 records have at least one FP — reflects the stratified design, not the population rate. Because strata were sampled independently (not in proportion to their corpus size), the 40.5% cannot be interpreted as the expected FP rate across all heuristic-labeled records in production. It is a summary of review coverage, not a population estimate. The per-flag rates in §3 are the operationally meaningful numbers. (See [prerequisites-abitur.md §3](../../boats/prerequisites-abitur.md) — what a confidence interval expresses and what it does not.)
+
+### 8.4 Precision of per-flag estimates
+
+With modest per-stratum sample sizes, the individual FP rate estimates carry uncertainty. As a rough guide, a 95% confidence interval (Wilson method) for a proportion has a half-width of roughly:
+
+| Sample size | Half-width at p ≈ 0.50 | Half-width at p ≈ 0.10 |
+|---|---|---|
+| n = 20 | ±22 pp | ±13 pp |
+| n = 30 | ±18 pp | ±11 pp |
+| n = 50 | ±14 pp | ±8 pp |
+
+Flags with very high or very low estimated FP rates are more precisely estimated at a given n than flags near 50% (see [prerequisites-abitur.md §5](../../boats/prerequisites-abitur.md) — why p=0.5 is the worst case). The `f_parallel` (~80%) and `f_edition` (~83%) exclusion decisions are robust — their rates are far enough above the 15% threshold that sampling noise does not change the outcome. The `f_year` (~6%) and `f_other_title` (~8%) accept decisions are similarly robust. The `f_person` (~36%) and `f_person_compound` (~29%) post-filter decisions are above threshold with margin, but their estimates carry more uncertainty and should be revisited if stratum sizes are small.
+
+For the Wilson interval formula and how to compute it in Python, see [prerequisites-abitur.md §8](../../boats/prerequisites-abitur.md).
