@@ -1,8 +1,8 @@
 # Purpose:      Plot the raw token-count distribution of all_tokens and
 #               content_tokens in DF_DE_TITLES to identify natural breakpoints
 #               for short/medium/long length categories.
-# Usage:        python scripts/explore_token_distribution.py
-#               python scripts/explore_token_distribution.py --data PATH --output-dir PATH
+# Usage:        python scripts/sr10_explore_token_distribution.py
+#               python scripts/sr10_explore_token_distribution.py --data PATH --output-dir PATH
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with all_tokens, content_tokens
 # Outputs:      notes/images/fig_token_distribution.png — histogram + percentile markers
 #               output/token-distribution.json          — percentile table and value counts

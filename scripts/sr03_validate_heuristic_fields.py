@@ -10,7 +10,7 @@
 #               data/DF_DE_TITLES_20240125b.pkl        — for DDB URL construction
 # Outputs:      data/processed/heuristic_validation_sample.csv — review sheet
 # Dependencies: pandas
-# Assumptions:  isbd_field_ratings.csv exists (run rate_isbd_fields.py first).
+# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 #               Heuristic tier = silver_tier 1 records with has_dot_dash == False.
 
 import argparse

@@ -2,7 +2,7 @@
 """
 Purpose:  Load data/DF_DE_TITLES_20240125b.pkl, extract title column(s),
           and report how many titles contain ISBD punctuation marks.
-Usage:    python3 check_isbd_titles.py [--data PATH]
+Usage:    python3 scripts/sr01_check_isbd_titles.py [--data PATH]
 Inputs:   DF_DE_TITLES_20240125b.pkl — pandas DataFrame
 Outputs:  Console summary with pattern breakdown and sample titles
 Dependencies: pandas

@@ -12,7 +12,7 @@
 #               data/processed/isbd_field_ratings.csv
 # Outputs:      data/processed/sr06_historical_sample.csv
 # Dependencies: pandas, re
-# Assumptions:  isbd_field_ratings.csv exists (run rate_isbd_fields.py first).
+# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 
 import argparse
 import pickle

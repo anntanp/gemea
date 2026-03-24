@@ -3,12 +3,12 @@
 #               apply the translator keyword heuristic to split PERSON (author) from
 #               TRANSLATOR. Writes a review sheet for manual validation of heuristic
 #               precision (SR-04).
-# Usage:        python3 scripts/validate_translator_disambiguation.py [--ratings PATH]
+# Usage:        python3 scripts/sr04_validate_translator_disambiguation.py [--ratings PATH]
 #                   [--output PATH] [--n N] [--seed N]
 # Inputs:       data/processed/isbd_field_ratings.csv — output of rate_isbd_fields.py
 # Outputs:      data/processed/translator_validation_sample.csv — review sheet
 # Dependencies: pandas
-# Assumptions:  isbd_field_ratings.csv exists (run rate_isbd_fields.py first).
+# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 
 import re
 import argparse

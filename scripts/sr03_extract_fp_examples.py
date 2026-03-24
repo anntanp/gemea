@@ -6,7 +6,7 @@ Usage:    python scripts/extract_fp_examples.py
 Inputs:   data/processed/heuristic_validation_sample.csv
 Outputs:  stdout (structured text)
 Dependencies: pandas
-Assumptions:  CSV schema matches validate_heuristic_fields.py output.
+Assumptions:  CSV schema matches sr03_validate_heuristic_fields.py output.
 """
 
 import pandas as pd

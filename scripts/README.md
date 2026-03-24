@@ -25,14 +25,18 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | `setup_gnd_qlever.sh` | Convert GND JSON-LD to N-Triples, build QLever index, start SPARQL server |
 | `jsonld_to_nt.py` | Convert a JSON-LD file (.jsonld or .jsonld.gz) to N-Triples using rdflib |
 | `check_generic_title_words.py` | Query DNB SPARQL endpoint to count GND Work records per GENERIC_TITLE_WORD; validates which words are high-collision and should be excluded from distinctive token selection |
-| `check_isbd_titles.py` | Analyse ISBD punctuation patterns in DF_DE_TITLES; reports per-pattern counts and sample titles |
-| `rate_isbd_fields.py` | Rate all 4.47M DF_DE_TITLES records for the presence of bibliographic fields (TITLE, PERSON, PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME) using ISBD rules; assigns silver_tier for NER training data selection; optionally writes per-pattern examples with DDB links |
-| `validate_heuristic_fields.py` | Sample 200 heuristic-tier records from isbd_field_ratings.csv for manual false-positive review; writes a review sheet CSV with DDB links and blank fp_fields / notes columns |
-| `explore_token_distribution.py` | Plot raw token-count distribution of `all_tokens` and `content_tokens` with percentile markers (p25/p50/p75/p90); used to identify data-driven short/medium/long thresholds; outputs `notes/images/fig_token_distribution.png` and `output/token-distribution.json` |
-| `analyse_title_lengths.py` | Plot title-length distribution (short/medium/long) per year bucket using `all_tokens` and `content_tokens`; year from `dates` column with title-string fallback; outputs `notes/images/fig_title_lengths.png` and `output/title-length-analysis.json` |
-| `validate_translator_disambiguation.py` | SR-04: sample 100 heuristic `f_person` records and apply translator/editor keyword heuristic to classify SoR text as TRANSLATOR / EDITOR / PERSON; writes `data/processed/translator_validation_sample.csv` for manual precision review |
-| `evaluate_translator_heuristic.py` | SR-04: evaluate keyword heuristic against manual `true_class` annotations in `translator_validation_sample.csv`; prints precision/recall/F1 for TRANSLATOR and EDITOR, confusion matrix, and false-negative detail |
-| `sr03_fp_review.py` | SR-03 false-positive review: reads `data/processed/heuristic_validation_sample.csv`, applies automated regex rules + per-row manual overrides to classify each active heuristic flag (f_year, f_other_title, f_person, f_person_compound, f_parallel, f_edition, f_publisher, f_series, f_volume) as TP or FP, and writes results back to `fp_fields` and `notes` columns |
-| `validate_fp_review.py` | Validate the FP review output: checks row count, field name validity, and that fp_fields only references columns actually set to 1 |
+| `sr01_check_isbd_titles.py` | SR-01: analyse ISBD punctuation patterns in DF_DE_TITLES; reports per-pattern counts and sample titles |
+| `sr01_rate_isbd_fields.py` | SR-01: rate all 4.47M DF_DE_TITLES records for the presence of bibliographic fields using ISBD rules; assigns silver_tier; optionally writes per-pattern examples with DDB links |
+| `sr03_validate_heuristic_fields.py` | SR-03: sample 200 heuristic-tier records from isbd_field_ratings.csv for manual false-positive review; writes a review sheet CSV |
+| `sr03_fp_review.py` | SR-03: apply automated regex rules + per-row manual overrides to classify each heuristic flag as TP or FP; writes results to fp_fields and notes columns |
+| `sr03_validate_fp_review.py` | SR-03: validate FP review output — checks row count, field name validity, and referential integrity |
+| `sr03_extract_fp_examples.py` | SR-03: extract DDB links and field flags from heuristic_validation_sample.csv |
+| `sr04_validate_translator_disambiguation.py` | SR-04: sample 100 heuristic `f_person` records and classify SoR text as TRANSLATOR / EDITOR / PERSON; writes `data/processed/translator_validation_sample.csv` |
+| `sr04_evaluate_translator_heuristic.py` | SR-04: evaluate keyword heuristic against manual `true_class` annotations; prints precision/recall/F1, confusion matrix, and false-negative detail |
+| `sr10_explore_token_distribution.py` | SR-10: plot raw token-count distribution with percentile markers; outputs `notes/images/fig_token_distribution.png` |
+| `sr10_analyse_title_lengths.py` | SR-10: plot title-length distribution per year bucket; outputs `notes/images/fig_title_lengths.png` |
 | `sr05_validate_trailing_period.py` | SR-05: sample 200 titles ending with `.` from DF_DE_TITLES; applies a heuristic classifier (ISBD_CLOSE / ABBREV / ORDINAL / NATURAL / NOISE) and writes `data/processed/trailing_period_sample.csv` |
 | `sr05_trailing_period_review.py` | SR-05: annotate `trailing_period_sample.csv` with refined `true_class` and `notes`; prints FP rate summary |
+| `sr08_sample_gold.py` | SR-08: draw ~500-record stratified NER gold sample by era × silver_tier × dc_type; oversample Leichenpredigt and Einblattdruck; writes `data/annotation/sr08_gold_sample.csv` |
+| `sr08_prefill_spans.py` | SR-08: pre-fill TITLE / OTHER_TITLE / PERSON spans for tier-1 and tier-2 records using ISBD rules; marks pre-1700 and tier-0 records as manual; writes `sr08_gold_prefilled.jsonl` and `sr08_manual_queue.csv` |
+| `sr08_verify_spans.py` | SR-08: verify character offset integrity of pre-filled spans; prints sample records for manual spot-check |

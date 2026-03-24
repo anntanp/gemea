@@ -4,8 +4,8 @@
 #               both are shown together on the median panel. Year is taken
 #               from the 'dates' column; titles with no 'dates' value fall
 #               back to a regex extraction from the title string.
-# Usage:        python scripts/analyse_title_lengths.py
-#               python scripts/analyse_title_lengths.py --data PATH --output-dir PATH
+# Usage:        python scripts/sr10_analyse_title_lengths.py
+#               python scripts/sr10_analyse_title_lengths.py --data PATH --output-dir PATH
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with obj_id, title,
 #                 all_tokens, content_tokens, dates columns
 # Outputs:      notes/images/fig_title_lengths.png — stacked bar + dual median chart

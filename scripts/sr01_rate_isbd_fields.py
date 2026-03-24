@@ -4,7 +4,7 @@
 #               YEAR, SERIES, VOLUME) using ISBD punctuation rules. Assigns a silver_tier
 #               to each record for NER training data selection. Optionally writes N
 #               concrete examples per ISBD pattern for documentation.
-# Usage:        python3 scripts/rate_isbd_fields.py [--data PATH] [--output PATH]
+# Usage:        python3 scripts/sr01_rate_isbd_fields.py [--data PATH] [--output PATH]
 #                   [--examples N] [--batch-size N]
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with obj_id + title columns
 # Outputs:      data/processed/isbd_field_ratings.csv — field flags + silver_tier per record

@@ -3,7 +3,7 @@
 #               true_class annotations in translator_validation_sample.csv.
 #               Prints precision, recall, F1 for TRANSLATOR and EDITOR detection,
 #               and a confusion matrix heuristic_class vs true_class.
-# Usage:        python3 scripts/evaluate_translator_heuristic.py [--input PATH]
+# Usage:        python3 scripts/sr04_evaluate_translator_heuristic.py [--input PATH]
 # Inputs:       data/processed/translator_validation_sample.csv — annotated review sheet
 # Outputs:      stdout — precision/recall/F1 table + confusion matrix
 # Dependencies: pandas
