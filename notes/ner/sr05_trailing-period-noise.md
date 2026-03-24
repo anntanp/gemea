@@ -12,7 +12,7 @@ Trailing `.` fires in 19.5% of the corpus (875,349 records). Can it be used as a
 
 ## 2. Method
 
-`scripts/validate_trailing_period.py` drew a 200-record stratified sample from all titles ending with `.`. `scripts/sr05_trailing_period_review.py` classified each record into:
+`scripts/sr05_validate_trailing_period.py` drew a 200-record stratified sample from all titles ending with `.`. `scripts/sr05_trailing_period_review.py` classified each record into:
 
 | Class | Meaning |
 |---|---|
