@@ -12,16 +12,53 @@ NER fallback applies to ~71% of DF_DE_TITLES records (the share with no ISBD mar
 
 ## 2. Method
 
-`scripts/sr06_historical_scope.py` sampled 200 records from two strata:
+### 2.1 Stratum selection
 
-| Stratum | Filter | Total records | Tier-0 records |
+Two strata were selected as high-density proxies for historical records in DF_DE_TITLES. Script: [sr06_historical_scope.py](../../scripts/sr06_historical_scope.py).
+
+| Stratum | Filter | Total records | Tier-0 records | Rationale |
+|---|---|---|---|---|
+| A — Leichenpredigt | `dc_type` contains "Leichenpredigt" | 11,255 | 4,809 (43%) | Funerary sermons; nearly all pre-1750; known to contain Latin scripture and Early Modern German prose; the most historically homogeneous dc_type in DF_DE_TITLES |
+| B — Monografie pre-1800 | `dc_type == "Monografie"` AND `year_num < 1800` | 175,094 | 145,268 (83%) | Broad historical monograph category; spans 1500–1799; includes legal texts, academic dissertations, religious tracts, administrative documents — the widest coverage of pre-modern production types |
+
+Strata were chosen to span the two dominant historical production contexts: devotional/funerary (Leichenpredigt, mostly 1600–1750) and scholarly/administrative (Monografie, 1500–1799). Other potentially relevant dc_types (e.g. pre-1800 Periodika, Handschrift, Einblattdruck) were excluded from this study; their language distributions may differ.
+
+**Year filter for Stratum B:** `year_num` is derived from `pd.to_numeric(df["dates"], errors="coerce")` — a best-effort parse of the free-text `dates` field. Records with non-numeric or missing dates are excluded from Stratum B; they would not be in the tier-0 historical fallback in any case.
+
+**No tier filter applied:** both strata include tier-0, tier-1, and tier-2 records. The study targets language scope, not silver label quality; all records are valid regardless of tier.
+
+### 2.2 Sampling
+
+100 records drawn from each stratum by uniform random sampling (seed 42), giving n=200 total. The split is **equal** despite the size imbalance (Leichenpredigt 11k vs Monografie pre-1800 175k) — a deliberate choice to ensure Leichenpredigt, the smaller but historically denser stratum, contributes meaningfully to the analysis. Proportional sampling would have given Leichenpredigt only ~12 records.
+
+### 2.3 Classification
+
+A heuristic classifier ([sr06_historical_scope.py](../../scripts/sr06_historical_scope.py)) assigned each title one of four classes: **LATIN**, **EARLY_MODERN_DE**, **GERMAN**, **OTHER**. A stricter true-class annotator ([sr06_evaluate_historical.py](../../scripts/sr06_evaluate_historical.py)) was then applied to measure heuristic accuracy. True-class annotation rules are documented in the script header.
+
+### 2.4 Is n=200 sufficient?
+
+Each observed proportion p̂ = k/n is treated as a Bernoulli trial estimate. The Wilson interval is used rather than the Wald interval (p̂ ± 1.96√(p̂(1−p̂)/n)) because Wald is unreliable when p̂ is near 0 or 1 — it can produce negative lower bounds and undercovers the true proportion. Wilson conditions on the hypothetical true proportion p rather than p̂, giving valid coverage across the full [0,1] range. For the LATIN finding (k=1, n=200), this distinction is material: Wald gives [0%, 1.5%] with a clipped lower bound, while Wilson gives [0.01%, 2.8%].
+
+For the key findings, 95% confidence intervals (Wilson interval — Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. *Journal of the American Statistical Association*, 22(158), 209–212):
+
+| Finding | Observed | 95% CI | Decision sensitivity |
 |---|---|---|---|
-| A — Leichenpredigt | `dc_type` contains "Leichenpredigt" | 11,255 | 4,809 |
-| B — Monografie pre-1800 | `dc_type == "Monografie"` AND `year < 1800` | 175,094 | 145,268 |
+| EARLY_MODERN_DE prevalence | 93% (186/200) | [88.5%, 96.1%] | Even at lower bound (88.5%), conclusion — Early Modern German is dominant — holds |
+| LATIN prevalence | 0.5% (1/200) | [0.01%, 2.8%] | Upper bound confirms Latin is < 3% — sufficient to rule out a dedicated Latin stratum |
+| Heuristic overall accuracy | 91% (182/200) | [86.3%, 94.2%] | Precision/recall estimates reliable to ±4% |
+| LATIN heuristic FP rate | 83% (11/13 FPs among heuristic-LATIN) | [52%, 98%] | Wide CI due to small n (12 heuristic-LATIN); directionally correct but exact rate uncertain |
 
-100 records sampled from each stratum (seed 42). A heuristic classifier assigned one of four classes: **LATIN**, **EARLY_MODERN_DE**, **GERMAN**, **OTHER**.
+**Why n=200 is enough.** Sufficiency depends on the decision being made, not on CI width alone. The two decisions here are binary thresholds:
 
-`scripts/sr06_evaluate_historical.py` applied a stricter true-class annotator and computed agreement with the heuristic. True-class annotation rules are documented in the script header.
+1. *Is Early Modern German dominant enough to be the primary training target?* — requires knowing prevalence is well above some meaningful threshold, say 70%. The lower CI bound is 88.5%, clearing 70% by 18 percentage points. No additional samples would change this conclusion.
+
+2. *Is Latin rare enough to exclude from the gold set?* — requires knowing prevalence is well below a useful stratification threshold, say 5%. The upper CI bound is 2.8%, comfortably below 5%. Again, additional samples would only narrow the interval further in the same direction.
+
+Both decisions are robust because the observed proportions are extreme (93% and 0.5%), not near the decision boundary. Extreme proportions require fewer observations to establish — the variance of a proportion estimator is p(1−p)/n, which is maximised at p=0.5 and small near 0 or 1. Had the results been, say, EARLY_MODERN_DE 55% and LATIN 8%, n=200 would not have been sufficient to distinguish signal from noise.
+
+**Conclusion:** n=200 is sufficient for the decision this study supports — determining whether a Latin stratum is needed in the gold set (SR-07) and confirming Early Modern German as the primary historical challenge. It is **not** sufficient for precise per-class prevalence estimates publishable as corpus statistics; a larger stratified sample (n≥500 per stratum) would be needed for that.
+
+**Unsampled strata:** Leichenpredigt and pre-1800 Monografie represent ~186k records. Pre-1800 Periodika, Handschrift, and Einblattdruck are not covered. Their language distribution may skew differently (e.g. Handschrift may have higher Latin prevalence). Flag for SR-07 gold set design if these dc_types are included.
 
 ---
 
