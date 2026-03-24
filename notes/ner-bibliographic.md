@@ -178,18 +178,21 @@ For the fallback, historical language introduces real risk:
 
 ## 5. Model options
 
-| Model | Type | Fine-tune needed? | TITLE OOB | PERSON OOB | Historical/Latin | Notes |
-|---|---|---|---|---|---|---|
-| `xlm-roberta-large` | Transformer | Yes | No | No | Good | **Recommended base for fine-tuning** — multilingual training covers Latin and historical text better than monolingual alternatives |
-| spaCy `de_core_news_lg` | Transformer | No | No | Yes | Poor | Trained on modern German news; degrades on historical orthography and Latin |
-| `flair/ner-german-large` | Stacked embeddings | No | No | Yes (PER) | Poor | CoNLL-2003 labels; same limitation as spaCy |
-| `deepset/gbert-large` | BERT-large | Yes | No | No | Poor | Monolingual modern German; no off-the-shelf bibliographic NER |
-| LLM (GPT-4o, Claude, Llama 3) | Generative | No | Yes | Yes | Good | Handles Latin and historical German well; too slow at 5–10M records but strong as a one-time labeler |
-| **NuNER Zero** (`numind/NuNER_Zero`) | Zero-shot NER | No | Yes | Yes | Moderate | +3.1% F1 over GLiNER-large-v2.1; token classifier (handles arbitrarily long entities); same size, local CPU; **current SOTA in this category** |
-| GLiNER (`gliner_multi-v2.1`) | Zero-shot NER | No | Yes | Yes | Moderate | NAACL 2024; span-based with configurable width; multilingual; slightly behind NuNER Zero on benchmarks |
-| GROBID | Rule-based + CRF | No | Partial | Partial | Poor | Trained on scientific citations, not ISBD/library catalog — different domain; not recommended |
+| Model | Params | Type | Fine-tune needed? | TITLE OOB | PERSON OOB | Historical/Latin | Notes |
+|---|---|---|---|---|---|---|---|
+| `xlm-roberta-large` | 560M | Transformer | Yes | No | No | Good | **Recommended base for fine-tuning** — multilingual (100 langs); dominant backbone in HIPE-2022 and CLEF-HIPE-2020 top systems (see §9) |
+| `xlm-roberta-base` | 270M | Transformer | Yes | No | No | Good | Lighter alternative to XLM-R large; same multilingual coverage, lower capacity |
+| `mdeberta-v3-base` | 86M | Transformer | Yes | No | No | Good | Multilingual DeBERTa (100 langs); disentangled attention + ELECTRA pretraining; competitive with XLM-R base; **no large multilingual variant available** — ceiling lower than XLM-R large |
+| `deberta-v3-large` | 304M | Transformer | Yes | No | No | ❌ N/A | **English-only** — not applicable for German/multilingual use |
+| spaCy `de_core_news_lg` | — | Transformer | No | No | Yes | Poor | Trained on modern German news; degrades on historical orthography |
+| `flair/ner-german-large` | — | Stacked embeddings | No | No | Yes (PER) | Poor | CoNLL-2003 labels; same limitation as spaCy |
+| `deepset/gbert-large` | 336M | BERT-large | Yes | No | No | Poor | Monolingual modern German — wrong choice for historically diverse corpus |
+| LLM (GPT-4o, Claude, Llama 3) | — | Generative | No | Yes | Yes | Good | Handles historical German well; too slow at 5–10M records but strong as a one-time labeler |
+| **NuNER Zero** (`numind/NuNER_Zero`) | ~180M | Zero-shot NER | No | Yes | Yes | Moderate | +3.1% F1 over GLiNER-large-v2.1; token classifier (handles arbitrarily long entities); local CPU; **current SOTA zero-shot** |
+| GLiNER (`gliner_multi-v2.1`) | ~200M | Zero-shot NER | No | Yes | Yes | Moderate | NAACL 2024; span-based; multilingual; slightly behind NuNER Zero |
+| GROBID | — | Rule-based + CRF | No | Partial | Partial | Poor | Trained on scientific citations, not ISBD/library catalog — different domain; not recommended |
 
-**Note on gbert-large**: was listed as the original plan but was never properly justified. Monolingual modern German is the wrong choice for a historically diverse corpus.
+**On DeBERTa vs XLM-R:** `deberta-v3-large` outperforms `xlm-roberta-large` on English NER benchmarks, but is English-only. The multilingual DeBERTa (`mdeberta-v3-base`) is only available at base size — so the choice for this task is effectively `xlm-roberta-large` (560M, multilingual large) vs `mdeberta-v3-base` (86M, multilingual base). XLM-R large is the stronger model and the documented choice for historical multilingual NER. Both should be benchmarked in SR-08 if fine-tuning is pursued.
 
 ---
 
@@ -301,22 +304,22 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 | Dataset | Labels | Language | Size | Relevance |
 |---|---|---|---|---|
 | [empathyai/books-ner-dataset](https://huggingface.co/datasets/empathyai/books-ner-dataset) | TITLE, AUTHOR | English | Project Gutenberg catalogues | Closest label match; English only — use for domain-transfer pretraining |
-| [HIPE-2022 (ajmc)](https://github.com/hipe-eval/HIPE-2022-data) | Fine-grained bibliographic refs | German, French, English | ~10K tokens | Historical document NER with bibliographic references; German included — more relevant given historical scope |
-| [CLEF-HIPE-2020](https://zenodo.org/record/3836029) | PER, ORG, LOC, PROD (work titles) | German, French, English | Historical newspapers | PROD label covers work titles; 19th-century orthography — relevant for historical German |
+| [HIPE-2022 (ajmc)](https://github.com/hipe-eval/HIPE-2022-data) | Fine-grained bibliographic refs | German, French, English | ~10K tokens | Historical document NER with bibliographic references; German included. Top systems used `xlm-roberta-large` as backbone. Ehrmann et al. (2022) ⚠️ *verify citation* |
+| [CLEF-HIPE-2020](https://zenodo.org/record/3836029) | PER, ORG, LOC, PROD (work titles) | German, French, English | Historical newspapers | PROD label covers work titles; 19th-century orthography. XLM-R large dominant in top submissions. Ehrmann et al. (2020) ⚠️ *verify citation* |
 | [GermEval 2014](https://sites.google.com/site/germeval2014ner/) | PER, ORG, LOC, OTH | German | ~31K sentences | Modern German only; useful only for PERSON transfer |
 
 **Recommended fine-tuning path**:
 1. Pretrain on `empathyai/books-ner-dataset` for TITLE/AUTHOR signal (domain transfer)
 2. Fine-tune on silver-labeled DDB records
 3. Supplement with HIPE-2022 ajmc and CLEF-HIPE-2020 for historical German and Latin signal
-4. Evaluate on a gold set stratified by era (modern, 19th c., pre-1800, Latin)
+4. Evaluate on a gold set stratified by era (modern, 19th c., 1700–1800, pre-1700) — no dedicated Latin stratum needed (SR-06: ~0.5% prevalence)
 
 ---
 
 ## 10. Decision
 
 1. **Try NuNER Zero first** — current SOTA compact zero-shot NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-08](#28-sr-08--nunner-zero-evaluation)).
-2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune `xlm-roberta-base` on that output.
-3. **Silver labeling** (ISBD-derived) augments any fine-tuning — language-agnostic, large volume, no annotation cost.
-4. Use `xlm-roberta` over any monolingual German model — the historical and Latin scope makes multilingual pretraining essential.
+2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune `xlm-roberta-large` on that output. Benchmark `mdeberta-v3-base` alongside as a lighter-weight alternative.
+3. **Silver labeling** (ISBD-derived) augments any fine-tuning — language-agnostic, large volume, no annotation cost. Note: silver set covers modern records; pre-1750 stratum requires gold or LLM labels (SR-06).
+4. Use `xlm-roberta-large` over any monolingual German model — multilingual pretraining is essential for Early Modern German. `deberta-v3-large` is English-only and not applicable; `mdeberta-v3-base` is the multilingual DeBERTa but only available at base size.
 5. **GROBID**: trained on scientific citations, not library catalog records — not recommended.

@@ -144,4 +144,11 @@ The NER model does not need Latin capability for the historical stratum. Early M
 - Author name + credentials placed *before* the title (not after ` /`) — a structural false negative for `f_person`; see SR-03 §5
 - Non-standard orthography (`vnd`, `seyn`, `deß`) tokenised differently by modern German tokenisers
 
-A `gbert-large` or `xlm-roberta-base` fine-tuned on a pre-1750 stratum is appropriate. Dedicated Latin NER models (e.g. LatinBERT) are not required at this scale.
+Fine-tuning on a pre-1750 stratum is the appropriate path, but the **current silver dataset is not sufficient**:
+
+- Pre-1750 records are almost entirely tier-0 — no `. -` markers, no `f_person` (author-before-title pattern), so `rate_isbd_fields.py` produces no silver labels for this stratum
+- Fine-tuning on modern silver data alone will not expose the model to early modern orthography or the name-before-title structure
+
+**What is needed:** the SR-07 gold set (pre-1700 stratum, human-annotated) or LLM-labeled pre-1750 records as an interim (see [ner-bibliographic.md §8.2](../ner-bibliographic.md)).
+
+**Model choice:** `xlm-roberta-base` (or `-large`) is preferred over monolingual German models (`gbert-large`) — multilingual pretraining covers early modern orthography variation better, and aligns with the decision in [ner-bibliographic.md §5](../ner-bibliographic.md). Dedicated Latin NER models (e.g. LatinBERT) are not required — true Latin prevalence is ~0.5%.
