@@ -6,6 +6,20 @@ Summary of which ISBD punctuation rules work reliably in the DDB corpus, which f
 
 ---
 
+## 0. Note lineage
+
+Three notes share the `sr01_` prefix. They are not redundant — each covers a distinct stage:
+
+| Note | Stage | What it contains |
+|---|---|---|
+| [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) | Initial scan | Raw output of [check_isbd_titles.py](../../scripts/check_isbd_titles.py) (2026-03-17). DataFrame schema, raw per-pattern counts (` :` 20.3%, trailing `.` 17.5%, ` /` 0.8%, etc.), and a first-pass note on trailing period noise. Motivated building the full field-rating pipeline. |
+| [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Full rating run | Documents [rate_isbd_fields.py](../../scripts/rate_isbd_fields.py) — the detection logic, output schema (`isbd_field_ratings.csv`), silver tier definitions, and validation sample methodology. Source of the corpus-wide tier counts (tier 2: 4,613 records; tier 1: 335,524 records). |
+| [sr01_isbd-applicability.md](sr01_isbd-applicability.md) *(this file)* | Synthesis | Rule-by-rule applicability decisions derived from the rating run and subsequent SR-03/SR-04 validation. Answers: which signals to use, which to exclude, and which require sub-classification or era guards. |
+
+The "28%" figure that appears in early notes (including the original ADR-02) came from [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) — the proportion of records with any ISBD signal excluding trailing `.`. The corrected structural-tier figure (`. -` present in **1.2%** of records) comes from the full rating run in [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md).
+
+---
+
 ## 1. ISBD area structure in DDB
 
 A fully conformant ISBD record uses `. -` (trailing period + space-dash-space) to separate areas:
