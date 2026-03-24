@@ -49,11 +49,11 @@ GLiNER (NAACL 2024) is the base architecture: a single bidirectional encoder tha
 
 ---
 
-## 4. Relevance to GeMeA (SR-08)
+## 4. Relevance to GeMeA (SR-09)
 
 Neither GLiNER nor NuNER Zero has been evaluated on:
 - Historical German text (Early Modern orthography, pre-1750)
 - Bibliographic NER (TITLE, PERSON, OTHER_TITLE, TRANSLATOR)
 - ISBD-structured records or DDB catalog strings
 
-The supervised baseline gap (GLiNER-Multi: 32.9 vs. XLM-R supervised: 54.9 on MultiCONER) is consistent with the zero-shot LLM performance gap documented in Zhan et al. (2026). For GeMeA's low-resource historical domain, a similar or larger gap should be expected. SR-08 evaluation on 500 stratified records is necessary before drawing any conclusions about viability.
+The supervised baseline gap (GLiNER-Multi: 32.9 vs. XLM-R supervised: 54.9 on MultiCONER) is consistent with the zero-shot LLM performance gap documented in Zhan et al. (2026). For GeMeA's low-resource historical domain, a similar or larger gap should be expected. SR-09 evaluation on 500 stratified records is necessary before drawing any conclusions about viability.

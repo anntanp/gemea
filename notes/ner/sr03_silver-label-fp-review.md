@@ -104,7 +104,7 @@ Early modern German title pages frequently front-load the author's name and cred
 | `Leich-Sermon … Bey … Sepultur Der … Magdalenen Heidewig Stissers/ Deß … Johan Julii Herings … HaußFrawen …` | [↗](https://ddb.de/item/7GZQOGDUS4AXD2LYGSHUWJPY6BDC3KMS) | Named deceased and husband's credentials embedded mid-title; SoR absent |
 | `Königsberg, b. Fr. Nicolovius: Handbuch des römischen Privatrechts … Von Theodor Schmalz, D. Königl. Preuss. Consistorialrathe und Professor …` | [↗](https://ddb.de/item/T6YL7Z2YEIEFTKDTG4GFDBIIZIFYHIBB) | Author name follows `Von` mid-title, not ` /` |
 
-This is a structural blind spot: the pattern cannot be fixed by post-filtering `f_person`. Early modern records in the SR-09 gold set will need a separate author-detection strategy (e.g. name-before-title NER, or annotation without relying on the SoR heuristic).
+This is a structural blind spot: the pattern cannot be fixed by post-filtering `f_person`. Early modern records in the SR-08 gold set will need a separate author-detection strategy (e.g. name-before-title NER, or annotation without relying on the SoR heuristic).
 
 ---
 
@@ -120,4 +120,4 @@ Threshold: FP < 15% per field.
 
 ## 7. Additional finding — pre-1750 author placement
 
-Pre-1750 titles systematically place the author's name and credentials *before* the main title (not after ` /`), making `f_person` a **false negative** for this entire stratum. The SoR heuristic misses the majority of early modern authors. This is a structural blind spot, not a noise issue — the pattern cannot be fixed by post-filtering. Implications for SR-09 gold set composition: early modern records must be annotated with a different author-detection strategy.
+Pre-1750 titles systematically place the author's name and credentials *before* the main title (not after ` /`), making `f_person` a **false negative** for this entire stratum. The SoR heuristic misses the majority of early modern authors. This is a structural blind spot, not a noise issue — the pattern cannot be fixed by post-filtering. Implications for SR-08 gold set composition: early modern records must be annotated with a different author-detection strategy.

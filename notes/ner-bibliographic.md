@@ -31,16 +31,16 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 |---|---|---|---|
 | [SR-01](#21-sr-01--isbd-signal-coverage-corpus-wide) | ISBD signal coverage (corpus-wide) | ✅ Resolved | — |
 | [SR-02](#22-sr-02--isbd-parser-split-priority) | ISBD parser split priority | ✅ Resolved | — |
-| [SR-03](#23-sr-03--silver-label-quality-and-false-positive-rate) | Silver label quality and false positive rate | ✅ Resolved | [SR-08](#28-sr-08--nunner-zero-evaluation) |
-| [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | ✅ Resolved | [SR-09](#29-sr-09--gold-set-composition) |
+| [SR-03](#23-sr-03--silver-label-quality-and-false-positive-rate) | Silver label quality and false positive rate | ✅ Resolved | [SR-09](#29-sr-09--nunner-zero-evaluation) |
+| [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
 | [SR-05](#25-sr-05--trailing-period-noise) | Trailing period noise | ✅ Resolved | — |
-| [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | ✅ Resolved | [SR-09](#29-sr-09--gold-set-composition) |
-| [SR-07](#27-sr-07--frbr-metric-scope-for-paper) | FRBR metric scope for paper | ✅ Resolved | [SR-09](#29-sr-09--gold-set-composition) |
-| [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-09 | — |
-| [SR-09](#29-sr-09--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
+| [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
+| [SR-07](#27-sr-07--frbr-metric-scope-for-paper) | FRBR metric scope for paper | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
+| [SR-08](#28-sr-08--gold-set-composition) | Gold set composition | 🔲 Open | [SR-09](#29-sr-09--nunner-zero-evaluation) |
+| [SR-09](#29-sr-09--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-08 | — |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
-| [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔲 Open — blocked on SR-09 seed | — |
-| [SR-12](#212-sr-12--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-09 | — |
+| [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔲 Open — blocked on SR-08 seed | — |
+| [SR-12](#212-sr-12--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-08 | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](ner/sr01_isbd-field-rating.md)
@@ -61,7 +61,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Excluded:** `f_parallel` (~80% FP), `f_edition` (~83% FP)
 - **Post-filter required:** `f_person` (~36% FP), `f_person_compound` (~29% FP)
 - **Accepted:** `f_year`, `f_other_title`, `f_publisher`, `f_series`, `f_volume` (all < 15% FP)
-- Pre-1750 author placement (name before title, not after ` /`) is a structural false-negative blind spot for `f_person` — flagged for SR-09
+- Pre-1750 author placement (name before title, not after ` /`) is a structural false-negative blind spot for `f_person` — flagged for SR-08
 
 ### 2.4 SR-04 — TRANSLATOR / PERSON disambiguation
 **Status:** Resolved — see [translator-person-disambiguation.md](ner/sr04_translator-person-disambiguation.md)
@@ -100,19 +100,24 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Phase 1 scope — Work:** initial NER evaluation covers Work-level labels only: `TITLE`, `OTHER_TITLE`, `PERSON`. This is the minimum viable label set for the paper's linking quality metrics.
 - **Phase 2 scope — Expression:** once Work-level extraction is validated, add Expression-level labels: `TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`. These can be derived from the Manifestation record but require additional heuristics (language field, ` /` SoR role disambiguation, medium indicators).
 - **Manifestation labels deferred:** `PUBLISHER`, `PLACE`, `YEAR`, `EDITION`, `SERIES`, `VOLUME` are extractable from the Manifestation string and useful for deduplication, but are not in scope for the paper's NER evaluation.
-- **Implication for SR-09:** gold set Phase 1 annotation covers `TITLE`, `OTHER_TITLE`, `PERSON` only. Expression labels (`TRANSLATOR`, `PARALLEL_TITLE`) should be included in the annotation schema from the start (to avoid re-annotation) but are not required for the initial evaluation pass.
+- **Implication for SR-08:** gold set Phase 1 annotation covers `TITLE`, `OTHER_TITLE`, `PERSON` only. Expression labels (`TRANSLATOR`, `PARALLEL_TITLE`) should be included in the annotation schema from the start (to avoid re-annotation) but are not required for the initial evaluation pass.
 
-### 2.8 SR-08 — NuNER Zero evaluation
-**Status:** Open — blocked on SR-09
+### 2.8 SR-08 — Gold set composition
+**Status:** Open — blocks SR-09
+
+See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full content.
+
+- **Size:** ~500 manually annotated records; 50-record seed annotated first (seeds SR-11 prompt and serves as the bootstrapping set)
+- **Stratification:** era (modern / 19th c. / 1700–1800 / pre-1700) × silver tier (2 / 1 / 0) × `dc_type`; Leichenpredigt and Einblattdruck oversampled to ~50 each; tier-0 pre-1700 over-represented (primary inference path)
+- **Schema:** Phase 1 labels `TITLE`, `OTHER_TITLE`, `PERSON`; annotate Phase 2 labels `TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM` in the same pass to avoid re-annotation
+- **No Latin stratum (from SR-06):** true Latin prevalence ~0.5% — too rare to stratify; mark `lang=la` if encountered
+- **Pre-1750 PERSON annotation (from SR-03):** ` /` SoR heuristic is a systematic false negative for pre-1750 — authors appear before the work title. Annotators must use opening credential + name + role pattern; PERSON F1 tracked separately for pre-1700 stratum. See [sr03_silver-label-fp-review.md §5](ner/sr03_silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) and [sr08 §4](ner/sr08_gold-set-composition.md#4-annotation-guidelines-for-pre-1750-records)
+- **Decision thresholds:** overall F1 ≥ 0.80; TITLE F1 ≥ 0.85; PERSON F1 (pre-1700) ≥ 0.75; LLM agreement ≥ 0.85
+
+### 2.9 SR-09 — NuNER Zero evaluation
+**Status:** Open — blocked on SR-08
 - **Requirement:** run NuNER Zero zero-shot on 500 stratified fallback records; assess TITLE and PERSON F1 on gold set
 - **Decision gate:** precision ≥ threshold → use zero-shot; else → LLM labeling + fine-tune `xlm-roberta-base` on silver + LLM-labeled set
-
-### 2.9 SR-09 — Gold set composition
-**Status:** Open — blocks SR-08
-- **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), and `dc_type`
-- Must cover tier-0 fallback records (the NER majority path) not just ISBD-structured ones
-- **No Latin stratum (from SR-06):** true Latin prevalence is ~0.5% — too rare to stratify; identify manually if encountered. Pre-1700 stratum (Leichenpredigt + legal/administrative Monografie) is the historical register proxy.
-- **Pre-1750 PERSON annotation (from SR-03):** the ` /` SoR heuristic is a systematic false negative for pre-1750 titles — authors appear before the work title, not after ` /`. Gold set annotators must not rely on the SoR position as a cue for the `PERSON` label in this stratum; author spans need to be identified from the opening name + credentials pattern (e.g. *Firstname Lastname, [role/title], [work title]*). This affects annotation guidelines and model evaluation: PERSON F1 on the pre-1750 stratum should be tracked separately from the modern stratum. See [silver-label-fp-review.md §5](ner/sr03_silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) for examples.
 
 ### 2.10 SR-10 — DF_DE_TITLES source and title-length scope
 **Status:** Resolved — see [de-titles-distribution.md](ner/sr10_de-titles-distribution.md)
@@ -120,26 +125,26 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Provenance:** `DF_DE_TITLES` originates in `2023.11 NER.ipynb`; `2024.01 MT-QA.ipynb` produced the dated pkl only. Corpus = 4,477,780 German-tagged DDB TEXT objects (`dc:language` + `langid` = German); no filter by `dc:type`, provider, or era. `all_tokens` = spaCy `de_core_news_sm` token count including stopwords and punctuation; `content_tokens` = stopwords removed, punctuation retained.
 - **Token thresholds:** quartiles — short ≤4 (p25), medium 5–14, long >14 (p75). See [title-length-thresholds.md](ner/sr10_title-length-thresholds.md).
 - **Length by year:** pre-1750 dominated by long strings (42–50%, median 12–15 tokens); post-1775 shift to median 6–9; 2000–2024 reversal (62% medium). 9.6% of titles have no year.
-- **Implication for SR-09:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.
+- **Implication for SR-08:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.
 
 ### 2.11 SR-11 — Labeling strategy and prompt design (pre-1750)
-**Status:** Open — blocked on SR-09 seed (50-record manual annotation)
+**Status:** Open — blocked on SR-08 seed (50-record manual annotation)
 
 See [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) for full content.
 
 - **Dataset size:** Work-only (3 types) requires 1k–2k records; Work + Expression (6 types) requires 3k–5k; Manifestation deferred — ISBD silver covers modern stratum
 - **Annotator:** Claude API with Inline Bracketed output format; 4k–5k pre-1750 tier-0 records, stratified by `dc_type` and decade
-- **Bootstrapping:** annotate 50–100 records manually as prompt seed (these also seed SR-09 gold set); spot-check 200 LLM-labeled records (~5%); re-run if agreement < 85%
+- **Bootstrapping:** annotate 50–100 records manually as prompt seed (these also seed SR-08 gold set); spot-check 200 LLM-labeled records (~5%); re-run if agreement < 85%
 - **Early Modern German prompt:** system prompt must encode author-before-title rule, credential sequence patterns, orthographic markers, and embedded-Latin disambiguation; see §4 of [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) for full prompt spec
 
 ### 2.12 SR-12 — Field-level weighting for silver tier assignment
-**Status:** Future — blocked on SR-03 extension, SR-04 completion, SR-09 completion
+**Status:** Future — blocked on SR-03 extension, SR-04 completion, SR-08 completion
 
 See [sr12_field-level-weighting.md](ner/sr12_field-level-weighting.md) for full requirements.
 
 - **Goal:** replace binary `n_fields ≥ 3` threshold with a precision-weighted score (`score = Σ (1 − FP_rate_i)` over active fields), enabling principled tier-boundary calibration and a potential four-tier split for curriculum fine-tuning
 - **Missing FP data:** `f_volume` (1.9% coverage) and `f_publisher` (0.2%) not yet sampled — extend SR-03 with ~100 records each
-- **Calibration:** tier boundary requires SR-09 gold set to measure NER F1 at different score cutoffs (external calibration preferred over internal proxy)
+- **Calibration:** tier boundary requires SR-08 gold set to measure NER F1 at different score cutoffs (external calibration preferred over internal proxy)
 - **Conditional FP rates** (optional): field co-occurrence effects (e.g. `f_year AND f_other_title` vs `f_year` alone) need a joint sample if a four-tier split is pursued
 - **Primary motivation:** curriculum learning — train first on high-confidence tier-2 + high-score tier-1 records, then add lower-confidence augmentation
 
@@ -278,7 +283,7 @@ entities = merge_entities(entities, text)
 # → [{"text": "Faust drittes Buch", "label": "title", "score": 0.91}, ...]
 ```
 
-BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing** (see [SR-08](#28-sr-08--nunner-zero-evaluation)).
+BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing** (see [SR-08](#29-sr-09--nunner-zero-evaluation)).
 
 For a detailed pros/cons comparison of GLiNER and NuNER Zero with citable benchmark figures, see [ref_gliner-nunerzero-comparison.md](ner/ref_gliner-nunerzero-comparison.md).
 
@@ -366,7 +371,7 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## 10. Decision
 
-1. **Try NuNER Zero first** — compact zero-shot encoder-based NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-08](#28-sr-08--nunner-zero-evaluation)). Zero-shot LLM NER is a known step down from fine-tuned models (~88 vs ~93 F1 on CoNLL2003; Zhan et al. 2026) — expect similar or larger gap on out-of-distribution historical German.
+1. **Try NuNER Zero first** — compact zero-shot encoder-based NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-08](#29-sr-09--nunner-zero-evaluation)). Zero-shot LLM NER is a known step down from fine-tuned models (~88 vs ~93 F1 on CoNLL2003; Zhan et al. 2026) — expect similar or larger gap on out-of-distribution historical German.
 2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune. Benchmark three options:
    - `xlm-roberta-large` — primary; strongest multilingual encoder; documented HIPE-2022 backbone
    - `mdeberta-v3-base` — lighter multilingual alternative

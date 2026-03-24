@@ -74,21 +74,21 @@ LLMs and encoder models make qualitatively different errors:
 
 ## 5. Implications for GeMeA
 
-### 5.1 NuNER Zero (SR-08) remains relevant
+### 5.1 NuNER Zero (SR-09) remains relevant
 
-NuNER Zero is not evaluated in this paper (it uses a GLiNER/encoder span-extraction architecture, not generative). The zero-shot gap documented here (GPT-3 ZS ~88 vs fine-tuned ~93 on general NER) supports the SR-08 decision logic: evaluate zero-shot first; only fine-tune if zero-shot falls below threshold. The risk is that historical Early Modern German bibliographic NER is further out-of-distribution than standard CoNLL2003, so NuNER Zero's zero-shot precision may be lower than the general-domain gap suggests.
+NuNER Zero is not evaluated in this paper (it uses a GLiNER/encoder span-extraction architecture, not generative). The zero-shot gap documented here (GPT-3 ZS ~88 vs fine-tuned ~93 on general NER) supports the SR-09 decision logic: evaluate zero-shot first; only fine-tune if zero-shot falls below threshold. The risk is that historical Early Modern German bibliographic NER is further out-of-distribution than standard CoNLL2003, so NuNER Zero's zero-shot precision may be lower than the general-domain gap suggests.
 
-### 5.2 Fine-tuned generative LLMs should be added as SR-08 benchmark
+### 5.2 Fine-tuned generative LLMs should be added as SR-09 benchmark
 
 If NuNER Zero is insufficient and fine-tuning is pursued, a small fine-tuned LLM (Qwen3-1.7B or LLaMA3.2-1B with LoRA) should be benchmarked alongside `xlm-roberta-large`. The paper shows 1B–4B models lag 7B–8B by ~10 F1 points, but the 7B–8B range matches encoder-based models — and LoRA fine-tuning footprint is manageable for the DDB use case.
 
 ### 5.3 LLM labeling output format
 
-If Claude or another LLM is used to generate silver labels or annotate the SR-09 gold set, use **Inline Bracketed** or **Inline XML** output format. JSON formats (especially offset-based) perform significantly worse. Category-grouped JSON also loses positional information.
+If Claude or another LLM is used to generate silver labels or annotate the SR-08 gold set, use **Inline Bracketed** or **Inline XML** output format. JSON formats (especially offset-based) perform significantly worse. Category-grouped JSON also loses positional information.
 
 ### 5.4 Low-resource domain caveat applies directly
 
-The GENIA biomedical gap is structurally similar to GeMeA's situation: historical German bibliographic text is a low-resource domain where LLM pre-training provides minimal coverage. This supports prioritising the SR-09 gold set and fine-tuning over zero-shot-only deployment.
+The GENIA biomedical gap is structurally similar to GeMeA's situation: historical German bibliographic text is a low-resource domain where LLM pre-training provides minimal coverage. This supports prioritising the SR-08 gold set and fine-tuning over zero-shot-only deployment.
 
 ### 5.5 Error mode expectation
 

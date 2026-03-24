@@ -1,6 +1,6 @@
 # NER Labeling Strategy — Dataset Size and LLM Annotation
 
-Related: [ner-bibliographic.md §8](../ner-bibliographic.md), [SR-09](../ner-bibliographic.md#29-sr-09--gold-set-composition)
+Related: [ner-bibliographic.md §8](../ner-bibliographic.md), [SR-08](../ner-bibliographic.md#29-sr-09--gold-set-composition)
 
 ---
 
@@ -41,7 +41,7 @@ Using Claude (or another capable LLM) to generate the pre-1750 labeled dataset i
 | Systematic errors on author-before-title (pre-1750) | High | Explicit annotation guideline in system prompt: "In pre-1750 titles, the author's name and credentials appear before the main title, not after ` /`. Label the opening name+credentials span as PERSON." |
 | Type confusion: PERSON vs. TRANSLATOR | Medium | Include disambiguation rule: "Label as TRANSLATOR only if a translation keyword is present (`übersetzt`, `Übers.`, `transl.`, `traduit`)." |
 | Hallucinated spans (text not in input) | Low–Medium | Use Inline Bracketed format — spans are extracted inline from the input string, reducing hallucination compared to generative span prediction |
-| Systematic bias across similar records | Medium | Evaluate on the SR-09 gold set (human-annotated, independent); if LLM errors cluster on a dc_type or era, resample |
+| Systematic bias across similar records | Medium | Evaluate on the SR-08 gold set (human-annotated, independent); if LLM errors cluster on a dc_type or era, resample |
 | Early Modern abbreviations / title-page conventions | Medium | Include 3–5 annotated examples in the prompt (few-shot) covering the main patterns |
 
 ### 2.3 Recommended workflow
@@ -51,19 +51,19 @@ Using Claude (or another capable LLM) to generate the pre-1750 labeled dataset i
    - Label definitions (FRBR Work scope: TITLE, OTHER_TITLE, PERSON)
    - Inline Bracketed output format
    - Pre-1750 author-before-title rule
-   - 5 few-shot examples drawn from the SR-09 gold set (once available) or manually annotated
+   - 5 few-shot examples drawn from the SR-08 gold set (once available) or manually annotated
 3. Run Claude API in batches; log model version and prompt hash for reproducibility
 4. Spot-check 200 records manually (~5%) — compute agreement rate; if below 85%, revise prompt and re-run
-5. Use as fine-tuning data; evaluate on SR-09 gold set (held out, human-annotated)
+5. Use as fine-tuning data; evaluate on SR-08 gold set (held out, human-annotated)
 
 ### 2.4 Bootstrapping problem
 
-The few-shot examples in the prompt should ideally come from the SR-09 gold set — but SR-09 requires annotation work first. Two options:
+The few-shot examples in the prompt should ideally come from the SR-08 gold set — but SR-08 requires annotation work first. Two options:
 
 - **Option A (sequential):** Annotate 50–100 records manually as the prompt seed; use these to generate 4k–5k LLM labels; use the LLM-labeled set for fine-tuning and a separate 200-record human sample as the evaluation set
 - **Option B (parallel):** Run Claude zero-shot first, spot-check 200 records, use the verified subset as few-shot examples for a second pass
 
-Option A is cleaner — the 50-record manual seed is also the start of the SR-09 gold set.
+Option A is cleaner — the 50-record manual seed is also the start of the SR-08 gold set.
 
 ---
 
@@ -142,7 +142,7 @@ Do not treat early modern spelling variants as annotation errors. The following 
 
 ### 4.3 Few-shot examples
 
-Include 5 examples covering the main structural patterns. Production examples should come from the manually annotated SR-09 seed set. Until then, use the following (verify against real DDB records before the full batch run):
+Include 5 examples covering the main structural patterns. Production examples should come from the manually annotated SR-08 seed set. Until then, use the following (verify against real DDB records before the full batch run):
 
 **Pattern A — credential + name + role + title (most common pre-1750 pattern):**
 ```

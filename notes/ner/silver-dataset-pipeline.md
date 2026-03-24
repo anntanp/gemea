@@ -118,8 +118,8 @@ True class distribution of `f_person = 1` (heuristic tier), mapped to the ISBD/R
 | Applicability rules | ✅ Done | Era + dc_type guards |
 | Silver span extraction | 🔲 Next | `scripts/build_silver_spans.py` (Phase 0a) |
 | Historical language scope (SR-06) | ✅ Done | EARLY_MODERN_DE 93%, LATIN 0.5% — no Latin stratum needed |
-| Gold set construction | 🔲 Blocked on SR-09 | Manual annotation |
-| NER evaluation | 🔲 Blocked on SR-09 | SR-08 |
+| Gold set construction | 🔲 Blocked on SR-08 | Manual annotation |
+| NER evaluation | 🔲 Blocked on SR-08 | SR-09 |
 
 ---
 
