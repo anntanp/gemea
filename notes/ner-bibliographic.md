@@ -34,7 +34,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-03](#23-sr-03--silver-label-quality-and-false-positive-rate) | Silver label quality and false positive rate | ✅ Resolved | [SR-08](#28-sr-08--nunner-zero-evaluation) |
 | [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | ✅ Resolved | [SR-07](#27-sr-07--gold-set-composition) |
 | [SR-05](#25-sr-05--trailing-period-noise) | Trailing period noise | ✅ Resolved | — |
-| [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
+| [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | ✅ Resolved | [SR-07](#27-sr-07--gold-set-composition) |
 | [SR-07](#27-sr-07--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
 | [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-07 | — |
 | [SR-09](#29-sr-09--frbr-metric-scope-for-paper) | FRBR metric scope for paper | 🔲 Open | [SR-07](#27-sr-07--gold-set-composition) |
@@ -80,14 +80,22 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Decision:** exclude trailing `.` as a standalone heuristic-tier signal; the `has_dot_dash` flag already covers the structural tier completely
 
 ### 2.6 SR-06 — Historical and Latin title scope
-**Status:** Open
-- 92.4% of records (tier 0) have no ISBD signals and fall to NER fallback — unknown share are Latin or pre-modern German
-- **Action:** sample 200 records from `dc_type` = Leichenpredigt / pre-1800 Monografie; estimate Latin / Early Modern German proportion to determine how much historical signal is needed in training
+**Status:** Resolved — see [sr06_historical-scope.md](ner/sr06_historical-scope.md)
+
+- 200-record stratified sample: 100 Leichenpredigt + 100 pre-1800 Monografie
+- **True-class distribution: EARLY_MODERN_DE 93%, GERMAN 6%, LATIN 0.5%, OTHER 0.5%**
+- **LATIN heuristic: 83% FP rate** — `Anno`, `Christi`, `Jesu`, `Doctor` are standard German Protestant/academic vocabulary; embedding does not make the title Latin
+- EARLY_MODERN_DE heuristic: F1 = 0.95; main FP source is `[ck]h\w+` cluster firing on ordinary German words ("Heilige", "höffliche")
+- **Decision D1:** drop LATIN as a heuristic class for this stratum — true prevalence ~0.5%, no reliable heuristic signal; manual identification sufficient
+- **Decision D2/D3:** restrict `[ck]h\w+` to word-initial position (≥5 chars); remove `Herrn` from early modern markers
+- **Impact on model selection:** no Latin NER capability needed; Early Modern German (1500–1750) is the primary historical challenge — long title-page transcriptions, pre-title author placement, non-standard orthography
+- **Gold set implication:** no dedicated Latin stratum; add pre-1700 stratum (Leichenpredigt + legal/administrative Monografie) as the historical register proxy
 
 ### 2.7 SR-07 — Gold set composition
 **Status:** Open — blocks SR-08
-- **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / pre-1800 / Latin), silver tier (2 / 1 / 0), and `dc_type`
+- **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), and `dc_type`
 - Must cover tier-0 fallback records (the NER majority path) not just ISBD-structured ones
+- **No Latin stratum (from SR-06):** true Latin prevalence is ~0.5% — too rare to stratify; identify manually if encountered. Pre-1700 stratum (Leichenpredigt + legal/administrative Monografie) is the historical register proxy.
 - **Pre-1750 PERSON annotation (from SR-03):** the ` /` SoR heuristic is a systematic false negative for pre-1750 titles — authors appear before the work title, not after ` /`. Gold set annotators must not rely on the SoR position as a cue for the `PERSON` label in this stratum; author spans need to be identified from the opening name + credentials pattern (e.g. *Firstname Lastname, [role/title], [work title]*). This affects annotation guidelines and model evaluation: PERSON F1 on the pre-1750 stratum should be tracked separately from the modern stratum. See [silver-label-fp-review.md §5](ner/sr03_silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) for examples.
 
 ### 2.8 SR-08 — NuNER Zero evaluation

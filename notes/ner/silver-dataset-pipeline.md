@@ -117,7 +117,8 @@ True class distribution of `f_person = 1` (heuristic tier), mapped to the ISBD/R
 | SoR disambiguation | ✅ Done | `f_resp_*` sub-classification schema |
 | Applicability rules | ✅ Done | Era + dc_type guards |
 | Silver span extraction | 🔲 Next | `scripts/build_silver_spans.py` (Phase 0a) |
-| Gold set construction | 🔲 Blocked on SR-06, SR-07 | Manual annotation |
+| Historical language scope (SR-06) | ✅ Done | EARLY_MODERN_DE 93%, LATIN 0.5% — no Latin stratum needed |
+| Gold set construction | 🔲 Blocked on SR-07 | Manual annotation |
 | NER evaluation | 🔲 Blocked on SR-07 | SR-08 |
 
 ---
