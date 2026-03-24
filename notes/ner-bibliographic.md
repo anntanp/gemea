@@ -39,7 +39,8 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-09 | — |
 | [SR-09](#29-sr-09--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
-| [SR-11](#211-sr-11--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-09 | — |
+| [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔲 Open — blocked on SR-09 seed | — |
+| [SR-12](#212-sr-12--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-09 | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)
 **Status:** Resolved — [isbd-field-rating.md](ner/sr01_isbd-field-rating.md)
@@ -121,10 +122,20 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Length by year:** pre-1750 dominated by long strings (42–50%, median 12–15 tokens); post-1775 shift to median 6–9; 2000–2024 reversal (62% medium). 9.6% of titles have no year.
 - **Implication for SR-09:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.
 
-### 2.11 SR-11 — Field-level weighting for silver tier assignment
+### 2.11 SR-11 — Labeling strategy and prompt design (pre-1750)
+**Status:** Open — blocked on SR-09 seed (50-record manual annotation)
+
+See [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) for full content.
+
+- **Dataset size:** Work-only (3 types) requires 1k–2k records; Work + Expression (6 types) requires 3k–5k; Manifestation deferred — ISBD silver covers modern stratum
+- **Annotator:** Claude API with Inline Bracketed output format; 4k–5k pre-1750 tier-0 records, stratified by `dc_type` and decade
+- **Bootstrapping:** annotate 50–100 records manually as prompt seed (these also seed SR-09 gold set); spot-check 200 LLM-labeled records (~5%); re-run if agreement < 85%
+- **Early Modern German prompt:** system prompt must encode author-before-title rule, credential sequence patterns, orthographic markers, and embedded-Latin disambiguation; see §4 of [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) for full prompt spec
+
+### 2.12 SR-12 — Field-level weighting for silver tier assignment
 **Status:** Future — blocked on SR-03 extension, SR-04 completion, SR-09 completion
 
-See [sr11_field-level-weighting.md](ner/sr11_field-level-weighting.md) for full requirements.
+See [sr12_field-level-weighting.md](ner/sr12_field-level-weighting.md) for full requirements.
 
 - **Goal:** replace binary `n_fields ≥ 3` threshold with a precision-weighted score (`score = Σ (1 − FP_rate_i)` over active fields), enabling principled tier-boundary calibration and a potential four-tier split for curriculum fine-tuning
 - **Missing FP data:** `f_volume` (1.9% coverage) and `f_publisher` (0.2%) not yet sampled — extend SR-03 with ~100 records each
@@ -269,6 +280,8 @@ entities = merge_entities(entities, text)
 
 BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing** (see [SR-08](#28-sr-08--nunner-zero-evaluation)).
 
+For a detailed pros/cons comparison of GLiNER and NuNER Zero with citable benchmark figures, see [ref_gliner-nunerzero-comparison.md](ner/ref_gliner-nunerzero-comparison.md).
+
 ---
 
 ## 7. LLM options at inference time
@@ -322,6 +335,10 @@ TRANSLATOR disambiguation is the main ambiguity: the ` /` cue fires for both `PE
 
 Use GPT-4o or Claude to label a few thousand records. Handles Latin and historical German well. Fine-tune a smaller model on those outputs. Expensive per call but a one-time cost.
 
+**Output format:** use Inline Bracketed or Inline XML. JSON formats perform significantly worse in generative NER tasks; Offset-based JSON collapses entirely. Example Inline Bracketed: `[Faust | TITLE] von [Goethe | PERSON] erschienen [Weimar | PLACE]`. (Zhan et al. 2026 — see [ref_zhan2026-generative-ner.md](ner/ref_zhan2026-generative-ner.md))
+
+**Dataset size and workflow:** see [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) for required record counts by FRBR scope, Claude-as-annotator workflow, risks and mitigations, and the bootstrapping approach for the pre-1750 stratum.
+
 **8.3 Distant supervision (supplementary)**
 
 For records where a GND Werk URI was confirmed via the local GND instance, the extracted title string is a positive `TITLE` example. Linked person GND URIs supply `PERSON` labels. Useful to augment silver labels, not sufficient alone.
@@ -340,15 +357,20 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 **Recommended fine-tuning path**:
 1. Pretrain on `empathyai/books-ner-dataset` for TITLE/AUTHOR signal (domain transfer)
 2. Fine-tune on silver-labeled DDB records
-3. Supplement with HIPE-2022 ajmc and CLEF-HIPE-2020 for historical German and Latin signal
+3. Supplement with HIPE-2022 ajmc and CLEF-HIPE-2020 for historical German signal
 4. Evaluate on a gold set stratified by era (modern, 19th c., 1700–1800, pre-1700) — no dedicated Latin stratum needed (SR-06: ~0.5% prevalence)
+
+**Alternative generative path (from Zhan et al. 2026):** Fine-tuned open-source LLMs (Qwen3-1.7B or LLaMA3.2-1B) with LoRA + Inline Bracketed/XML format match encoder-based models on general-domain NER (CoNLL2003 F1 ≈ 90–94 for 7–8B models; 1–4B models lag by ~10 F1 points). Add a fine-tuned small LLM as a benchmark in SR-08 alongside `xlm-roberta-large` and `mdeberta-v3-base`. Note: Zhan et al. evaluate on modern English/general-domain benchmarks only — performance on historical German bibliographic NER is unknown and likely lower (cf. GENIA biomedical gap). See [ref_zhan2026-generative-ner.md](ner/ref_zhan2026-generative-ner.md).
 
 ---
 
 ## 10. Decision
 
-1. **Try NuNER Zero first** — current SOTA compact zero-shot NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-08](#28-sr-08--nunner-zero-evaluation)).
-2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune `xlm-roberta-large` on that output. Benchmark `mdeberta-v3-base` alongside as a lighter-weight alternative.
+1. **Try NuNER Zero first** — compact zero-shot encoder-based NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-08](#28-sr-08--nunner-zero-evaluation)). Zero-shot LLM NER is a known step down from fine-tuned models (~88 vs ~93 F1 on CoNLL2003; Zhan et al. 2026) — expect similar or larger gap on out-of-distribution historical German.
+2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune. Benchmark three options:
+   - `xlm-roberta-large` — primary; strongest multilingual encoder; documented HIPE-2022 backbone
+   - `mdeberta-v3-base` — lighter multilingual alternative
+   - Fine-tuned small LLM (Qwen3-1.7B or LLaMA3.2-1B + LoRA, Inline Bracketed format) — competitive with encoder models on general-domain NER (Zhan et al. 2026); unknown on historical German
 3. **Silver labeling** (ISBD-derived) augments any fine-tuning — language-agnostic, large volume, no annotation cost. Note: silver set covers modern records; pre-1750 stratum requires gold or LLM labels (SR-06).
-4. Use `xlm-roberta-large` over any monolingual German model — multilingual pretraining is essential for Early Modern German. `deberta-v3-large` is English-only and not applicable; `mdeberta-v3-base` is the multilingual DeBERTa but only available at base size.
+4. Use `xlm-roberta-large` over any monolingual German model — multilingual pretraining is essential for Early Modern German. `deberta-v3-large` is English-only; `mdeberta-v3-base` is multilingual DeBERTa but base-only.
 5. **GROBID**: trained on scientific citations, not library catalog records — not recommended.
