@@ -17,7 +17,7 @@ A knowledge graph browser for the German Digital Library (DDB).
 
 GeMeA exposes 65 million cultural heritage objects from the DDB as a navigable knowledge graph. It provides keyword search, faceted browsing, entity pages, graph visualization, a map view, a timeline, and a public SPARQL endpoint.
 
-**Pipeline:** DDB JSON-LD → [rdf2jsonld](../rdf2jsonld/) → [mocho](../mocho/) (RDA normalization) → Virtuoso + Elasticsearch → GeMeA
+**Pipeline:** DDB JSON-LD → [rdf2jsonld](../rdf2jsonld/) → `link_gnd_works.py` (GND Werk linking) → [mocho](../mocho/) (RDA normalization) → QLever + Elasticsearch → GeMeA
 
 ---
 
@@ -26,7 +26,7 @@ GeMeA exposes 65 million cultural heritage objects from the DDB as a navigable k
 ```
 gemea/
 ├── paper/          ISWC 2026 Resource Track paper (LaTeX/LNCS)
-├── ingest/         Phase 1 — ETL: mocho RDF → Virtuoso + Elasticsearch
+├── ingest/         Phase 1 — ETL: mocho RDF → QLever + Elasticsearch
 ├── frontend/       Phase 3 — Next.js web application
 ├── docker/         Phase 4 — Docker Compose, Nginx, self-hosting docs
 ├── api/            Phase 2 — FastAPI backend
