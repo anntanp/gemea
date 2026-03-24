@@ -39,9 +39,9 @@ Title proper : other title information / statement of responsibility
 
 ---
 
-### Accepted rules
+### 2.1 Accepted rules
 
-#### Area separator
+#### 2.1.1 Area separator
 
 Signal: `. -` | Coverage: 1.2% | FP rate: very low
 
@@ -54,7 +54,7 @@ When present, field parsing is high-precision; the separator unambiguously marks
 
 ---
 
-#### Subtitle
+#### 2.1.2 Subtitle
 
 Signal: ` :` (OTHER_TITLE) | Coverage: 20.2% | FP rate: ~8%
 
@@ -76,7 +76,7 @@ Main false positives: `:YYYY–YYYY` life-date colon; ` :: ` DDB catalog-field s
 
 ---
 
-#### Year
+#### 2.1.3 Year
 
 Signal: `f_year` (4-digit regex 1400–2029) | Coverage: 14.6% | FP rate: ~6%
 
@@ -96,7 +96,7 @@ Signal: `f_year` (4-digit regex 1400–2029) | Coverage: 14.6% | FP rate: ~6%
 
 ---
 
-#### Publisher
+#### 2.1.4 Publisher
 
 Signal: `f_publisher` (`Verlag`/`Press` keyword) | Coverage: 0.2% | FP rate: ~0%
 
@@ -109,7 +109,7 @@ Low recall — misses most publishers; high precision when fires.
 
 ---
 
-#### Series
+#### 2.1.5 Series
 
 Signal: `f_series` (parenthetical + ` ;` + digit) | Coverage: 0.0% | FP rate: ~0%
 
@@ -117,7 +117,7 @@ Very sparse; reliable when present.
 
 ---
 
-#### Volume
+#### 2.1.6 Volume
 
 Signal: `f_volume` (`Bd.`, `Teil`, `Heft`, `Nr.` + digit) | Coverage: 1.9% | FP rate: ~0%
 
@@ -128,9 +128,9 @@ Signal: `f_volume` (`Bd.`, `Teil`, `Heft`, `Nr.` + digit) | Coverage: 1.9% | FP 
 
 ---
 
-### Excluded rules
+### 2.2 Excluded rules
 
-#### Parallel title
+#### 2.2.1 Parallel title
 
 Signal: ` =` (PARALLEL_TITLE) | Coverage: 0.6% | FP rate: ~80%
 
@@ -145,7 +145,7 @@ In the DDB corpus, ` =` is almost never used for genuine parallel titles. Serial
 
 ---
 
-#### Edition
+#### 2.2.2 Edition
 
 Signal: `f_edition` (`Ausgabe`/`Aufl.` keyword) | Coverage: 3.6% | FP rate: ~83%
 
@@ -158,9 +158,9 @@ Newspaper and periodical records use "Ausgabe vom [weekday, date]" as an issue-d
 
 ---
 
-### Rules requiring sub-classification
+### 2.3 Rules requiring sub-classification
 
-#### Statement of Responsibility
+#### 2.3.1 Statement of Responsibility
 
 Signal: ` /` | Coverage: 0.8% | FP rate: ~36% for PERSON label
 
@@ -182,7 +182,7 @@ Additional corporate body example:
 
 ---
 
-#### Compound SoR
+#### 2.3.2 Compound SoR
 
 Signal: ` /…;` (PERSON_COMPOUND) | Coverage: 0.0% | FP rate: ~29%
 
@@ -193,7 +193,7 @@ Signal: ` /…;` (PERSON_COMPOUND) | Coverage: 0.0% | FP rate: ~29%
 
 ---
 
-### Not detectable
+### 2.4 Not detectable
 
 Fields not recoverable from the title string alone:
 
@@ -207,7 +207,7 @@ Fields not recoverable from the title string alone:
 
 ## 3. Era-dependent heuristics
 
-### Pre-1750: early modern titles
+### 3.1 Pre-1750: early modern titles
 
 | Feature | Observation | Heuristic implication |
 |---|---|---|
@@ -216,7 +216,7 @@ Fields not recoverable from the title string alone:
 | **Latin titles** | Unknown proportion; Leichenpredigten and pre-Reformation works frequently Latin or Early Modern German | `de_core_news_sm` not optimised for Latin; tokenisation and stopword removal unreliable |
 | **YEAR false positives** | Manuscript dates, death dates, composition dates common | Filter years appearing after `gegr.`, `biß`, `bereit … geschrieben`, `Anno YYYY biß YYYY` |
 
-### 19th–early 20th century: serials and newspapers (dc_type = issue|Heft|Zeitung)
+### 3.2 19th–early 20th century: serials and newspapers (dc_type = issue|Heft|Zeitung)
 
 | Feature | Observation | Heuristic implication |
 |---|---|---|
@@ -224,7 +224,7 @@ Fields not recoverable from the title string alone:
 | **`= Jg.`, `= Bd.`, `= N.F.`** | `=` introduces enumeration equivalences, not parallel titles | Exclude `f_parallel` for serial dc_types |
 | **Corporate body SoRs** | Government agencies, statistical offices, universities named after ` /` (~19% of ` /` pool) | Sub-classify as `f_resp_org`; treat as CORPORATE entity, not PERSON |
 
-### Post-2000: digital-born metadata
+### 3.3 Post-2000: digital-born metadata
 
 | Feature | Observation | Heuristic implication |
 |---|---|---|

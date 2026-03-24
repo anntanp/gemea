@@ -6,7 +6,7 @@
 
 ## 1. Background
 
-NER fallback applies to ~92% of DF_DE_TITLES records. An unknown proportion of these are Latin or Early Modern German — both require different tokenisation, different model capabilities, and potentially different annotation strategies than modern German. This study estimates that proportion for two high-prevalence historical strata, and evaluates the accuracy of a heuristic language classifier.
+NER fallback applies to ~71% of DF_DE_TITLES records (the share with no ISBD markers; see SR-01). An unknown proportion of these are Latin or Early Modern German — both require different tokenisation, different model capabilities, and potentially different annotation strategies than modern German. This study estimates that proportion for two high-prevalence historical strata, and evaluates the accuracy of a heuristic language classifier.
 
 ---
 
