@@ -49,7 +49,6 @@ gemea/
 | `notes/architecture.md` | System architecture and component interactions |
 | `notes/roadmap.md` | Phase-by-phase plan (0a → 0 → 1 → 1b → 3 → 4 → 2) |
 | `notes/priorities.md` | Current priorities and blockers |
-| `notes/prerequisites.md` | CS/engineering background required to build the project |
 
 ### Phase 0a — NER for title parsing
 
@@ -125,7 +124,6 @@ gemea/
 | `notes/grobid-setup.md` | GROBID setup notes (paper PDF parsing) |
 | `notes/review-checklist.md` | Pre-submission review checklist |
 | `notes/big-picture-dumb-questions.md` | High-level framing questions |
-| `notes/prerequisites-abitur.md` | Prerequisites scoped to Abitur-level background |
 
 ---
 
