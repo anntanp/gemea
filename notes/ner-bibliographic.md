@@ -174,6 +174,19 @@ For the fallback, historical language introduces real risk:
 | Latin titles | Medium | Common for pre-18th century scholarly works; monolingual German models fail |
 | Mixed-language catalog strings | Medium | Some DDB providers mix German and Latin in descriptions |
 
+**SR-06 update** — [sr06_historical-scope.md](ner/sr06_historical-scope.md)
+
+A 200-record stratified sample (100 Leichenpredigt + 100 pre-1800 Monografie) measured the actual language distribution for the two main historical strata:
+
+| Language class | True prevalence | Risk reassessment |
+|---|---|---|
+| Early Modern German | **93%** | Confirmed medium risk — dominant challenge; long title-page transcriptions, non-standard orthography, author-before-title pattern |
+| German (no early modern markers) | 6% | Low risk — standard modern German rules apply |
+| Latin | **~0.5%** | Reassessed **low** — far rarer than assumed; heuristic LATIN classifier has 83% FP rate (`Anno`, `Christi`, `Jesu` are standard German Protestant vocabulary, not Latin indicators) |
+| Other | 0.5% | Negligible |
+
+The Latin risk row in the table above is overstated for this corpus. Latin titles are present but rare; the primary historical challenge is Early Modern German, not Latin. Dedicated Latin NER models (e.g. LatinBERT) are not warranted.
+
 ---
 
 ## 5. Model options
