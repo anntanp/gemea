@@ -179,6 +179,16 @@ The sub-classes follow the ISBD/RDA/MARC tripartite agent model: **person** | **
 
 Tier 2 is the primary source for silver labels. Tier 1 is used for augmentation after tier-2 evaluation.
 
+**Why three tiers rather than two or four?** Three tiers reflect three qualitatively distinct evidence levels in the data, not an arbitrary split:
+
+- **Tier 2 vs Tier 1**: the presence of the area separator `has_dot_dash` is a categorical signal, not a degree — it indicates a fully structured ISBD record where every area boundary is marked. Records with `has_dot_dash` can yield multi-field span annotations with high confidence; records without it cannot, regardless of how many heuristic fields fire. A binary tier split (structural / not-structural) would collapse all heuristic evidence into a single "use with caution" tier, losing the distinction between records with 3+ converging signals (usable for augmentation) and records with zero signals (not usable at all).
+
+- **Tier 1 vs Tier 0**: a minimum of `n_fields ≥ 3` or the `f_person AND f_year` pair provides enough convergent evidence to be worth including as augmentation data — two independently detectable fields co-occurring substantially reduces the probability of pure coincidence. Records below this threshold contribute no reliable span boundaries and should not be used as training signal even for partial annotation.
+
+- **Why not four tiers?** Adding a fourth tier (e.g. splitting tier 1 into high- and low-confidence heuristic) would require a threshold decision currently unsupported by FP-rate data. SR-03 quantifies FP rates per field type; a four-tier split could be justified after field-level weighting is implemented. Until then, three tiers is the minimum meaningful partition given the evidence.
+
+See [sr01_isbd-field-rating-adr.md — ADR-04](sr01_isbd-field-rating-adr.md) for the full design rationale.
+
 ---
 
 ## Actual Coverage
