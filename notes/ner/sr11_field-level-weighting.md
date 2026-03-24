@@ -51,9 +51,9 @@ This is a simple additive model. A multiplicative model (product of precisions =
 The score threshold separating "usable augmentation" from "discard" cannot be derived from FP rates alone. Calibration options:
 
 - **Internal**: use tier-2 records (known-good, structural) as positive anchors; sample tier-0 records as negatives; find the score that maximises separation.
-- **External**: once SR-07 gold set exists, measure NER F1 for models trained at different score cutoffs and select the elbow.
+- **External**: once SR-09 gold set exists, measure NER F1 for models trained at different score cutoffs and select the elbow.
 
-The external method is preferred — it directly measures annotation quality impact rather than proxy precision metrics. It requires SR-07 to be completed first.
+The external method is preferred — it directly measures annotation quality impact rather than proxy precision metrics. It requires SR-09 to be completed first.
 
 ### 2.4 Conditional FP rates (optional, higher priority if adding a fourth tier)
 
@@ -93,4 +93,4 @@ A four-tier split (e.g., tier 1a: score ≥ 2.5, tier 1b: 1.5 ≤ score < 2.5) i
 
 - SR-03 extension: `f_volume` and `f_publisher` FP sampling (~200 additional records)
 - SR-04 completion: `f_person` sub-classification precision finalised
-- SR-07 completion (for external calibration of tier boundary)
+- SR-09 completion (for external calibration of tier boundary)

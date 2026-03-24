@@ -56,9 +56,9 @@ For the key findings, 95% confidence intervals (Wilson interval — Wilson, E. B
 
 Both decisions are robust because the observed proportions are extreme (93% and 0.5%), not near the decision boundary. Extreme proportions require fewer observations to establish — the variance of a proportion estimator is p(1−p)/n, which is maximised at p=0.5 and small near 0 or 1. Had the results been, say, EARLY_MODERN_DE 55% and LATIN 8%, n=200 would not have been sufficient to distinguish signal from noise.
 
-**Conclusion:** n=200 is sufficient for the decision this study supports — determining whether a Latin stratum is needed in the gold set (SR-07) and confirming Early Modern German as the primary historical challenge. It is **not** sufficient for precise per-class prevalence estimates publishable as corpus statistics; a larger stratified sample (n≥500 per stratum) would be needed for that.
+**Conclusion:** n=200 is sufficient for the decision this study supports — determining whether a Latin stratum is needed in the gold set (SR-09) and confirming Early Modern German as the primary historical challenge. It is **not** sufficient for precise per-class prevalence estimates publishable as corpus statistics; a larger stratified sample (n≥500 per stratum) would be needed for that.
 
-**Unsampled strata:** Leichenpredigt and pre-1800 Monografie represent ~186k records. Pre-1800 Periodika, Handschrift, and Einblattdruck are not covered. Their language distribution may skew differently (e.g. Handschrift may have higher Latin prevalence). Flag for SR-07 gold set design if these dc_types are included.
+**Unsampled strata:** Leichenpredigt and pre-1800 Monografie represent ~186k records. Pre-1800 Periodika, Handschrift, and Einblattdruck are not covered. Their language distribution may skew differently (e.g. Handschrift may have higher Latin prevalence). Flag for SR-09 gold set design if these dc_types are included.
 
 ---
 
@@ -169,7 +169,7 @@ The cluster pattern fires on internal occurrences like "Heilige" (`ch`), "höffl
 
 ### D4 — Gold set implication: no Latin stratum needed
 
-SR-07 gold set design does not need a dedicated Latin stratum. Early Modern German is the primary historical challenge. The gold set should include a **pre-1700** stratum (long-form Leichenpredigt and legal/administrative Monografie) as a proxy for the full historical register.
+SR-09 gold set design does not need a dedicated Latin stratum. Early Modern German is the primary historical challenge. The gold set should include a **pre-1700** stratum (long-form Leichenpredigt and legal/administrative Monografie) as a proxy for the full historical register.
 
 ---
 
@@ -186,6 +186,6 @@ Fine-tuning on a pre-1750 stratum is the appropriate path, but the **current sil
 - Pre-1750 records are almost entirely tier-0 — no `. -` markers, no `f_person` (author-before-title pattern), so `rate_isbd_fields.py` produces no silver labels for this stratum
 - Fine-tuning on modern silver data alone will not expose the model to early modern orthography or the name-before-title structure
 
-**What is needed:** the SR-07 gold set (pre-1700 stratum, human-annotated) or LLM-labeled pre-1750 records as an interim (see [ner-bibliographic.md §8.2](../ner-bibliographic.md)).
+**What is needed:** the SR-09 gold set (pre-1700 stratum, human-annotated) or LLM-labeled pre-1750 records as an interim (see [ner-bibliographic.md §8.2](../ner-bibliographic.md)).
 
 **Model choice:** `xlm-roberta-base` (or `-large`) is preferred over monolingual German models (`gbert-large`) — multilingual pretraining covers early modern orthography variation better, and aligns with the decision in [ner-bibliographic.md §5](../ner-bibliographic.md). Dedicated Latin NER models (e.g. LatinBERT) are not required — true Latin prevalence is ~0.5%.

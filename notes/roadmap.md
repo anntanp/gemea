@@ -50,9 +50,9 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
   - PLACE / PUBLISHER enrichment: match `dc_publisher` value as substring in title; label only if found
   - PERSON enrichment: match `dc_creator` / `dc_contributor` names against post-` /` segment; use `f_resp_person` flag only (exclude `f_resp_org`, `f_resp_editor`, `f_resp_other`)
   - Output: `{obj_id, title, spans: [{start, end, text, label}]}`
-- [ ] SR-07 — Gold set composition: ~500 manually annotated records stratified by era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), `dc_type`, and title length; annotation guidelines must address pre-1750 author-before-title placement (systematic `f_person` false negative); no dedicated Latin stratum (SR-06). Blocks SR-08.
-- [ ] SR-08 — NuNER Zero evaluation: run `numind/NuNerZero` zero-shot on 500 stratified fallback records; assess F1 per label and per era stratum on gold set. Blocked on SR-07.
-- [ ] SR-09 — FRBR metric scope for paper: confirm which FRBR levels (Work only, or also Expression/Manifestation) the evaluation section covers; determines gold set label scope.
+- [ ] SR-07 — FRBR metric scope for paper: confirm which FRBR levels (Work only, or also Expression/Manifestation) the evaluation section covers; determines gold set label scope. Blocks SR-09.
+- [ ] SR-09 — Gold set composition: ~500 manually annotated records stratified by era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), `dc_type`, and title length; annotation guidelines must address pre-1750 author-before-title placement (systematic `f_person` false negative); no dedicated Latin stratum (SR-06). Blocked on SR-07. Blocks SR-08.
+- [ ] SR-08 — NuNER Zero evaluation: run `numind/NuNerZero` zero-shot on 500 stratified fallback records; assess F1 per label and per era stratum on gold set. Blocked on SR-09.
 - [ ] **Decision gate** (SR-08 output): NuNER Zero F1 ≥ threshold → use zero-shot; else LLM-label silver candidates and fine-tune `xlm-roberta-large` (primary) and `mdeberta-v3-base` (benchmark). See `notes/ner-bibliographic.md` §10 for recommended fine-tuning path.
 
 ### Pipeline position
@@ -69,7 +69,7 @@ build_silver_spans.py  ←  auxiliary columns (dc_publisher, dc_creator, agents)
       ▼
 data/processed/silver_spans.jsonl
       │
-      ▼  [BLOCKED on SR-07]
+      ▼  [BLOCKED on SR-09]
 Gold set construction (~500 manually annotated records, stratified)
       │
       ▼

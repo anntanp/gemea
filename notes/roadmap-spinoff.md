@@ -16,7 +16,7 @@ Phase order: **0a → 0 → 1 → 1b → 4**
 - [x] `rate_isbd_fields.py` + `isbd_field_ratings.csv`
 - [x] Precision validation (SR-03/04/05/06), corpus characterisation (SR-10)
 - [ ] `build_silver_spans.py` — next
-- [ ] SR-07 gold set, SR-08 NuNER Zero evaluation — blocked on SR-07
+- [ ] SR-07 FRBR scope, SR-09 gold set, SR-08 NuNER Zero evaluation — SR-09 blocked on SR-07
 
 ---
 

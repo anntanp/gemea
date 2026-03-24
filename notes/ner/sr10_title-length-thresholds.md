@@ -1,6 +1,6 @@
 # GeMeA — Title Length Category Thresholds
 
-**Applies to:** `scripts/analyse_title_lengths.py`, gold set stratification (SR-07), NER evaluation (SR-08)
+**Applies to:** `scripts/analyse_title_lengths.py`, gold set stratification (SR-09), NER evaluation (SR-08)
 **Source data:** `data/DF_DE_TITLES_20240125b.pkl` — 4,477,780 German DDB titles
 **Token count column:** `all_tokens` (pre-computed spaCy `de_core_news_sm` token count, includes stopwords and punctuation)
 
