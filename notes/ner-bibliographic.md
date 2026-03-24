@@ -35,9 +35,9 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [SR-04](#24-sr-04--translator--person-disambiguation) | TRANSLATOR / PERSON disambiguation | ✅ Resolved | [SR-09](#29-sr-09--gold-set-composition) |
 | [SR-05](#25-sr-05--trailing-period-noise) | Trailing period noise | ✅ Resolved | — |
 | [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | ✅ Resolved | [SR-09](#29-sr-09--gold-set-composition) |
-| [SR-07](#27-sr-07--frbr-metric-scope-for-paper) | FRBR metric scope for paper | 🔲 Open | [SR-09](#29-sr-09--gold-set-composition) |
+| [SR-07](#27-sr-07--frbr-metric-scope-for-paper) | FRBR metric scope for paper | ✅ Resolved | [SR-09](#29-sr-09--gold-set-composition) |
 | [SR-08](#28-sr-08--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-09 | — |
-| [SR-09](#29-sr-09--gold-set-composition) | Gold set composition | 🔲 Open — blocked on SR-07 | [SR-08](#28-sr-08--nunner-zero-evaluation) |
+| [SR-09](#29-sr-09--gold-set-composition) | Gold set composition | 🔲 Open | [SR-08](#28-sr-08--nunner-zero-evaluation) |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
 | [SR-11](#211-sr-11--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-09 | — |
 
@@ -93,9 +93,13 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Gold set implication:** no dedicated Latin stratum; add pre-1700 stratum (Leichenpredigt + legal/administrative Monografie) as the historical register proxy
 
 ### 2.7 SR-07 — FRBR metric scope for paper
-**Status:** Open — blocks SR-09
-- **Requirement:** confirm which FRBR levels the paper's quality metrics cover — Work (TITLE, PERSON) only, or also Expression (TRANSLATOR, PARALLEL_TITLE, MEDIUM) and Manifestation (PUBLISHER, PLACE, YEAR, EDITION, SERIES, VOLUME)
-- Determines which label types must appear in the gold set and which NER labels are in scope for the evaluation section
+**Status:** Resolved
+
+- **DDB objects are Manifestation-level.** All DDB bibliographic records represent Manifestations (a specific published item). FRBR Work and Expression are derived by grouping — they are not the unit of description in the source data.
+- **Phase 1 scope — Work:** initial NER evaluation covers Work-level labels only: `TITLE`, `OTHER_TITLE`, `PERSON`. This is the minimum viable label set for the paper's linking quality metrics.
+- **Phase 2 scope — Expression:** once Work-level extraction is validated, add Expression-level labels: `TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`. These can be derived from the Manifestation record but require additional heuristics (language field, ` /` SoR role disambiguation, medium indicators).
+- **Manifestation labels deferred:** `PUBLISHER`, `PLACE`, `YEAR`, `EDITION`, `SERIES`, `VOLUME` are extractable from the Manifestation string and useful for deduplication, but are not in scope for the paper's NER evaluation.
+- **Implication for SR-09:** gold set Phase 1 annotation covers `TITLE`, `OTHER_TITLE`, `PERSON` only. Expression labels (`TRANSLATOR`, `PARALLEL_TITLE`) should be included in the annotation schema from the start (to avoid re-annotation) but are not required for the initial evaluation pass.
 
 ### 2.8 SR-08 — NuNER Zero evaluation
 **Status:** Open — blocked on SR-09
@@ -103,7 +107,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 - **Decision gate:** precision ≥ threshold → use zero-shot; else → LLM labeling + fine-tune `xlm-roberta-base` on silver + LLM-labeled set
 
 ### 2.9 SR-09 — Gold set composition
-**Status:** Open — blocked on SR-07, blocks SR-08
+**Status:** Open — blocks SR-08
 - **Requirement:** ~500 manually annotated records stratified by: era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), and `dc_type`
 - Must cover tier-0 fallback records (the NER majority path) not just ISBD-structured ones
 - **No Latin stratum (from SR-06):** true Latin prevalence is ~0.5% — too rare to stratify; identify manually if encountered. Pre-1700 stratum (Leichenpredigt + legal/administrative Monografie) is the historical register proxy.
