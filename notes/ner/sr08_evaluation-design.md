@@ -56,7 +56,7 @@ GeMeA's task is structurally more favourable than these benchmarks — the entir
 
 | Stratum | TITLE F1 target | PERSON F1 target |
 |---|---|---|
-| Modern, tier-2 | ≥ 0.85 | — (dc:creator usually present) |
+| Modern, tier-2 | ≥ 0.85 | — (person names rarely in title: 0.2%) |
 | 19th-c, tier-1 | ≥ 0.80 | — |
 | 1700–1800 | ≥ 0.75 | ≥ 0.70 |
 | Pre-1700 | ≥ 0.70 | ≥ 0.70 |
@@ -67,13 +67,19 @@ These targets are grounded in benchmark ceilings, not in an assumed intervention
 
 ## 4. Metric
 
-**Per-label span F1** (exact character-offset + label match), reported per era and per tier.
+The primary metric is **per-label span F1** with exact character-offset and label match, reported separately per era and per tier. A span is correct only if both its boundaries and its label match the gold annotation exactly — partial matches do not count. This is the standard evaluation protocol for sequence labeling tasks and is consistent with HIPE-2022 (Ehrmann et al., 2022) and CoNLL NER benchmarks.
 
-CI method: **bootstrap F1** (1000 samples), not Wilson interval. Wilson applies to proportions; F1 is not a proportion. Report 95% bootstrap CI alongside every F1 number.
+F1 is reported per label (TITLE, PERSON, OTHER_TITLE) rather than as a macro or micro average, because the labels have different prevalences and different practical importance. Averaging across labels would obscure failures on rare but critical types.
 
-- Bootstrap method: Efron & Tibshirani (1993), *An Introduction to the Bootstrap*, Chapman & Hall. ⚠️ verify page/chapter before citing.
-- 95% convention in NLP evaluation: Efron & Tibshirani (1993) is the statistical origin; Ehrmann et al. (2022), HIPE-2022 (*CLEF 2022 Working Notes*, CEUR-WS vol. 3180) is the directly comparable precedent for historical NER. ⚠️ confirm HIPE-2022 explicitly reports 95% bootstrap CI before citing.
-- Statistical testing and CI norms in NLP: Dror et al. (2018), "Deep Dominance", *ACL 2018*; Søgaard et al. (2014), "Simple, Robust Methods for Statistical Testing in NLP".
+**Confidence intervals** are computed using bootstrap resampling (Efron & Tibshirani, 1993): resample the gold set with replacement 1000 times, compute F1 on each resample, and take the 2.5th–97.5th percentile as the 95% CI. Bootstrap is used rather than the Wilson interval because F1 is not a simple proportion — it is a ratio of precision and recall, each of which is itself a ratio — and has no closed-form variance. The 95% level is the field convention in NLP evaluation (Dror et al., 2018; Søgaard et al., 2014) and matches the reporting standard in HIPE-2022, the most directly comparable historical NER benchmark.
+
+Every F1 number reported in the paper must be accompanied by its 95% bootstrap CI. Bare F1 values without CIs should not appear in evaluation tables or claims.
+
+**References:**
+- Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter before citing.
+- Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). HIPE-2022: Naming the Past. *CLEF 2022 Working Notes*, CEUR-WS vol. 3180. ⚠️ confirm paper explicitly reports 95% bootstrap CI before citing for this convention.
+- Dror, R., et al. (2018). Deep Dominance — How to Properly Compare Deep Neural Models. *ACL 2018*.
+- Søgaard, A., et al. (2014). Simple, Robust Methods for Statistical Testing in NLP.
 
 ---
 
