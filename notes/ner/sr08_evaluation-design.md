@@ -69,6 +69,7 @@ These targets are grounded in benchmark ceilings, not in an assumed intervention
 
 The primary metric is **per-label span F1** with exact character-offset and label match, reported separately per era and per tier. A span is correct only if both its boundaries and its label match the gold annotation exactly — partial matches do not count. This is the standard evaluation protocol for sequence labeling tasks and is consistent with HIPE-2022 (Ehrmann et al., 2022) and CoNLL NER benchmarks.
 
+
 F1 is reported per label (TITLE, PERSON, OTHER_TITLE) rather than as a macro or micro average, because the labels have different prevalences and different practical importance. Averaging across labels would obscure failures on rare but critical types.
 
 **Confidence intervals** are computed using bootstrap resampling (Efron & Tibshirani, 1993): resample the gold set with replacement 1000 times, compute F1 on each resample, and take the 2.5th–97.5th percentile as the 95% CI. Bootstrap is used rather than the Wilson interval because F1 is not a simple proportion — it is a ratio of precision and recall, each of which is itself a ratio — and has no closed-form variance. The 95% level is the field convention in NLP evaluation (Dror et al., 2018; Søgaard et al., 2014) and matches the reporting standard in HIPE-2022, the most directly comparable historical NER benchmark.
@@ -122,34 +123,44 @@ Key observations:
 
 ## 6. Minimum sample size per stratum
 
-For bootstrap F1, CI width depends on **entity instance counts**, not record counts. The empirical rule of thumb from resampling studies: ±5 pp CI at 95% requires ~100–150 instances; ±10 pp requires ~38 instances.
+CI width depends on **entity instance counts**, not record counts. The minimum instances needed is derived from the Wilson interval approximation, treating F1 as a proportion (this is a lower bound — bootstrap CI for F1 is empirically wider, so actual required n may be larger):
 
-With TITLE prevalence ~100%, instances ≈ records, so ±5 pp CI is achievable at ~150 records per stratum. PERSON prevalence is much lower (8.7% pre-1700, 5.0% 1700–1800), making tight CI prohibitively expensive:
+$$n = \frac{z^2 \cdot p(1-p)}{e^2}$$
+
+where z = 1.96 (95% CI), p = target F1, e = desired half-width. Records needed = instances needed / entity prevalence per stratum (TITLE prevalence ≈ 100%; PERSON prevalence from `sr08_check_person_in_title.py`).
+
+Script: `sr08_ci_sample_size.py`; data: `data/processed/sr08_ci_sample_size.csv`:
 
 | Stratum | Metric | Target F1 | CI target | Instances needed | Prevalence | Records needed |
 |---|---|---|---|---|---|---|
-| Pre-1700 | TITLE | ≥ 0.70 | ±5 pp | ~150 | ~100% | ~150 |
-| Pre-1700 | PERSON | ≥ 0.70 | ±5 pp | ~150 | ~8.7% | ~1,725 |
-| 1700–1800 | TITLE | ≥ 0.75 | ±5 pp | ~150 | ~100% | ~150 |
-| 1700–1800 | PERSON | ≥ 0.70 | ±5 pp | ~150 | ~5.0% | ~3,000 |
-| 19th-c | TITLE | ≥ 0.80 | ±5 pp | ~150 | ~100% | ~150 |
-| Modern | TITLE | ≥ 0.85 | ±5 pp | ~150 | ~100% | ~150 |
+| Pre-1700 | TITLE | ≥ 0.70 | ±5 pp | 323 | 100% | 323 |
+| Pre-1700 | TITLE | ≥ 0.70 | ±10 pp | 81 | 100% | 81 |
+| Pre-1700 | PERSON | ≥ 0.70 | ±5 pp | 323 | 8.7% | 3,713 |
+| Pre-1700 | PERSON | ≥ 0.70 | ±10 pp | 81 | 8.7% | 932 |
+| 1700–1800 | TITLE | ≥ 0.75 | ±5 pp | 289 | 100% | 289 |
+| 1700–1800 | TITLE | ≥ 0.75 | ±10 pp | 73 | 100% | 73 |
+| 1700–1800 | PERSON | ≥ 0.70 | ±5 pp | 323 | 5.0% | 6,460 |
+| 1700–1800 | PERSON | ≥ 0.70 | ±10 pp | 81 | 5.0% | 1,620 |
+| 19th-c | TITLE | ≥ 0.80 | ±5 pp | 246 | 100% | 246 |
+| 19th-c | TITLE | ≥ 0.80 | ±10 pp | 62 | 100% | 62 |
+| Modern | TITLE | ≥ 0.85 | ±5 pp | 196 | 100% | 196 |
+| Modern | TITLE | ≥ 0.85 | ±10 pp | 49 | 100% | 49 |
 
-**The PERSON CI constraint is not achievable at practical annotation cost.** Reaching ±5 pp on PERSON would require ~1,725 pre-1700 records and ~3,000 1700–1800 records — far beyond a feasible gold set. Even relaxing to ±10 pp (38 instances) still requires ~440 pre-1700 and ~760 1700–1800 records.
+**The PERSON CI constraint is not achievable at practical annotation cost.** Reaching ±5 pp on PERSON requires 3,713 pre-1700 records and 6,460 1700–1800 records. Even ±10 pp requires 932 and 1,620 respectively — far beyond a feasible gold set.
 
-**Decision: accept wide CI on PERSON (option 2).** The gold set is sized for TITLE reliability (±5 pp per stratum, ~150 records each). PERSON CI will be wider — estimated ±10–15 pp at the current gold set size — and must be reported explicitly alongside any PERSON F1 claim. PERSON results are sufficient to detect gross model failures but not fine-grained differences between models. This limitation should be stated in the paper.
+**Decision: accept wide CI on PERSON (option 2).** The gold set is sized for TITLE reliability. PERSON CI will be wider and must be reported explicitly alongside any PERSON F1 claim. PERSON results are sufficient to detect gross model failures but not fine-grained differences between models. This limitation must be stated in the paper.
 
-**Implication for total gold set size:**
+**Implication for total gold set size (TITLE-driven, ±5 pp):**
 
-| Stratum | Min records (TITLE-driven) |
+| Stratum | Min records |
 |---|---|
-| Pre-1700 | 150 |
-| 1700–1800 | 150 |
-| 19th-c | 150 |
-| Modern | 150 |
-| **Total (minimum)** | **600** |
+| Pre-1700 | 323 |
+| 1700–1800 | 289 |
+| 19th-c | 246 |
+| Modern | 196 |
+| **Total (minimum)** | **1,054** |
 
-The current gold set (395 records, ~100 per era) is below the 150-per-stratum minimum for ±5 pp TITLE CI. The pre-1700 stratum in particular (~100 records) gives ~±7 pp on TITLE — marginally acceptable but not ideal.
+The current gold set (395 records, ~100 per era) falls well short of the ±5 pp TITLE target. It is closer to the ±10 pp threshold (need 49–81 per stratum), giving roughly ±10 pp TITLE CI per era. Whether to expand to ~1,054 records is an open decision (see §7).
 
 ---
 
@@ -160,4 +171,4 @@ The current gold set (395 records, ~100 per era) is below the 150-per-stratum mi
 3. ~~Compute minimum per-stratum record counts~~ — resolved: see §6
 4. **Cap at corpus availability and redistribute** — tier-2 is nearly exhausted (0 pre-1700, 70 modern); allocation must shift toward tier-0 and tier-1
 5. **Update the allocation table** in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
-6. **Decide whether to expand the gold set** from 395 to ~600 to meet the ±5 pp TITLE CI target per stratum
+6. **Decide whether to expand the gold set** from 395 to ~1,054 to meet the ±5 pp TITLE CI target per stratum (current 395 records gives ~±10 pp per era)
