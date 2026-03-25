@@ -19,7 +19,7 @@ Annotate **all Phase 1 labels** (§2.1) for every record. Annotate **Phase 2 lab
 
 | Label | What to mark | Typical cue |
 |---|---|---|
-| `TITLE` | The main work title — the primary intellectual content identifier. Exactly one per record. | Opening substantive noun phrase; before ` :` or ` /` in modern records; **after** the PERSON span in pre-1700 records |
+| `TITLE` | The main work title — the primary intellectual content identifier. Exactly one per record. If no subtitle separator is present, the TITLE span may extend through what would otherwise be a subtitle. | Opening substantive noun phrase; before ` :` or ` /` in modern records; **after** the PERSON span in pre-1700 records |
 | `OTHER_TITLE` | A subtitle or alternative title elaborating or qualifying the TITLE | After ` : `, `Das ist:`, `oder`, `nämlich`, `welches handelt von`, `, enthaltend` |
 | `PERSON` | Named responsible person (author, editor) — full name **plus** all credentials, degree abbreviations, and role phrases that form a single naming unit with the name | After ` / ` in modern records; **before** the work title in pre-1700 records (no ` /` separator) |
 
@@ -221,6 +221,8 @@ David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßd
 > The full credential phrase `Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti` is part of the PERSON span. It identifies and qualifies the named person.
 > TITLE begins at the first substantive noun phrase that names the work (`Zwey rare Chymische Tractate`). The separating `, ` (comma-space) between PERSON and TITLE is not included in either span.
 > If a ` :` follows, label any subtitle content after it as OTHER_TITLE.
+>
+> **Why credential and name are merged into one PERSON span (design note):** A `PERSON_DESIGNATION` label splitting the bare name (`David Beuthers`) from the credential phrase was considered and deferred to Phase 2. Three reasons: (1) the pre-name degree abbreviations (`D.`, `M.`, `Lic.`) are fused with the name by German academic convention and the boundary is genuinely ambiguous; (2) standard BIO sequence labeling handles two adjacent spans at an uncertain boundary worse than one merged span; (3) for GND linking, name extraction from a merged PERSON span can be done in post-processing by stripping known degree prefixes and cutting at the first role-noun (`Professoris`, `Pfarrers`, `Pastoris`, `Meisters`). When Phase 2 annotation is scheduled, `PERSON_DESIGNATION` should cover both pre-name degrees and post-name role/location phrases, with the bare first-name + surname as the PERSON core.
 
 ---
 

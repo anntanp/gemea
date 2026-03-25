@@ -84,80 +84,24 @@ CI half-widths are approximate 95% Wilson intervals on a proportion; actual F1 C
 
 ---
 
-## 3. Annotation schema
+## 3. Annotation schema and guidelines
 
-### 3.1 Phase 1 labels (required for evaluation)
+See **[sr08_annotation-guide.md](sr08_annotation-guide.md)** for the complete annotation reference: label definitions, decision flowchart, examples with DDB links, span boundary rules, LLM task format, and workflow.
 
-| Label | What it marks | Notes |
+Label scope summary:
+
+| Phase | Labels | Status |
 |---|---|---|
-| `TITLE` | Main work title; primary intellectual content identifier | May include subtitle if no `OTHER_TITLE` separator is present |
-| `OTHER_TITLE` | Subtitle or alternative title | Introduced by `Das ist:`, `oder`, `:`, `nämlich`, `welches handelt von` |
-| `PERSON` | Author, editor, responsible person; includes credentials and role descriptions forming a single naming unit | Pre-1750: includes opening credential sequence and post-name role phrases; see §4 |
+| Phase 1 | `TITLE`, `OTHER_TITLE`, `PERSON` | Required; evaluated in SR-09 |
+| Phase 2 | `TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM` | Annotate in same pass; not evaluated in Phase 1 |
 
-### 3.2 Phase 2 labels (include in schema, skip for Phase 1 evaluation)
-
-Annotate these in the same pass to avoid re-annotation when SR-07 Phase 2 is reached:
-
-| Label | What it marks |
-|---|---|
-| `TRANSLATOR` | Translator; only when a translation keyword is present (`übersetzt`, `Übers.`, `transl.`, `traduit`) |
-| `PARALLEL_TITLE` | Title in a second language, typically after `=` |
-| `MEDIUM` | Statement of medium or format for music (e.g. `für Klavier und Violine`) |
-
-Phase 2 labels need not be evaluated in Phase 1. Annotate them anyway so the gold set does not need to be extended when Phase 2 evaluation is due.
-
-### 3.3 Span boundary convention
-
-- Spans are **character-level** offsets into the raw `dc:title` string (no pre-tokenization)
-- Spans are **non-overlapping** and **non-nested** — if a PERSON span contains a title fragment, the PERSON boundary stops before that fragment
-- Spans **must** be contiguous substrings of the input — no gap spans
-- For pre-1750 records: the PERSON span includes degree abbreviations, full name, and role phrases up to (but not including) the first content noun of the title; see §4 for examples
+Annotate Phase 2 labels in the same pass to avoid re-annotation when SR-07 Phase 2 is reached. Spans are character-level offsets into the raw `title` string; run `sr08_verify_spans.py` after each batch.
 
 ---
 
-## 4. Annotation guidelines for pre-1750 records
+## 4. Sampling procedure
 
-These records are the highest-risk stratum for annotation error and model failure. Annotators must not apply modern bibliographic conventions.
-
-### 4.1 Author-before-title structure
-
-In pre-1750 titles, the author's name and credentials appear **before** the main title. There is no ` /` separator. The typical structure is:
-
-```
-[credential + name + role phrase | PERSON] [main title | TITLE] [subtitle | OTHER_TITLE]
-```
-
-Example:
-```
-Input:  "D. Johann Gerhard, Professoris zu Jena, Erklärung der Historien des Leidens"
-Output: [D. Johann Gerhard, Professoris zu Jena | PERSON] [Erklärung der Historien des Leidens | TITLE]
-```
-
-### 4.2 PERSON span boundaries
-
-**Include in the PERSON span:**
-- Academic degree abbreviations immediately before the name: `D.` (Doktor), `M.` (Magister), `Lic.`, `Mag.`
-- Full personal name (first name + surname)
-- Role or position phrases following the name: `Pfarrers zu X`, `der H. Schrifft Lehrers`, `Professoris`, `Pastoris`, `Superintendenten`
-- Genitive or prepositional phrases identifying the post: `zu Jena`, `in Leipzig`, `bey der Gemeine zu X`
-
-**Stop the PERSON span** at the first token that is clearly part of the work title (a content noun, verb phrase, or `Das ist:`).
-
-### 4.3 Common errors to avoid
-
-| Error | Example | Correct annotation |
-|---|---|---|
-| Annotating the credential sequence as TITLE | `D. Johann Gerhard` marked as TITLE | Mark as PERSON; title begins after role phrase |
-| Splitting credentials from name | `D. Johann Gerhard` → only `Johann Gerhard` as PERSON | Include degree abbreviation in the PERSON span |
-| Marking dedicatees as PERSON | `Herrn N.N. gewidmet` | Only label named dedicatees if also the author; generic dedications are not labeled |
-| Marking embedded Latin as a separate entity | `Anno MDXLVI` | Part of the TITLE span; do not extract separately |
-| Labeling `durch` / `von` phrases as TRANSLATOR | `durch Johann Schmidt` | Label PERSON unless a translation keyword is present |
-
----
-
-## 5. Sampling procedure
-
-### 5.1 Draw the sample
+### 4.1 Draw the sample
 
 ```python
 import pandas as pd
@@ -212,36 +156,17 @@ gold_sample.to_csv("data/annotation/sr08_gold_sample.csv", index=False)
 print(f"Gold sample size: {len(gold_sample)}")
 ```
 
-### 5.2 Output format
+### 4.2 Output format
 
-Each annotated record should produce a JSON Lines file (`data/annotation/sr08_gold.jsonl`) with entries of the form:
-
-```json
-{
-  "obj_id": "ABCDE12345FGHIJ",
-  "title": "D. Johann Gerhard, Professoris zu Jena, ...",
-  "era": "pre-1700",
-  "dc_type": "Leichenpredigt",
-  "silver_tier": "0",
-  "spans": [
-    {"start": 0, "end": 35, "label": "PERSON", "text": "D. Johann Gerhard, Professoris zu Jena"},
-    {"start": 37, "end": 82, "label": "TITLE",  "text": "Erklärung der Historien des Leidens..."}
-  ],
-  "annotator": "manual",
-  "annotation_date": "2026-XX-XX",
-  "notes": ""
-}
-```
-
-Phase 2 labels (`TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`) use the same span format — add them to the `spans` array if present.
+See [sr08_annotation-guide.md §8](sr08_annotation-guide.md#8-output-format-jsonl) for the full JSONL record schema (`obj_id`, `title`, `era`, `dc_type`, `silver_tier`, `ddb_link`, `spans`, `annotation_status`, `annotator`, `annotation_date`, `notes`).
 
 ---
 
-## 6. Evaluation metrics
+## 5. Evaluation metrics
 
 Run after annotation is complete; use the held-out portion (full 500) against model predictions.
 
-### 6.1 Span-level exact match F1
+### 5.1 Span-level exact match F1
 
 Standard NER evaluation: a span is correct if **both** the character offsets and the label match exactly.
 
@@ -256,7 +181,7 @@ Report separately:
 - Per-era F1: `modern`, `19th-c`, `1700-1800`, `pre-1700` — PERSON F1 on pre-1700 must be tracked separately (author-before-title failure mode)
 - Per-tier F1: tier-2, tier-1, tier-0 — primary interest is tier-0 (NER fallback path)
 
-### 6.2 Thresholds and decision gates
+### 5.2 Thresholds and decision gates
 
 | Metric | Threshold | Action if below |
 |---|---|---|
@@ -269,7 +194,7 @@ These thresholds are consistent with the "practical minimum for reliable boundar
 
 ---
 
-## 7. Relationship to other SRs
+## 6. Relationship to other SRs
 
 | SR | Dependency on SR-08 |
 |---|---|
@@ -281,11 +206,11 @@ The 50-record manual seed annotated first also serves as the SR-11 prompt seed �
 
 ---
 
-## 8. Blockers and open questions
+## 7. Blockers and open questions
 
 | Item | Status |
 |---|---|
 | Annotation tool selection | Unresolved — `doccano`, `Label Studio`, or JSON Lines in a spreadsheet are all viable for 500 records; Label Studio preferred for span annotations |
 | Inter-annotator agreement (IAA) | Desirable but not required for Phase 1 — a single trained annotator is sufficient for the 500-record set; flag ambiguous cases in `notes` field |
-| Pre-1750 annotation examples | 5 examples in SR-11 §4.3 serve as annotator training; review against real DDB records before starting |
+| Pre-1750 annotation examples | See [sr08_annotation-guide.md §4](sr08_annotation-guide.md#4-examples-by-title-structure) — 10 examples with real DDB links; review before starting |
 | `silver_tier` column name in corpus | Check actual column name in `df_de_titles.parquet` — may be `tier`, `label_tier`, or `silver_tier` |
