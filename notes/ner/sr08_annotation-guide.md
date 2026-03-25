@@ -33,10 +33,13 @@ The corpus spans five centuries of German print culture, from 16th-century Early
 
 ### 2.1 Files
 
+Annotation is done in **doccano**. The files below are inputs and references.
+
 | File | Contents | Action |
 |---|---|---|
 | `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Open first — determines which records to annotate and in what order |
-| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Primary annotation file — edit spans here |
+| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Source import for doccano |
+| `data/annotation/export_245867_pretty.json` | Doccano export | Authoritative annotation output |
 | `data/annotation/sr08_gold_sample.csv` | Original stratified sample with metadata | Reference only |
 
 ### 2.2 Annotation status
@@ -74,6 +77,8 @@ Change `annotation_status` to `reviewed` when you have verified and accepted a r
 | `PERSON` | Named responsible person (author, editor) — full name **plus** all credentials, degree abbreviations, and role phrases that form a single naming unit with the name | After ` / ` in modern records; **before** the work title in pre-1700 records (no ` /` separator) |
 
 **One TITLE per record.** A record almost always has exactly one TITLE span. If the string is a fragment or a bare description, annotate the most title-like phrase as TITLE.
+
+**Why PERSON and not AUTHOR or CREATOR (design note):** The SoR position (` /`) in ISBD contains not just authors but also editors (`hrsg. von`), compilers, corporate bodies, and contributors. `AUTHOR` would be semantically wrong for `Jahrbuch / Deutsche Shakespeare-Gesellschaft` or `Statistische Berichte / Hessisches Statistisches Landesamt` — neither is an author. `CREATOR` is closer but still excludes editors and corporate agents. `PERSON` is the neutral term that marks *where the responsible agent appears in the string* without asserting a role. SR-04 confirmed this: only 35% of SoR entries are true author statements; 19% are corporate bodies, 5% editors, 41% non-SoR false positives. Role disambiguation (`f_resp_person`, `f_resp_org`, `f_resp_editor`) is a Phase 2 concern. This is also consistent with historical NER benchmarks (HIPE-2022, GermEval), which use `PER` rather than role-bearing labels for the same reason. If role-specific labels are needed downstream, they can be added as a sub-classification layer using the SR-04 `f_resp_*` flags without re-annotating spans.
 
 ### 3.2 Phase 2 — annotate when present; not evaluated in Phase 1
 

@@ -173,7 +173,7 @@ sr08_verify_spans.py        Human annotation
 ### 2.8 SR-08 — Gold set composition
 **Status:** Open — blocks SR-09
 
-See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full content.
+See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full content. Annotation procedure: [sr08_annotation-guide.md](ner/sr08_annotation-guide.md). Label naming rationale: [sr08_label-design-rationale.md](ner/sr08_label-design-rationale.md).
 
 - **Size:** ~500 manually annotated records; 50-record seed annotated first (seeds SR-11 prompt and serves as the bootstrapping set)
 - **Stratification:** era (modern / 19th c. / 1700–1800 / pre-1700) × silver tier (2 / 1 / 0) × `dc_type`; Leichenpredigt and Einblattdruck oversampled to ~50 each; tier-0 pre-1700 over-represented (primary inference path)

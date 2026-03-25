@@ -278,7 +278,7 @@ The 1700–1800 stratum is the ambiguous case — German is moving toward standa
 
 | Item | Status |
 |---|---|
-| Annotation tool selection | Unresolved — `doccano`, `Label Studio`, or JSON Lines in a spreadsheet are all viable for 500 records; Label Studio preferred for span annotations |
+| Annotation tool selection | **Resolved — `doccano`** is in use; export file at `data/annotation/export_245867_pretty.json` |
 | Inter-annotator agreement (IAA) | See §7.1 — 2 annotators required for manual queue; span F1 ≥ 0.80 target |
 | Pre-1750 annotation examples | See [sr08_annotation-guide.md §4](sr08_annotation-guide.md#4-examples-by-title-structure) — 10 examples with real DDB links; review before starting |
 | `silver_tier` column name in corpus | Check actual column name in `df_de_titles.parquet` — may be `tier`, `label_tier`, or `silver_tier` |
