@@ -35,8 +35,8 @@ The corpus spans five centuries of German print culture, from 16th-century Early
 
 | File | Contents | Action |
 |---|---|---|
-| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Primary annotation file |
-| `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Work through this list first |
+| `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Open first — determines which records to annotate and in what order |
+| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Primary annotation file — edit spans here |
 | `data/annotation/sr08_gold_sample.csv` | Original stratified sample with metadata | Reference only |
 
 ### 2.2 Annotation status
