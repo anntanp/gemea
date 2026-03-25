@@ -6,20 +6,32 @@ Companion to [sr08_gold-set-composition.md](sr08_gold-set-composition.md). Docum
 
 ## 1. Primary goal
 
-The NER model's primary job is **TITLE extraction**. GND work linking depends on having a clean title string; dc:creator and dc:contributor cover the person in most cases.
+The NER model's primary job is **TITLE extraction**. GND work linking depends on having a clean title string.
 
-PERSON extraction is a **secondary fallback**: useful when both dc:creator and dc:contributor are blank — which happens predominantly in pre-1700 and 1700–1800 objects. In modern and 19th-century objects, person names rarely appear in the title at all (unless the title is a character's name), so PERSON recall there is structurally low and practically less important.
+PERSON extraction is a **secondary goal**, but its value varies sharply by era. Two factors determine usefulness: (1) whether dc:creator/dc:contributor is absent, and (2) whether a person name actually appears in the title string. Both conditions must hold for NER PERSON extraction to add anything.
+
+**Corpus evidence** — scripts: `sr08_check_agent_coverage.py`, `sr08_check_person_in_title.py`; data: `data/processed/sr08_agent_coverage_by_era.csv`, `data/processed/sr08_person_in_title_by_era.csv`:
+
+| Era | Records | dc:creator or contributor absent | Person name in title (ner_person) |
+|---|---|---|---|
+| Pre-1700 | 278,536 | 67.4% | 8.7% |
+| 1700–1800 | 567,938 | 71.3% | 5.0% |
+| 19th-c | 925,445 | 61.1% | 0.6% |
+| Modern | 1,198,983 | 51.0% | 0.2% |
+| **Overall** | **4,477,780** | **67.1%** | **1.4%** |
+
+dc:creator/contributor is absent in the majority of records across all eras — far more than assumed. However, person names in the title string are rare except in pre-1700 (8.7%) and 1700–1800 (5.0%). For modern and 19th-c records, dc:creator is often absent but person names almost never appear in the title, so NER PERSON extraction yields nothing useful regardless.
 
 **Priority order:**
 
 | Label | Role | Evaluation priority |
 |---|---|---|
 | `TITLE` | Primary — required for GND linking | Must be reliable across all eras |
-| `PERSON` (pre-1700, 1700–1800) | Fallback when dc:creator/contributor blank | High — this is the main failure mode |
-| `PERSON` (modern, 19th-c) | Rarely present in title; dc:creator usually populated | Low — evaluate but don't let it drive sample size |
+| `PERSON` (pre-1700, 1700–1800) | Person names structurally present in title; dc:creator often absent | High |
+| `PERSON` (modern, 19th-c) | Person names rarely in title (~0.2–0.6%); NER adds little | Low — don't let it drive sample size |
 | `OTHER_TITLE`, `PARALLEL_TITLE` | Supporting metadata | Secondary |
 
-**Why not joint Work accuracy (TITLE ∧ PERSON)?** Originally considered as the primary metric, but dropped: PERSON is a fallback, not a co-requirement. A correct TITLE with a missing PERSON is still useful; a missing TITLE is not. Per-label F1 per era is sufficient.
+**Why not joint Work accuracy (TITLE ∧ PERSON)?** PERSON is a secondary goal, not a co-requirement. A correct TITLE with a missing PERSON is still useful for GND linking; a missing TITLE is not. Per-label F1 per era is sufficient.
 
 ---
 
@@ -74,6 +86,11 @@ PERSON on pre-1700 is the secondary constraint: ~70% prevalence in that stratum,
 - Modern and 19th-c sample size is driven by TITLE F1 reliability alone — needs fewer records than previously assumed
 - Pre-1700 should be oversampled, driven by PERSON fallback reliability
 - 1700–1800 is the ambiguous case for PERSON (transitional period for dc:creator availability); treat similarly to pre-1700
+
+**Author-before-title convention (pre-1700):** the placement of the author's name or credential before the title proper on early modern title pages is documented in historical bibliography. Candidate citations — verify before using:
+- Gaskell, P. (1972). *A New Introduction to Bibliography.* Oxford: Clarendon Press. ⚠️ Standard reference for hand-press period (c. 1500–1800) title page conventions; verify specific section.
+- Reske, C. (2015). *Die Buchdrucker des 16. und 17. Jahrhunderts im deutschen Sprachgebiet.* Wiesbaden: Harrassowitz. ⚠️ German-specific; less certain it addresses title page layout explicitly.
+- Willer et al. (2010) — checked in full; does not address pre-ISBD title page conventions. Not a valid citation for this claim.
 
 **The current allocation table in sr08_gold-set-composition.md §2.2 was not derived from corpus proportions or CI targets — the numbers were round-number design judgments.** They need to be replaced.
 
