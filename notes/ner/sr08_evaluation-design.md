@@ -150,17 +150,17 @@ Script: `sr08_ci_sample_size.py`; data: `data/processed/sr08_ci_sample_size.csv`
 
 **Decision: accept wide CI on PERSON (option 2).** The gold set is sized for TITLE reliability. PERSON CI will be wider and must be reported explicitly alongside any PERSON F1 claim. PERSON results are sufficient to detect gross model failures but not fine-grained differences between models. This limitation must be stated in the paper.
 
-**Implication for total gold set size (TITLE-driven, ±5 pp):**
+**Implication for total gold set size (TITLE-driven):**
 
-| Stratum | Min records |
-|---|---|
-| Pre-1700 | 323 |
-| 1700–1800 | 289 |
-| 19th-c | 246 |
-| Modern | 196 |
-| **Total (minimum)** | **1,054** |
+| Stratum | Min records (±5 pp) | Min records (±10 pp) |
+|---|---|---|
+| Pre-1700 | 323 | 81 |
+| 1700–1800 | 289 | 73 |
+| 19th-c | 246 | 62 |
+| Modern | 196 | 49 |
+| **Total (minimum)** | **1,054** | **265** |
 
-The current gold set (395 records, ~100 per era) falls well short of the ±5 pp TITLE target. It is closer to the ±10 pp threshold (need 49–81 per stratum), giving roughly ±10 pp TITLE CI per era. Whether to expand to ~1,054 records is an open decision (see §7).
+**Decision: target ±10 pp CI due to time constraints.** The minimum gold set is ~265 records across four era strata. The current gold set (395 records, ~100 per era) already meets this threshold. No expansion is required for the ±10 pp target; the existing 395-record set is sufficient.
 
 ---
 
@@ -171,4 +171,4 @@ The current gold set (395 records, ~100 per era) falls well short of the ±5 pp 
 3. ~~Compute minimum per-stratum record counts~~ — resolved: see §6
 4. **Cap at corpus availability and redistribute** — tier-2 is nearly exhausted (0 pre-1700, 70 modern); allocation must shift toward tier-0 and tier-1
 5. **Update the allocation table** in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
-6. **Decide whether to expand the gold set** from 395 to ~1,054 to meet the ±5 pp TITLE CI target per stratum (current 395 records gives ~±10 pp per era)
+6. ~~Decide whether to expand the gold set~~ — resolved: ±10 pp CI adopted due to time constraints; current 395-record set is sufficient
