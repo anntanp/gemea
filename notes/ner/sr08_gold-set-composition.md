@@ -206,11 +206,79 @@ The 50-record manual seed annotated first also serves as the SR-11 prompt seed �
 
 ---
 
-## 7. Blockers and open questions
+## 7. Annotator requirements
+
+### 7.1 Number of annotators and IAA
+
+**2 annotators** are required, with a third adjudicating disagreements. The benefit of annotation scales steeply from 1→2 and diminishes sharply after 3 — Snow et al. (2008) showed empirically that for most NLP labeling tasks, 2–3 annotators reach near-ceiling quality. The primary value of a second annotator is to surface systematic disagreement (ambiguous boundary cases, guideline gaps), not to average out noise.
+
+**Stratum-level requirements:**
+
+| Stratum | Annotators | Rationale |
+|---|---|---|
+| Pre-1700 tier-0 (~130 records) | 2 + adjudication | Highest structural ambiguity; author-before-title boundary is genuinely hard |
+| 1700–1800 and other tier-0 (~82 records) | 2 | Transitional register; guidelines not fully sufficient |
+| Tier-1 partial (136 records) | 1 + self-review | Auto-extracted spans constrain boundaries; verify script catches offset errors |
+| Tier-2 pre-filled (47 records) | 1 spot-check | ISBD structural rules leave little room for disagreement |
+
+Both annotators on the pre-1700 stratum must have **Early Modern German reading competence** — the credential/title boundary requires understanding the semantic structure of a 16th–17th century title page, which cannot be inferred from modern bibliographic conventions alone. See §7.2 for what this means in practice.
+
+**IAA metric:** use **pairwise span F1**, not Cohen's κ. κ is inflated for NER because unlabeled tokens dominate the denominator and inflate chance agreement (Hripcsak & Rothschild, 2005; Artstein & Poesio, 2008). Treat one annotator as reference and the other as system; compute F1 over exact character-offset + label pairs. Targets: ≥ 0.80 overall; ≥ 0.75 for the pre-1700 PERSON label. These are consistent with the LLM agreement threshold in §5.2.
+
+### 7.2 Annotator qualifications by stratum
+
+German C1 proficiency is sufficient for the modern and 19th-century strata but not for pre-1700. The task splits into two distinct regimes.
+
+**Modern and 19th-century strata — C1 is sufficient**
+
+Post-1800 titles use standard German orthography and modern bibliographic conventions. The annotation decisions are structural (locating ` : ` and ` / `), not lexical. A well-briefed C1 speaker working from the annotation guide can do this reliably.
+
+**Pre-1700 stratum — C1 is not sufficient**
+
+Three things fail with a general C1 annotator on Early Modern German titles:
+
+1. **Orthographic variation.** Pre-standard German has no fixed spelling — common words appear in unfamiliar forms. A C1 speaker trained on modern German may not recognize them, making it harder to locate the credential/title boundary.
+2. **Latin mixing.** A substantial share of pre-1700 credential phrases are partly or fully Latin: `Professoris Theologiae ordinarii`, `Philosophi Adepti`, `Sacrosanctae Theologiae Licentiati`. Without basic Latin recognition, the annotator cannot determine whether a phrase is part of PERSON or the opening of the title.
+3. **Administrative and ecclesiastical title structures.** Recognizing that `Churfürstl. Sächsischen Probation-Meisters zu Dreßden` is a court-administrative credential — part of PERSON, not part of the work description — requires prior knowledge of the Holy Roman Empire's institutional vocabulary. This is intuitive to someone trained in German history or Germanistik; it is opaque to a general C1 speaker.
+
+**What is needed is disciplinary background, not nativeness.** A non-native speaker with an MA in German studies, German history, or historical theology is more capable than a native speaker with no humanities training. The minimum requirements for the pre-1700 stratum:
+
+- Reading ability in Early Modern German (frühneuhochdeutsch) — not paleography (titles are already transcribed), but recognition of pre-standard orthography and archaic morphology
+- Basic Latin recognition — enough to identify that a phrase is Latin and parse its rough structure
+- Familiarity with Early Modern academic, ecclesiastical, or administrative titles as naming units
+
+A humanities PhD student (Germanistik, German history, early modern history) typically has all three. This is consistent with HIPE-2022 practice, which used specialized annotators with historical language training rather than general native speakers (Ehrmann et al., 2022).
+
+**Qualification summary by stratum:**
+
+| Stratum | Minimum qualification |
+|---|---|
+| Modern, 19th-c | C1 + annotation guide training session |
+| 1700–1800 | C1 with Early Modern exposure, or humanities student; run 20-record IAA pilot first |
+| Pre-1700 | Humanities background with Early Modern German + basic Latin; nativeness not required |
+
+The 1700–1800 stratum is the ambiguous case — German is moving toward standardization but credential conventions are still variable. Run a 20-record IAA pilot with both C1 and humanities-background annotators before committing the full stratum to one profile.
+
+**Domain-comparable precedent:** CLEF-HIPE-2020 and HIPE-2022, the closest comparable benchmarks (historical NER in German and other European languages), used 2 annotators per document with adjudication, reporting IAA F1 of 0.77–0.89 by entity type (Ehrmann et al., 2020; 2022). Named person entities were among the harder ones — consistent with the PERSON challenges in this corpus.
+
+**Minimum viable path (single annotator):** acceptable only for the 183 pre-filled/partial records where ISBD rules tightly constrain the span boundaries. Not acceptable for the 212 manual records. For those, a second annotator on at least the 50-record SR-11 seed is the minimum before running the full batch.
+
+**References**
+
+- Artstein, R., & Poesio, M. (2008). Inter-coder agreement for computational linguistics. *Computational Linguistics*, 34(4), 555–596.
+- Ehrmann, M., Romanello, M., Flückiger, A., & Clematide, S. (2020). Extended overview of CLEF-HIPE-2020. *CLEF 2020 Working Notes*, CEUR-WS vol. 2696.
+- Ehrmann, M., et al. (2022). HIPE-2022: Naming the past. *CLEF 2022 Working Notes*, CEUR-WS vol. 3180.
+- Hripcsak, G., & Rothschild, A. S. (2005). Agreement, the F-measure, and reliability in information retrieval. *Journal of the American Medical Informatics Association*, 12(3), 296–298.
+- Pustejovsky, J., & Stubbs, A. (2012). *Natural Language Annotation for Machine Learning*. O'Reilly.
+- Snow, R., O'Connor, B., Jurafsky, D., & Ng, A. Y. (2008). Cheap and fast — but is it good? Evaluating non-expert annotations for natural language tasks. *EMNLP 2008*, 254–263.
+
+---
+
+## 8. Blockers and open questions
 
 | Item | Status |
 |---|---|
 | Annotation tool selection | Unresolved — `doccano`, `Label Studio`, or JSON Lines in a spreadsheet are all viable for 500 records; Label Studio preferred for span annotations |
-| Inter-annotator agreement (IAA) | Desirable but not required for Phase 1 — a single trained annotator is sufficient for the 500-record set; flag ambiguous cases in `notes` field |
+| Inter-annotator agreement (IAA) | See §7.1 — 2 annotators required for manual queue; span F1 ≥ 0.80 target |
 | Pre-1750 annotation examples | See [sr08_annotation-guide.md §4](sr08_annotation-guide.md#4-examples-by-title-structure) — 10 examples with real DDB links; review before starting |
 | `silver_tier` column name in corpus | Check actual column name in `df_de_titles.parquet` — may be `tier`, `label_tier`, or `silver_tier` |
