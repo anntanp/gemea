@@ -118,7 +118,6 @@ gemea/
 | `notes/ddb-objects.md` | DDB EDM object structure and field inventory |
 | `notes/nlp-tasks.md` | NLP task inventory across the pipeline |
 | `notes/future-work.md` | Post-v1 ideas and v2 features |
-| `notes/grobid-setup.md` | GROBID setup notes (paper PDF parsing) |
 | `notes/review-checklist.md` | Pre-submission review checklist |
 
 ---

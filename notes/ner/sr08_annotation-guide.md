@@ -5,17 +5,67 @@ Used by **human annotators** and **LLM annotators** (SR-11).
 
 ---
 
-## 1. Task
+## 1. Summary
 
-Label character-level spans in German bibliographic title strings from the Deutsche Digitale Bibliothek (DDB). Each title is a single string. You produce a list of non-overlapping spans, each with a `label`, `start`, and `end` (character offsets, 0-indexed, end exclusive). `title[start:end]` must equal the `text` field exactly.
+You are labeling **named entity spans** in German bibliographic title strings from the Deutsche Digitale Bibliothek (DDB). Each record contains a single title string. Your job is to mark which substrings are the main title, a subtitle, or a responsible person — and to record the exact character positions of each span.
 
-Annotate **all Phase 1 labels** (§2.1) for every record. Annotate **Phase 2 labels** (§2.2) whenever present, even though they are not evaluated in Phase 1.
+The corpus spans five centuries of German print culture, from 16th-century Early Modern German title pages to 20th-century library catalog entries. The annotation rules differ significantly by era: modern titles follow ISBD punctuation conventions; pre-1700 titles place the author's credentials *before* the title with no separator.
+
+| Section | What it covers |
+|---|---|
+| [§2 Workflow](#2-workflow) | Files, annotation status, suggested order — **start here** |
+| [§3 Label definitions](#3-label-definitions) | What TITLE, OTHER_TITLE, PERSON and Phase 2 labels mark |
+| [§4 Decision flowchart](#4-decision-flowchart) | Step-by-step logic for choosing labels |
+| [§5 Examples](#5-examples-by-title-structure) | 10 worked examples with DDB links, grouped by title structure |
+| [§6 What NOT to label](#6-what-not-to-label) | Frequent false-positive patterns and why they are not entities |
+| [§7 Span boundary rules](#7-span-boundary-rules) | Technical rules for character offsets |
+| [§8 Output format](#8-output-format-jsonl) | JSONL record schema |
+| [§9 Verification](#9-verification) | Script to check offset integrity after each batch |
+| [§10 LLM annotator instructions](#10-instructions-for-llm-annotators) | Input/output format and self-check for LLM-assisted annotation |
+
+**Quick start for human annotators:** read §2 to understand the files and suggested order, then use §3–§5 as reference while annotating. When in doubt about a boundary, check §6 first, then §5.
+
+**Quick start for LLM annotators:** read §3, §4, and §6 fully; then follow the task format in §10.
 
 ---
 
-## 2. Label definitions
+## 2. Workflow
 
-### 2.1 Phase 1 — required for every record
+### 2.1 Files
+
+| File | Contents | Action |
+|---|---|---|
+| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Primary annotation file |
+| `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Work through this list first |
+| `data/annotation/sr08_gold_sample.csv` | Original stratified sample with metadata | Reference only |
+
+### 2.2 Annotation status
+
+Each record in the JSONL has an `annotation_status` field indicating how much work it needs:
+
+| Status | Count | Meaning |
+|---|---|---|
+| `pre-filled` | 47 | Tier-2 structural (`. -`), non-pre-1700 — high confidence; review and accept or correct |
+| `partial` | 136 | Tier-1 heuristic, non-pre-1700 — spans are auto-extracted; verify each boundary |
+| `manual` | 212 | Pre-1700 or tier-0 — no pre-filled spans; annotate from scratch |
+
+### 2.3 Suggested order
+
+Work through records in this order — harder strata first, so guideline questions surface early:
+
+1. **Pre-1700 tier-0** (~130 records) — the hardest stratum; the evaluation rests on these; follow §5.8–§5.10 carefully; use the DDB link to view the full catalog record when the title string is unclear
+2. **1700–1800 tier-0** (~37 records) — transitional register; may follow either pre-1700 or modern structure
+3. **Modern / 19th-c tier-0** (~45 records) — no ISBD markers but modern structure; usually short
+4. **Partial tier-1** (136 records) — review auto-extracted spans; correct boundaries where needed
+5. **Pre-filled tier-2** (47 records) — spot-check only; most are correct
+
+Change `annotation_status` to `reviewed` when you have verified and accepted a record.
+
+---
+
+## 3. Label definitions
+
+### 3.1 Phase 1 — required for every record
 
 | Label | What to mark | Typical cue |
 |---|---|---|
@@ -25,7 +75,9 @@ Annotate **all Phase 1 labels** (§2.1) for every record. Annotate **Phase 2 lab
 
 **One TITLE per record.** A record almost always has exactly one TITLE span. If the string is a fragment or a bare description, annotate the most title-like phrase as TITLE.
 
-### 2.2 Phase 2 — annotate when present; not evaluated in Phase 1
+### 3.2 Phase 2 — annotate when present; not evaluated in Phase 1
+
+Annotate these in the same pass to avoid re-annotation when Phase 2 evaluation is due:
 
 | Label | What to mark | Trigger |
 |---|---|---|
@@ -35,14 +87,14 @@ Annotate **all Phase 1 labels** (§2.1) for every record. Annotate **Phase 2 lab
 
 ---
 
-## 3. Decision flowchart
+## 4. Decision flowchart
 
 ```
 For each title string:
 
 1. Is era == "pre-1700"?
    ├── YES → Does the string open with a credential sequence (degree + name + role phrase)?
-   │         ├── YES → Mark credential+name+role as PERSON; remainder is TITLE (§4.3)
+   │         ├── YES → Mark credential+name+role as PERSON; remainder is TITLE (§5.8–§5.10)
    │         └── NO  → Mark full string as TITLE; no PERSON detectable from string alone
    └── NO  → Does the string contain ' / '?
              ├── YES → Is the text after ' / ' a single letter, date, or region name?
@@ -59,14 +111,14 @@ For each title string:
 
 ---
 
-## 4. Examples by title structure
+## 5. Examples by title structure
 
 Each example shows the input string, the correct annotation, and a link to the DDB source record.
 Offsets are for the exact strings shown — verify with `title[start:end] == text`.
 
 ---
 
-### 4.1 Subtitle only — ` :` present, no ` /`
+### 5.1 Subtitle only — ` :` present, no ` /`
 
 **Input**
 ```
@@ -85,7 +137,7 @@ Jeversches Wochenblatt : Friesisches Tageblatt ; gegr. 1791
 
 ---
 
-### 4.2 SoR only — ` /` present, no ` :`; corporate body as responsible agent
+### 5.2 SoR only — ` /` present, no ` :`; corporate body as responsible agent
 
 **Input**
 ```
@@ -105,7 +157,7 @@ Jahrbuch / Deutsche Shakespeare-Gesellschaft ; 3
 
 ---
 
-### 4.3 SoR with topic sub-series — stop PERSON at period or semicolon
+### 5.3 SoR with topic sub-series — stop PERSON at period or semicolon
 
 **Input**
 ```
@@ -124,7 +176,7 @@ Statistische Berichte / Hessisches Statistisches Landesamt. B … ; Ergebnisse n
 
 ---
 
-### 4.4 Series letter suffix — ` /` followed by single letter; do NOT label as PERSON
+### 5.4 Series letter suffix — ` /` followed by single letter; do NOT label as PERSON
 
 **Input**
 ```
@@ -143,7 +195,7 @@ Statistische Berichte / Hessisches Statistisches Landesamt. B … ; Ergebnisse n
 
 ---
 
-### 4.5 Subtitle and parallel title — ` /` followed by non-German title; DDB `::` separator
+### 5.5 Parallel title — ` /` followed by non-German title; DDB `::` separator
 
 **Input**
 ```
@@ -163,7 +215,7 @@ Transnationales Strafrecht / Transnational Criminal Law :: gesammelte Beiträge 
 
 ---
 
-### 4.6 Life dates after colon — not a subtitle
+### 5.6 Life dates after colon — not a subtitle
 
 **Input**
 ```
@@ -182,7 +234,7 @@ Johann Ludwig Böhner :7. Januar 1787 - 28. März 1860 ; [Katalog]
 
 ---
 
-### 4.7 Life dates in parentheses — include in TITLE; `:` after them introduces OTHER_TITLE
+### 5.7 Life dates in parentheses — include in TITLE; `:` after them introduces OTHER_TITLE
 
 **Input**
 ```
@@ -203,7 +255,7 @@ Porträt Georg Philipp Wucherer (1734 - 1805) :Kupferstich ; Radierung
 
 ---
 
-### 4.8 Pre-1700 — author-before-title; alchemical treatise
+### 5.8 Pre-1700 — author-before-title; alchemical treatise
 
 **Input**
 ```
@@ -226,7 +278,7 @@ David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßd
 
 ---
 
-### 4.9 Pre-1700 — Leichenpredigt; named deceased and husband embedded mid-title
+### 5.9 Pre-1700 — Leichenpredigt; named deceased and husband embedded mid-title
 
 **Input**
 ```
@@ -246,7 +298,7 @@ Leich-Sermon … Bey … Sepultur Der … Magdalenen Heidewig Stissers/ Deß …
 
 ---
 
-### 4.10 Pre-1700 — author identified by `Von` mid-string
+### 5.10 Pre-1700 — author identified by `Von` mid-string
 
 **Input**
 ```
@@ -267,7 +319,7 @@ Handbuch des römischen Privatrechts … Von Theodor Schmalz, D. Königl. Preuss
 
 ---
 
-## 5. What NOT to label
+## 6. What NOT to label
 
 These patterns appear frequently and must not receive any label:
 
@@ -288,7 +340,7 @@ These patterns appear frequently and must not receive any label:
 
 ---
 
-## 6. Span boundary rules
+## 7. Span boundary rules
 
 1. **Offsets are character positions** into the raw `title` string, 0-indexed, end-exclusive. `title[start:end]` must equal the `text` field exactly — this is checked by `sr08_verify_spans.py`.
 2. **Trim leading and trailing whitespace** from span boundaries. `start` points to the first non-space character of the entity; `end` points one past the last non-space character.
@@ -297,70 +349,6 @@ These patterns appear frequently and must not receive any label:
 5. **Contiguous substrings only.** No gap spans — `start` to `end` must cover a single uninterrupted substring.
 6. **Include the full naming unit in PERSON.** Degree abbreviation + first name + surname + role phrase + location phrase form one span: `D. Johann Gerhard, Professoris zu Jena` → one PERSON span, not three.
 7. **Separating punctuation between spans is not included in either span.** The ` / `, ` : `, `, ` between TITLE and PERSON or OTHER_TITLE belongs to neither.
-
----
-
-## 7. Instructions for LLM annotators
-
-This section specifies the exact task format for LLM-assisted annotation (SR-11 batch).
-
-### 7.1 Input format
-
-You will receive a JSON object:
-
-```json
-{
-  "obj_id":      "KQCJ7APICPYVGBUZ544FKAICNU73FVKH",
-  "title":       "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti, Zwey rare Chymische Tractate",
-  "era":         "pre-1700",
-  "silver_tier": "0",
-  "dc_type":     "Monografie",
-  "ddb_link":    "https://www.deutsche-digitale-bibliothek.de/item/KQCJ7APICPYVGBUZ544FKAICNU73FVKH"
-}
-```
-
-### 7.2 Reasoning steps (chain-of-thought)
-
-Before producing the span list, work through these steps explicitly:
-
-1. **Era check** — Is `era == "pre-1700"`? If yes, look for an opening credential sequence (degree + name + role). The ` /` SoR pattern does not apply.
-2. **Structure identification** — Which pattern does this title follow? (author-before-title / ISBD SoR ` /` / subtitle only ` :` / no markers)
-3. **PERSON boundary** — Where exactly does the credential/name/role sequence end and the work title begin? Name the boundary token.
-4. **OTHER_TITLE check** — Is there a genuine subtitle introduced by ` : `, `Das ist:`, `oder`, or similar? Distinguish from life-date colons (followed by a date) and DDB separators (`::`) .
-5. **Phase 2 check** — Is there a translation keyword, a ` = ` parallel title, or a musical medium statement?
-6. **Verify** — For each span: does `title[start:end] == text`? Do any spans overlap?
-
-### 7.3 Output format
-
-Return a JSON object with only a `spans` array:
-
-```json
-{
-  "spans": [
-    {"start": 0,   "end": 102, "label": "PERSON", "text": "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti"},
-    {"start": 104, "end": 132, "label": "TITLE",  "text": "Zwey rare Chymische Tractate"}
-  ]
-}
-```
-
-- Return no other fields in the output object.
-- If no span of a given type exists, omit it — do not return empty spans.
-- If the title cannot be parsed (a fragment, a catalog note, non-German text), return a single TITLE span covering the full string and set `notes` to a brief explanation.
-- Compute `start` and `end` by finding the exact substring position in `title` — do not estimate.
-
-### 7.4 Self-check before submitting
-
-```
-For each span in the output:
-  assert title[span["start"]:span["end"]] == span["text"]
-
-For each pair of spans (i, j) where i != j:
-  assert not (span_i["start"] < span_j["end"] and span_j["start"] < span_i["end"])
-
-assert any(s["label"] == "TITLE" for s in spans)
-```
-
-If any check fails, revise the offsets before returning.
 
 ---
 
@@ -394,35 +382,7 @@ Each annotated record in `data/annotation/sr08_gold_prefilled.jsonl`:
 
 ---
 
-## 9. Workflow
-
-### 9.1 Files
-
-| File | Contents | Action |
-|---|---|---|
-| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Primary annotation file |
-| `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Work through this list first |
-| `data/annotation/sr08_gold_sample.csv` | Original stratified sample with metadata | Reference only |
-
-### 9.2 Annotation status
-
-| Status | Count | Meaning |
-|---|---|---|
-| `pre-filled` | 47 | Tier-2 structural (`. -`), non-pre-1700 — high confidence; review and accept or correct |
-| `partial` | 136 | Tier-1 heuristic, non-pre-1700 — spans are auto-extracted; verify each boundary |
-| `manual` | 212 | Pre-1700 or tier-0 — annotate from scratch; follow §4.8–§4.10 |
-
-### 9.3 Suggested order
-
-1. **Pre-1700 tier-0** (~130 records) — the evaluation rests on these; follow §4.8–§4.10 carefully; use DDB links to see the full record when the title string is unclear
-2. **1700–1800 tier-0** (~37 records) — transitional register; may follow either pre-1700 or modern structure
-3. **Modern / 19th-c tier-0** (~45 records) — no ISBD markers but modern structure; usually short
-4. **Partial tier-1** (136 records) — review auto-extracted spans; correct boundaries where needed
-5. **Pre-filled tier-2** (47 records) — spot-check only; most are correct
-
----
-
-## 10. Verification
+## 9. Verification
 
 After annotating a batch, run:
 
@@ -431,3 +391,67 @@ python3 scripts/sr08_verify_spans.py
 ```
 
 This checks `title[start:end] == text` for all spans and prints three sample records per annotation status for human spot-check.
+
+---
+
+## 10. Instructions for LLM annotators
+
+This section specifies the exact task format for LLM-assisted annotation (SR-11 batch).
+
+### 10.1 Input format
+
+You will receive a JSON object:
+
+```json
+{
+  "obj_id":      "KQCJ7APICPYVGBUZ544FKAICNU73FVKH",
+  "title":       "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti, Zwey rare Chymische Tractate",
+  "era":         "pre-1700",
+  "silver_tier": "0",
+  "dc_type":     "Monografie",
+  "ddb_link":    "https://www.deutsche-digitale-bibliothek.de/item/KQCJ7APICPYVGBUZ544FKAICNU73FVKH"
+}
+```
+
+### 10.2 Reasoning steps (chain-of-thought)
+
+Before producing the span list, work through these steps explicitly:
+
+1. **Era check** — Is `era == "pre-1700"`? If yes, look for an opening credential sequence (degree + name + role). The ` /` SoR pattern does not apply.
+2. **Structure identification** — Which pattern does this title follow? (author-before-title / ISBD SoR ` /` / subtitle only ` :` / no markers)
+3. **PERSON boundary** — Where exactly does the credential/name/role sequence end and the work title begin? Name the boundary token.
+4. **OTHER_TITLE check** — Is there a genuine subtitle introduced by ` : `, `Das ist:`, `oder`, or similar? Distinguish from life-date colons (followed by a date) and DDB separators (`::`) .
+5. **Phase 2 check** — Is there a translation keyword, a ` = ` parallel title, or a musical medium statement?
+6. **Verify** — For each span: does `title[start:end] == text`? Do any spans overlap?
+
+### 10.3 Output format
+
+Return a JSON object with only a `spans` array:
+
+```json
+{
+  "spans": [
+    {"start": 0,   "end": 102, "label": "PERSON", "text": "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti"},
+    {"start": 104, "end": 132, "label": "TITLE",  "text": "Zwey rare Chymische Tractate"}
+  ]
+}
+```
+
+- Return no other fields in the output object.
+- If no span of a given type exists, omit it — do not return empty spans.
+- If the title cannot be parsed (a fragment, a catalog note, non-German text), return a single TITLE span covering the full string and add a `notes` field with a brief explanation.
+- Compute `start` and `end` by finding the exact substring position in `title` — do not estimate.
+
+### 10.4 Self-check before submitting
+
+```
+For each span in the output:
+  assert title[span["start"]:span["end"]] == span["text"]
+
+For each pair of spans (i, j) where i != j:
+  assert not (span_i["start"] < span_j["end"] and span_j["start"] < span_i["end"])
+
+assert any(s["label"] == "TITLE" for s in spans)
+```
+
+If any check fails, revise the offsets before returning.
