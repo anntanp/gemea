@@ -57,6 +57,31 @@ Leichenpredigt and Einblattdruck records are oversampled to 40–50 each (drawn 
 
 True Latin prevalence in DF_DE_TITLES is ~0.5% (SR-06). Latin records are not a separate stratum — identify them manually during annotation if encountered and mark `lang=la` in the annotation metadata. Do not attempt Latin NER evaluation in Phase 1.
 
+### 2.4 Sample size adequacy
+
+The allocation table targets ~500 records, but `sr08_sample_gold.py` produced **395** due to structural constraints: the pre-1700 stratum has no tier-2 records (ISBD conventions postdate these titles), and some strata are smaller in the corpus than the target allocation.
+
+F1 reliability in NER depends on **entity instance counts**, not record counts. A record contributes one TITLE span, zero or one OTHER_TITLE, and zero or one PERSON — so entity counts are strictly less than record counts. Rough estimates at 395 records:
+
+| Label | Approx. prevalence | Est. instances | F1 CI half-width (±pp) |
+|---|---|---|---|
+| TITLE | ~100% | ~395 | ±2–3 |
+| OTHER_TITLE | ~40% | ~158 | ±5–6 |
+| PERSON (all eras) | ~30% | ~120 | ±6–7 |
+| PERSON (pre-1700 only) | ~70% of ~100 | ~70 | ±8–10 |
+| TRANSLATOR | rare | ~10–20 | ±15–20 |
+| PARALLEL_TITLE | rare | ~10–15 | ±18–22 |
+
+CI half-widths are approximate 95% Wilson intervals on a proportion; actual F1 CIs require bootstrap resampling but scale similarly.
+
+**Conclusions:**
+
+- **Phase 1 labels (TITLE, OTHER_TITLE, PERSON overall):** workable. TITLE and OTHER_TITLE F1 estimates are stable. Overall PERSON is marginal but sufficient to detect gross failures.
+- **PERSON (pre-1700 stratum):** ~±10 pp uncertainty. Can detect coarse failure (F1 < 0.65) but not fine-grained model differences. Report with an explicit CI; do not report as a hard number.
+- **Phase 2 labels (TRANSLATOR, PARALLEL_TITLE):** not interpretable at 395 records. CIs of ±15–20 pp make any F1 number uninformative. These labels should be annotated in the same pass (§3.2) to avoid re-annotation, but excluded from Phase 1 evaluation claims.
+
+**Implication for the paper:** limit evaluation claims to Phase 1 labels. Report CIs alongside F1 (bootstrap, 1000 samples). Mention Phase 2 annotation as future evaluation work. If PERSON F1 on the pre-1700 stratum is a primary contribution claim, consider expanding that stratum by 50–100 records (annotating more pre-1700 tier-0 from `sr08_manual_queue.csv`) to bring CI half-width below ±7 pp.
+
 ---
 
 ## 3. Annotation schema
