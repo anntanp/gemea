@@ -154,6 +154,8 @@ With modest per-stratum sample sizes, the individual FP rate estimates carry unc
 | n = 30 | ±18 pp | ±11 pp |
 | n = 50 | ±14 pp | ±8 pp |
 
+**pp = percentage points** — an absolute unit. A half-width of ±22 pp at p = 0.50 means the interval runs from 28% to 72%. Writing "±22%" would be ambiguous (relative to the estimate, that would be ±11 pp); "pp" removes the ambiguity.
+
 The CI width is proportional to √(p(1−p)/n). The product p(1−p) is maximised at p = 0.5 (giving 0.25) and shrinks at extreme values: p = 0.1 or 0.9 gives 0.09; p = 0.8 gives 0.16. Flags with FP rates far from 50% are therefore more precisely estimated at a given n. Concretely: the `f_parallel` (~80%) and `f_edition` (~83%) exclusion decisions are robust — their rates are far enough above the 15% threshold that sampling noise does not change the outcome. The `f_year` (~6%) and `f_other_title` (~8%) accept decisions are similarly robust. The `f_person` (~36%) and `f_person_compound` (~29%) post-filter decisions are above threshold with margin, but sit closer to 0.5 and should be revisited if stratum sizes are small.
 
 **Computing the Wilson interval in Python** (preferred over Wald when p is near 0 or 1, because Wald can produce negative lower bounds for rare events):
@@ -161,8 +163,17 @@ The CI width is proportional to √(p(1−p)/n). The product p(1−p) is maximis
 ```python
 from statsmodels.stats.proportion import proportion_confint
 
-k = 17   # number of FPs observed
-n = 47   # stratum size
-lo, hi = proportion_confint(k, n, alpha=0.05, method="wilson")
-print(f"FP rate: {k/n:.1%}  95% CI [{lo:.1%}, {hi:.1%}]")
+# k = FP count, n = stratum size — from §3 results table
+fields = [
+    ("f_parallel",        20,  25),   # ~80% FP → Exclude
+    ("f_edition",         30,  36),   # ~83% FP → Exclude
+    ("f_person",          17,  47),   # ~36% FP → Post-filter
+    ("f_person_compound",  7,  24),   # ~29% FP → Post-filter
+    ("f_year",             9, 150),   # ~6%  FP → Accept
+    ("f_other_title",      8, 100),   # ~8%  FP → Accept
+]
+
+for field, k, n in fields:
+    lo, hi = proportion_confint(k, n, alpha=0.05, method="wilson")
+    print(f"{field:<22}  {k/n:.0%}  95% CI [{lo:.0%}, {hi:.0%}]")
 ```
