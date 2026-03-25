@@ -12,8 +12,8 @@ Three notes share the `sr01_` prefix. They are not redundant — each covers a d
 
 | Note | Stage | What it contains |
 |---|---|---|
-| [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) | Initial scan | Raw output of [check_isbd_titles.py](../../scripts/check_isbd_titles.py) (2026-03-17). DataFrame schema, raw per-pattern counts (` :` 20.3%, trailing `.` 17.5%, ` /` 0.8%, etc.), and a first-pass note on trailing period noise. Motivated building the full field-rating pipeline. |
-| [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Full rating run | Documents [rate_isbd_fields.py](../../scripts/rate_isbd_fields.py) — the detection logic, output schema (`isbd_field_ratings.csv`), silver tier definitions, and validation sample methodology. Source of the corpus-wide tier counts (tier 2: 4,613 records; tier 1: 335,524 records). |
+| [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) | Initial scan | Raw output of [sr01_check_isbd_titles.py](../../scripts/sr01_check_isbd_titles.py) (2026-03-17). DataFrame schema, raw per-pattern counts (` :` 20.3%, trailing `.` 17.5%, ` /` 0.8%, etc.), and a first-pass note on trailing period noise. Motivated building the full field-rating pipeline. |
+| [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Full rating run | Documents [sr01_rate_isbd_fields.py](../../scripts/sr01_rate_isbd_fields.py) — the detection logic, output schema (`isbd_field_ratings.csv`), silver tier definitions, and validation sample methodology. Source of the corpus-wide tier counts (tier 2: 4,613 records; tier 1: 335,524 records). |
 | [sr01_isbd-applicability.md](sr01_isbd-applicability.md) *(this file)* | Synthesis | Rule-by-rule applicability decisions derived from the rating run and subsequent SR-03/SR-04 validation. Answers: which signals to use, which to exclude, and which require sub-classification or era guards. |
 
 The "28%" figure that appears in early notes (including the original ADR-02) came from [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) — the proportion of records with any ISBD signal excluding trailing `.`. The corrected structural-tier figure (`. -` present in **1.2%** of records) comes from the full rating run in [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md).
@@ -39,17 +39,17 @@ Title proper : other title information / statement of responsibility
 
 | Signal | Pattern | Coverage | FP rate | Decision |
 |---|---|---|---|---|
-| [Area separator](#area-separator) | `. -` | 1.2% | very low | Accept |
-| [Subtitle](#subtitle) | ` :` | 20.2% | ~8% | Accept |
-| [Year](#year) | 4-digit regex | 14.6% | ~6% | Accept |
-| [Publisher](#publisher) | `Verlag`/`Press` keyword | 0.2% | ~0% | Accept |
-| [Series](#series) | parenthetical + ` ;` + digit | 0.0% | ~0% | Accept |
-| [Volume](#volume) | `Bd.`/`Teil`/`Heft`/`Nr.` + digit | 1.9% | ~0% | Accept |
-| [Parallel title](#parallel-title) | ` =` | 0.6% | ~80% | Exclude |
-| [Edition](#edition) | `Ausgabe`/`Aufl.` keyword | 3.6% | ~83% | Exclude |
-| [Statement of Responsibility](#statement-of-responsibility) | ` /` | 0.8% | ~36% for PERSON | Sub-classify |
-| [Compound SoR](#compound-sor) | ` /…;` | 0.0% | ~29% | Sub-classify |
-| [Not detectable](#not-detectable) | — | — | — | — |
+| [Area separator](#211-area-separator) | `. -` | 1.2% | very low | Accept |
+| [Subtitle](#212-subtitle) | ` :` | 20.2% | ~8% | Accept |
+| [Year](#213-year) | 4-digit regex | 14.6% | ~6% | Accept |
+| [Publisher](#214-publisher) | `Verlag`/`Press` keyword | 0.2% | ~0% | Accept |
+| [Series](#215-series) | parenthetical + ` ;` + digit | 0.0% | ~0% | Accept |
+| [Volume](#216-volume) | `Bd.`/`Teil`/`Heft`/`Nr.` + digit | 1.9% | ~0% | Accept |
+| [Parallel title](#221-parallel-title) | ` =` | 0.6% | ~80% | Exclude |
+| [Edition](#222-edition) | `Ausgabe`/`Aufl.` keyword | 3.6% | ~83% | Exclude |
+| [Statement of Responsibility](#231-statement-of-responsibility) | ` /` | 0.8% | ~36% for PERSON | Sub-classify |
+| [Compound SoR](#232-compound-sor) | ` /…;` | 0.0% | ~29% | Sub-classify |
+| [Not detectable](#24-not-detectable) | — | — | — | — |
 
 ---
 
