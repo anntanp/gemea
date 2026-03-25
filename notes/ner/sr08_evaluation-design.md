@@ -45,8 +45,8 @@ dc:creator/contributor is absent in the majority of records across all eras — 
 
 **0.90 is above the ceiling of comparable benchmarks:**
 
-- **OntoNotes WORK_OF_ART** (works mentioned in text): BERT/RoBERTa typically 0.55–0.68 F1; state-of-the-art ~0.72. Consistently the lowest-scoring entity type in OntoNotes.
-- **HIPE-2022** (historical NER in German newspapers, closest comparable): best systems 0.60–0.78 F1 on named entity types; title-like entities at the lower end.
+- **OntoNotes WORK_OF_ART** (works mentioned in text): BERT/RoBERTa typically 0.55–0.68 F1; state-of-the-art ~0.72. Consistently the lowest-scoring entity type in OntoNotes. — Weischedel, R., et al. (2013). *OntoNotes Release 5.0.* LDC2013T19. Linguistic Data Consortium. ⚠️ verify LDC catalog number and full author list.
+- **HIPE-2022** (historical NER in German newspapers, closest comparable): best systems 0.60–0.78 F1 on named entity types; title-like entities at the lower end. — Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). HIPE-2022: Naming the Past. *CLEF 2022 Working Notes*, CEUR-WS vol. 3180. ⚠️ verify author list and volume number against sr08_gold-set-composition.md §7.
 
 GeMeA's task is structurally more favourable than these benchmarks — the entire input *is* the title string, so there is no document context to search — but pre-1700 records introduce historical orthography and author-before-title structure that goes beyond anything in those benchmarks.
 
@@ -92,14 +92,64 @@ PERSON on pre-1700 is the secondary constraint: ~70% prevalence in that stratum,
 - Reske, C. (2015). *Die Buchdrucker des 16. und 17. Jahrhunderts im deutschen Sprachgebiet.* Wiesbaden: Harrassowitz. ⚠️ German-specific; less certain it addresses title page layout explicitly.
 - Willer et al. (2010) — checked in full; does not address pre-ISBD title page conventions. Not a valid citation for this claim.
 
-**The current allocation table in sr08_gold-set-composition.md §2.2 was not derived from corpus proportions or CI targets — the numbers were round-number design judgments.** They need to be replaced.
+**Actual corpus cell sizes** — script: `sr08_corpus_cell_sizes.py`; data: `data/processed/sr08_corpus_cell_sizes.csv`:
+
+| Era | Tier-0 | Tier-1 | Tier-2 | Total |
+|---|---|---|---|---|
+| Pre-1700 | 259,434 | 19,102 | 0 | 278,536 |
+| 1700–1800 | 530,576 | 36,088 | 1,274 | 567,938 |
+| 19th-c | 830,570 | 91,610 | 3,265 | 925,445 |
+| Modern | 1,123,728 | 75,185 | 70 | 1,198,983 |
+| Unknown | 1,393,568 | 113,584 | 4 | 1,507,156 |
+| **Total** | **4,137,876** | **335,569** | **4,613** | **4,477,058** |
+
+Key observations:
+- Tier-2 is 0.1% of the corpus; pre-1700 has zero tier-2 records, modern has only 70
+- Tier-1 is 7.5%; tier-0 dominates at 92.4%
+- Some allocation targets in sr08_gold-set-composition.md §2.2 were structurally impossible (e.g. tier-2 pre-1700 target = 5, actual corpus = 0)
+
+**The current allocation table in sr08_gold-set-composition.md §2.2 was not derived from corpus proportions or CI targets — the numbers were round-number design judgments, some of which are structurally impossible.** They need to be replaced.
 
 ---
 
-## 6. What needs to be computed to finalise allocation
+## 6. Minimum sample size per stratum
+
+For bootstrap F1, CI width depends on **entity instance counts**, not record counts. The empirical rule of thumb from resampling studies: ±5 pp CI at 95% requires ~100–150 instances; ±10 pp requires ~38 instances.
+
+With TITLE prevalence ~100%, instances ≈ records, so ±5 pp CI is achievable at ~150 records per stratum. PERSON prevalence is much lower (8.7% pre-1700, 5.0% 1700–1800), making tight CI prohibitively expensive:
+
+| Stratum | Metric | Target F1 | CI target | Instances needed | Prevalence | Records needed |
+|---|---|---|---|---|---|---|
+| Pre-1700 | TITLE | ≥ 0.70 | ±5 pp | ~150 | ~100% | ~150 |
+| Pre-1700 | PERSON | ≥ 0.70 | ±5 pp | ~150 | ~8.7% | ~1,725 |
+| 1700–1800 | TITLE | ≥ 0.75 | ±5 pp | ~150 | ~100% | ~150 |
+| 1700–1800 | PERSON | ≥ 0.70 | ±5 pp | ~150 | ~5.0% | ~3,000 |
+| 19th-c | TITLE | ≥ 0.80 | ±5 pp | ~150 | ~100% | ~150 |
+| Modern | TITLE | ≥ 0.85 | ±5 pp | ~150 | ~100% | ~150 |
+
+**The PERSON CI constraint is not achievable at practical annotation cost.** Reaching ±5 pp on PERSON would require ~1,725 pre-1700 records and ~3,000 1700–1800 records — far beyond a feasible gold set. Even relaxing to ±10 pp (38 instances) still requires ~440 pre-1700 and ~760 1700–1800 records.
+
+**Decision: accept wide CI on PERSON (option 2).** The gold set is sized for TITLE reliability (±5 pp per stratum, ~150 records each). PERSON CI will be wider — estimated ±10–15 pp at the current gold set size — and must be reported explicitly alongside any PERSON F1 claim. PERSON results are sufficient to detect gross model failures but not fine-grained differences between models. This limitation should be stated in the paper.
+
+**Implication for total gold set size:**
+
+| Stratum | Min records (TITLE-driven) |
+|---|---|
+| Pre-1700 | 150 |
+| 1700–1800 | 150 |
+| 19th-c | 150 |
+| Modern | 150 |
+| **Total (minimum)** | **600** |
+
+The current gold set (395 records, ~100 per era) is below the 150-per-stratum minimum for ±5 pp TITLE CI. The pre-1700 stratum in particular (~100 records) gives ~±7 pp on TITLE — marginally acceptable but not ideal.
+
+---
+
+## 7. What needs to be done to finalise allocation
 
 1. ~~Fix the TITLE F1 usability threshold~~ — resolved: see §3
-2. **Pull actual corpus cell sizes** (era × tier) from the corpus — current targets were guesses
-3. **Compute minimum per-stratum record counts** from target CI width and expected entity prevalence per stratum
-4. **Cap at corpus availability** and redistribute surplus
+2. ~~Pull actual corpus cell sizes~~ — resolved: see §5
+3. ~~Compute minimum per-stratum record counts~~ — resolved: see §6
+4. **Cap at corpus availability and redistribute** — tier-2 is nearly exhausted (0 pre-1700, 70 modern); allocation must shift toward tier-0 and tier-1
 5. **Update the allocation table** in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
+6. **Decide whether to expand the gold set** from 395 to ~600 to meet the ±5 pp TITLE CI target per stratum
