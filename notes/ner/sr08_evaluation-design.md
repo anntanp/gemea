@@ -22,6 +22,8 @@ PERSON extraction is a **secondary goal**, but its value varies sharply by era. 
 
 dc:creator/contributor is absent in the majority of records across all eras — far more than assumed. However, person names in the title string are rare except in pre-1700 (8.7%) and 1700–1800 (5.0%). For modern and 19th-c records, dc:creator is often absent but person names almost never appear in the title, so NER PERSON extraction yields nothing useful regardless.
 
+`ner_person` was derived using **FLERT** (Schweter & Akbik, 2020) — a document-context NER model based on Flair. Citation: Schweter, S., & Akbik, A. (2020). FLERT: Document-Level Features for Named Entity Recognition. arXiv:2011.06993.
+
 **Priority order:**
 
 | Label | Role | Evaluation priority |
