@@ -21,6 +21,74 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [9. Available datasets for fine-tuning](#9-available-datasets-for-fine-tuning) | empathyai/books-ner, HIPE-2022, CLEF-HIPE-2020, GermEval 2014 |
 | [10. Decision](#10-decision) | Recommended path: NuNER Zero → LLM labeling → xlm-roberta fine-tune |
 
+### Silver and gold dataset pipeline
+
+```
+DF_DE_TITLES (4.47 M)
+       │
+       ▼  sr01_rate_isbd_fields.py
+┌──────────────────────────────────────────┐
+│  SR-01 · ISBD field rating               │
+│  tier 2 structural :   4,613 rec (0.1%)  │
+│  tier 1 heuristic  : 335,524 rec (7.5%)  │
+└──────────────────────┬───────────────────┘
+                       │
+                       ▼  sr03_validate_heuristic_fields.py
+┌──────────────────────────────────────────┐
+│  SR-03 · Heuristic FP review             │
+│  200-record stratified sample            │
+│  exclude:      f_parallel, f_edition     │
+│  post-filter:  f_person, f_person_cmpd.  │
+│  accept:       f_year, f_other_title, …  │
+│  (SR-05: trailing period also excluded)  │
+└──────────────────────┬───────────────────┘
+                       │
+                       ▼  sr04_validate_translator_disambiguation.py
+┌──────────────────────────────────────────┐
+│  SR-04 · f_resp_* sub-classification     │
+│  f_resp_person / f_resp_org /            │
+│  f_resp_editor / f_resp_other            │
+└──────────────────────┬───────────────────┘
+                       │
+                       ▼
+            Silver dataset (filtered)
+            tier 1/2, ~340 K records
+                       │
+          ┌────────────┴──────────────────────┐
+          │                                   │
+          ▼  sr08_sample_gold.py              │  SR-11
+┌─────────────────────────┐     ┌─────────────────────────────┐
+│  SR-08 · Gold sampling  │     │  SR-11 · LLM annotation     │
+│  ~395 records           │     │  ~4–5 K tier-0, pre-1750    │
+│  era × tier × dc_type   │     │  (blocked on SR-08 seed)    │
+│  (SR-06: pre-1700       │     └─────────────────────────────┘
+│  stratum, no Latin)     │
+└────────────┬────────────┘
+             │  sr08_prefill_spans.py
+     ┌───────┴──────────────────┐
+     │                          │
+     ▼                          ▼
+Pre-filled / partial        Manual queue
+183 rec  ·  tier-1/2        212 rec
+post-1700                   pre-1700 + tier-0
+sr08_gold_prefilled.jsonl   sr08_manual_queue.csv
+     │                          │
+     ▼                          ▼
+sr08_verify_spans.py        Human annotation
+(span offset check)         (pre-1700 first)
+     │                          │
+     └──────────┬───────────────┘
+                │
+                ▼
+         Gold set (~395)
+                │
+                ▼  SR-09
+     NuNER Zero evaluation
+     precision ≥ threshold?
+     ├── yes → zero-shot inference
+     └── no  → fine-tune xlm-roberta-base
+```
+
 ---
 
 ## 2. Open questions

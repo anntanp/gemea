@@ -146,34 +146,71 @@ A note on what the per-flag confidence intervals express: a 95% CI means that if
 
 ### 8.4 Precision of per-flag estimates
 
-With modest per-stratum sample sizes, the individual FP rate estimates carry uncertainty. As a rough guide, a 95% confidence interval (Wilson method) for a proportion has a half-width of roughly:
+**Confidence intervals**
 
-| Sample size | Half-width at p ≈ 0.50 | Half-width at p ≈ 0.10 |
-|---|---|---|
-| n = 20 | ±22 pp | ±13 pp |
-| n = 30 | ±18 pp | ±11 pp |
-| n = 50 | ±14 pp | ±8 pp |
+A confidence interval quantifies estimation uncertainty: it is the set of FP rate values consistent with the observed data at a given significance level. A 95% CI does not mean "there is a 95% probability the true rate is inside this range" — the true rate is a fixed number; the interval either contains it or it doesn't. The 95% is a property of the procedure: if we repeated the sampling many times and computed an interval from each sample, 95% of those intervals would contain the true rate. In practice, a 95% CI is the range of values we cannot rule out given what we observed.
 
-**pp = percentage points** — an absolute unit. A half-width of ±22 pp at p = 0.50 means the interval runs from 28% to 72%. Writing "±22%" would be ambiguous (relative to the estimate, that would be ±11 pp); "pp" removes the ambiguity.
+**Wald interval and its failure at extremes**
 
-The CI width is proportional to √(p(1−p)/n). The product p(1−p) is maximised at p = 0.5 (giving 0.25) and shrinks at extreme values: p = 0.1 or 0.9 gives 0.09; p = 0.8 gives 0.16. Flags with FP rates far from 50% are therefore more precisely estimated at a given n. Concretely: the `f_parallel` (~80%) and `f_edition` (~83%) exclusion decisions are robust — their rates are far enough above the 15% threshold that sampling noise does not change the outcome. The `f_year` (~6%) and `f_other_title` (~8%) accept decisions are similarly robust. The `f_person` (~36%) and `f_person_compound` (~29%) post-filter decisions are above threshold with margin, but sit closer to 0.5 and should be revisited if stratum sizes are small.
+The standard normal-approximation (Wald) interval is:
 
-**Computing the Wilson interval in Python** (preferred over Wald when p is near 0 or 1, because Wald can produce negative lower bounds for rare events):
+p̂ ± z √(p̂(1 − p̂) / n)
+
+where p̂ = k/n is the observed FP rate and z = 1.96 for 95% confidence. Wald is algebraically simple and works well when n is large and p̂ is near 0.5. It fails at the extremes: when p̂ is near 0 or 1, or n is small, the symmetric normal approximation is a poor fit for the skewed binomial, and the formula can produce lower bounds below 0 or upper bounds above 1. For example, k = 1, n = 10 gives p̂ = 0.10 and a Wald interval of [−0.09, 0.29] — a negative probability is not interpretable.
+
+**Wilson interval**
+
+Wilson (1927) derived an interval by inverting the score test directly rather than approximating the binomial with a normal. The interval is centered on a shrinkage estimate:
+
+p̃ = (k + z²/2) / (n + z²)
+
+which pulls slightly toward 0.5, giving a wider but better-calibrated interval at extreme proportions. The bounds stay within [0, 1] by construction. Agresti & Coull (1998) showed that the Wilson interval achieves actual coverage close to the nominal 95% across all values of p and n, while the Wald interval can drop well below 95% near the boundaries — they recommended Wilson as the routine default. Brown, Cai & DasGupta (2001) confirmed this in a comprehensive comparison, showing the Wald interval has systematically poor coverage for small n regardless of p.
+
+The difference between Wald and Wilson is negligible when p̂ is near 0.5 and n is large. It is consequential in exactly the regime of the rarer flags here — small strata and FP rates near 0 or 1.
+
+**Per-flag Wilson CIs from §3 data**
+
+**pp = percentage points** — an absolute unit. [24%, 50%] is a range of 26 pp wide; writing "±13%" would be ambiguous (relative or absolute?). All widths below are in pp.
+
+| Field | FP / n | FP rate | 95% Wilson CI | Decision |
+|---|---|---|---|---|
+| `f_parallel` | 20/25 | 80% | [61%, 91%] | ❌ Exclude |
+| `f_edition` | 30/36 | 83% | [68%, 92%] | ❌ Exclude |
+| `f_person` | 17/47 | 36% | [24%, 50%] | ⚠️ Post-filter |
+| `f_person_compound` | 7/24 | 29% | [15%, 49%] | ⚠️ Post-filter |
+| `f_year` | 9/150 | 6% | [3%, 11%] | ✅ Accept |
+| `f_other_title` | 8/100 | 8% | [4%, 15%] | ✅ Accept |
+
+**Decision robustness**
+
+The 15% FP threshold cuts through this table cleanly for four fields. The `f_parallel` and `f_edition` exclusion decisions are robust: their entire CIs lie far above 15%, so no plausible redraw of the sample would change the outcome. The `f_year` accept decision is similarly firm: the upper bound (11%) stays below 15%.
+
+Two fields are marginal. `f_other_title` has an upper bound exactly at 15% — the data are consistent with the true rate being right at threshold, and the accept decision should be treated as provisional. `f_person_compound` has a lower bound of 15% — on the boundary — and a wide interval spanning 34 pp, reflecting the small stratum (n = 24). Its post-filter decision is reasonable given the observed rate (29%), but has more uncertainty than the other fields.
+
+The `f_person` post-filter decision is the most precisely estimated of the two post-filter fields (n = 47, CI width 26 pp), and the entire interval sits above the threshold, making the decision sound.
+
+**Replicating the CIs in Python**
 
 ```python
 from statsmodels.stats.proportion import proportion_confint
 
 # k = FP count, n = stratum size — from §3 results table
 fields = [
-    ("f_parallel",        20,  25),   # ~80% FP → Exclude
-    ("f_edition",         30,  36),   # ~83% FP → Exclude
-    ("f_person",          17,  47),   # ~36% FP → Post-filter
-    ("f_person_compound",  7,  24),   # ~29% FP → Post-filter
-    ("f_year",             9, 150),   # ~6%  FP → Accept
-    ("f_other_title",      8, 100),   # ~8%  FP → Accept
+    ("f_parallel",        20,  25),   # 80% → Exclude
+    ("f_edition",         30,  36),   # 83% → Exclude
+    ("f_person",          17,  47),   # 36% → Post-filter
+    ("f_person_compound",  7,  24),   # 29% → Post-filter
+    ("f_year",             9, 150),   # 6%  → Accept
+    ("f_other_title",      8, 100),   # 8%  → Accept
 ]
 
 for field, k, n in fields:
     lo, hi = proportion_confint(k, n, alpha=0.05, method="wilson")
     print(f"{field:<22}  {k/n:.0%}  95% CI [{lo:.0%}, {hi:.0%}]")
 ```
+
+**References**
+
+- Wilson, E. B. (1927). Probable inference, the law of succession, and statistical inference. *Journal of the American Statistical Association*, 22(158), 209–212.
+- Agresti, A., & Coull, B. A. (1998). Approximate is better than "exact" for interval estimation of binomial proportions. *The American Statistician*, 52(2), 119–126.
+- Brown, L. D., Cai, T. T., & DasGupta, A. (2001). Interval estimation for a binomial proportion. *Statistical Science*, 16(2), 101–133.
