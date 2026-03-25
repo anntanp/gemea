@@ -37,6 +37,8 @@ Title proper : other title information / statement of responsibility
 
 ## 2. Rule-by-rule applicability
 
+Coverage %: share of 4,477,780 DF_DE_TITLES records where the flag fires, from `sr01_rate_isbd_fields.py` → `data/processed/isbd_field_ratings.csv`. FP rates from SR-03 200-record stratified sample ([sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md)).
+
 | Signal | Pattern | Coverage | FP rate | Decision |
 |---|---|---|---|---|
 | [Area separator](#211-area-separator) | `. -` | 1.2% | very low | Accept |
