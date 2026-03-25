@@ -1,148 +1,426 @@
-# GeMeA — Gold Set Annotation Guide (SR-08)
+# GeMeA — NER Annotation Guide (SR-08)
 
 Companion to [sr08_gold-set-composition.md](sr08_gold-set-composition.md).
+Used by **human annotators** and **LLM annotators** (SR-11).
 
 ---
 
-## 1. Labels
+## 1. Task
 
-### 1.1 Phase 1 — annotate for every record
+Label character-level spans in German bibliographic title strings from the Deutsche Digitale Bibliothek (DDB). Each title is a single string. You produce a list of non-overlapping spans, each with a `label`, `start`, and `end` (character offsets, 0-indexed, end exclusive). `title[start:end]` must equal the `text` field exactly.
+
+Annotate **all Phase 1 labels** (§2.1) for every record. Annotate **Phase 2 labels** (§2.2) whenever present, even though they are not evaluated in Phase 1.
+
+---
+
+## 2. Label definitions
+
+### 2.1 Phase 1 — required for every record
 
 | Label | What to mark | Typical cue |
 |---|---|---|
-| `TITLE` | Main work title | Opening content string; before ` :` or ` /` in modern records |
-| `OTHER_TITLE` | Subtitle or alternative title | After `Das ist:`, `oder`, ` :`, `nämlich`, `welches handelt von` |
-| `PERSON` | Author / editor — full name **plus** any credentials and role phrases that form a single naming unit | After ` /` in modern records; **opening span** in pre-1700 records |
+| `TITLE` | The main work title — the primary intellectual content identifier. Exactly one per record. | Opening substantive noun phrase; before ` :` or ` /` in modern records; **after** the PERSON span in pre-1700 records |
+| `OTHER_TITLE` | A subtitle or alternative title elaborating or qualifying the TITLE | After ` : `, `Das ist:`, `oder`, `nämlich`, `welches handelt von`, `, enthaltend` |
+| `PERSON` | Named responsible person (author, editor) — full name **plus** all credentials, degree abbreviations, and role phrases that form a single naming unit with the name | After ` / ` in modern records; **before** the work title in pre-1700 records (no ` /` separator) |
 
-### 1.2 Phase 2 — annotate in the same pass (not evaluated yet)
+**One TITLE per record.** A record almost always has exactly one TITLE span. If the string is a fragment or a bare description, annotate the most title-like phrase as TITLE.
+
+### 2.2 Phase 2 — annotate when present; not evaluated in Phase 1
 
 | Label | What to mark | Trigger |
 |---|---|---|
-| `TRANSLATOR` | Translator | Only when a keyword is present: `übersetzt`, `Übers.`, `transl.`, `traduit` |
-| `PARALLEL_TITLE` | Title in a second language | After ` =` |
-| `MEDIUM` | Instrumentation / medium for music | `für Klavier und Violine`, `für gemischten Chor` |
+| `TRANSLATOR` | Named translator | Only when a translation keyword is present: `übersetzt`, `Übers.`, `transl.`, `traduit par`, `ins Deutsche übertragen` |
+| `PARALLEL_TITLE` | Title restated in a second language | After ` = ` or after ` / ` followed by a non-German title string |
+| `MEDIUM` | Performance instrumentation (music only) | `für Klavier`, `für gemischten Chor und Orchester`, `op. 12` |
 
 ---
 
-## 2. Workflow
+## 3. Decision flowchart
 
-The sampling and pre-fill scripts produce three files:
+```
+For each title string:
 
-| File | Contents | Your action |
+1. Is era == "pre-1700"?
+   ├── YES → Does the string open with a credential sequence (degree + name + role phrase)?
+   │         ├── YES → Mark credential+name+role as PERSON; remainder is TITLE (§4.3)
+   │         └── NO  → Mark full string as TITLE; no PERSON detectable from string alone
+   └── NO  → Does the string contain ' / '?
+             ├── YES → Is the text after ' / ' a single letter, date, or region name?
+             │         ├── YES → TITLE only (series suffix or date — not a person)
+             │         └── NO  → text before ' / ' → TITLE (and OTHER_TITLE if ' : ' present)
+             │                   text after  ' / ' → PERSON (or PARALLEL_TITLE if non-German)
+             └── NO  → Does the string contain ' : '?
+                       ├── YES → Does ' : ' immediately precede a date range (dddd–dddd or d. Month dddd)?
+                       │         ├── YES → TITLE only (life-date colon — not a subtitle separator)
+                       │         └── NO  → text before ' : ' → TITLE
+                       │                   text after  ' : ' → OTHER_TITLE
+                       └── NO  → Full string → TITLE
+```
+
+---
+
+## 4. Examples by title structure
+
+Each example shows the input string, the correct annotation, and a link to the DDB source record.
+Offsets are for the exact strings shown — verify with `title[start:end] == text`.
+
+---
+
+### 4.1 Subtitle only — ` :` present, no ` /`
+
+**Input**
+```
+Jeversches Wochenblatt : Friesisches Tageblatt ; gegr. 1791
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/AGZJAK7XYRNH3IWXEWFVELM4OFBJARLL
+
+**Annotation**
+```json
+[
+  {"label": "TITLE",       "start":  0, "end": 22, "text": "Jeversches Wochenblatt"},
+  {"label": "OTHER_TITLE", "start": 25, "end": 46, "text": "Friesisches Tageblatt"}
+]
+```
+> `gegr. 1791` is a **founding year note** — do not label. Numbers following `gegr.`, `gestiftet`, `gegründet` are never YEAR entities.
+
+---
+
+### 4.2 SoR only — ` /` present, no ` :`; corporate body as responsible agent
+
+**Input**
+```
+Jahrbuch / Deutsche Shakespeare-Gesellschaft ; 3
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/BDMEHSHZCBPUG6NL3OKG4FMKKGL4VHMH
+
+**Annotation**
+```json
+[
+  {"label": "TITLE",  "start":  0, "end":  8, "text": "Jahrbuch"},
+  {"label": "PERSON", "start": 11, "end": 44, "text": "Deutsche Shakespeare-Gesellschaft"}
+]
+```
+> `; 3` is a **volume number** — not a second PERSON. Stop the PERSON span at the semicolon.
+> A corporate body (Gesellschaft, Landesamt, Institut, Universität) in SoR position is labeled `PERSON` — it is the responsible agent.
+
+---
+
+### 4.3 SoR with topic sub-series — stop PERSON at period or semicolon
+
+**Input**
+```
+Statistische Berichte / Hessisches Statistisches Landesamt. B … ; Ergebnisse nach Verwaltungsbezirken …
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/GKSDCS5H4ERC4ZTPNRBOBMH5ZDU6WQN2
+
+**Annotation**
+```json
+[
+  {"label": "TITLE",  "start":  0, "end": 21, "text": "Statistische Berichte"},
+  {"label": "PERSON", "start": 24, "end": 58, "text": "Hessisches Statistisches Landesamt"}
+]
+```
+> `. B …` and `; Ergebnisse nach Verwaltungsbezirken …` are sub-series and topic designators — not additional PERSON spans. The PERSON span ends at the first `.` or `;` that introduces a topic qualifier.
+
+---
+
+### 4.4 Series letter suffix — ` /` followed by single letter; do NOT label as PERSON
+
+**Input**
+```
+1988: Statistische Berichte der Freien und Hansestadt Hamburg / K
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/5VJBG7E7EIOY5VARC2MWNZTKHRKYPPYR
+
+**Annotation**
+```json
+[
+  {"label": "TITLE", "start": 6, "end": 63, "text": "Statistische Berichte der Freien und Hansestadt Hamburg"}
+]
+```
+> `/ K` is a **series letter suffix** — never a PERSON. A single letter (or two-letter code) after ` / ` is always a series designator.
+> The leading `1988:` is a date designator added by the cataloger — not part of the TITLE. Start the TITLE span after the colon and space.
+
+---
+
+### 4.5 Subtitle and parallel title — ` /` followed by non-German title; DDB `::` separator
+
+**Input**
+```
+Transnationales Strafrecht / Transnational Criminal Law :: gesammelte Beiträge ; collected publications
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/XDNVRXBWWZMMHHFOPZBUEVOOJYL6TGDH
+
+**Annotation**
+```json
+[
+  {"label": "TITLE",          "start":  0, "end": 26, "text": "Transnationales Strafrecht"},
+  {"label": "PARALLEL_TITLE", "start": 29, "end": 55, "text": "Transnational Criminal Law"}
+]
+```
+> `Transnational Criminal Law` after ` / ` is the title in a second language → `PARALLEL_TITLE` (Phase 2).
+> `::` is a **DDB catalog-field separator**, not an ISBD area separator. Do not treat `gesammelte Beiträge` as OTHER_TITLE.
+
+---
+
+### 4.6 Life dates after colon — not a subtitle
+
+**Input**
+```
+Johann Ludwig Böhner :7. Januar 1787 - 28. März 1860 ; [Katalog]
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/THF6HTNRUTSYTYBY377JLKXHCWVHNYQP
+
+**Annotation**
+```json
+[
+  {"label": "TITLE", "start": 0, "end": 20, "text": "Johann Ludwig Böhner"}
+]
+```
+> `:7. Januar 1787 - 28. März 1860` are **life dates** — not a subtitle. When ` :` follows a person's name and is immediately followed by a date or date range, it is a life-date delimiter, not an ISBD subtitle separator.
+> `[Katalog]` in brackets is a cataloger's note — not an OTHER_TITLE.
+
+---
+
+### 4.7 Life dates in parentheses — include in TITLE; `:` after them introduces OTHER_TITLE
+
+**Input**
+```
+Porträt Georg Philipp Wucherer (1734 - 1805) :Kupferstich ; Radierung
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/7EG6MNM55XRFKT63ZIUZN35OZAZMMY2B
+
+**Annotation**
+```json
+[
+  {"label": "TITLE",       "start":  0, "end": 44, "text": "Porträt Georg Philipp Wucherer (1734 - 1805)"},
+  {"label": "OTHER_TITLE", "start": 46, "end": 57, "text": "Kupferstich"}
+]
+```
+> Life dates `(1734 - 1805)` are inside the TITLE span — they identify the depicted person and are part of the title phrase.
+> Here ` :` follows a fully described subject (not a standalone person name), so `Kupferstich` is a genuine OTHER_TITLE indicating format.
+> `Kupferstich` is a print medium note, not musical instrumentation — label OTHER_TITLE, not MEDIUM. MEDIUM is reserved for musical performance forces.
+
+---
+
+### 4.8 Pre-1700 — author-before-title; alchemical treatise
+
+**Input**
+```
+David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti, Zwey rare Chymische Tractate
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/KQCJ7APICPYVGBUZ544FKAICNU73FVKH
+
+**Annotation**
+```json
+[
+  {"label": "PERSON", "start":   0, "end": 102, "text": "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti"},
+  {"label": "TITLE",  "start": 104, "end": 132, "text": "Zwey rare Chymische Tractate"}
+]
+```
+> The full credential phrase `Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti` is part of the PERSON span. It identifies and qualifies the named person.
+> TITLE begins at the first substantive noun phrase that names the work (`Zwey rare Chymische Tractate`). The separating `, ` (comma-space) between PERSON and TITLE is not included in either span.
+> If a ` :` follows, label any subtitle content after it as OTHER_TITLE.
+
+---
+
+### 4.9 Pre-1700 — Leichenpredigt; named deceased and husband embedded mid-title
+
+**Input**
+```
+Leich-Sermon … Bey … Sepultur Der … Magdalenen Heidewig Stissers/ Deß … Johan Julii Herings … HaußFrawen …
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/7GZQOGDUS4AXD2LYGSHUWJPY6BDC3KMS
+
+**Annotation**
+```json
+[
+  {"label": "TITLE", "start": 0, "end": 107, "text": "Leich-Sermon … Bey … Sepultur Der … Magdalenen Heidewig Stissers/ Deß … Johan Julii Herings … HaußFrawen …"}
+]
+```
+> `Magdalenen Heidewig Stissers` is the deceased; `Johan Julii Herings` is her husband. Both are named within the title description — **they are not the author**. Do not label them as PERSON.
+> In a Leichenpredigt title, only label PERSON if the preacher (author) is explicitly identified by `verfasset von`, `gehalten von`, or ` /`.
+> The `/` in `Stissers/` is an early modern orthographic slash inside the title string, not an ISBD SoR separator.
+
+---
+
+### 4.10 Pre-1700 — author identified by `Von` mid-string
+
+**Input**
+```
+Handbuch des römischen Privatrechts … Von Theodor Schmalz, D. Königl. Preuss. Consistorialrathe und Professor …
+```
+**DDB:** https://www.deutsche-digitale-bibliothek.de/item/T6YL7Z2YEIEFTKDTG4GFDBIIZIFYHIBB
+
+**Annotation**
+```json
+[
+  {"label": "TITLE",  "start":  0, "end": 36, "text": "Handbuch des römischen Privatrechts"},
+  {"label": "PERSON", "start": 41, "end": 111, "text": "Theodor Schmalz, D. Königl. Preuss. Consistorialrathe und Professor"}
+]
+```
+> `Von` is an attribution keyword — the named person following it is the PERSON even when mid-string. The PERSON span starts after `Von `.
+> Include the credential phrase (`D. Königl. Preuss. Consistorialrathe und Professor`) in the PERSON span.
+> The ` …` at the end is a truncation marker — not part of any span.
+
+---
+
+## 5. What NOT to label
+
+These patterns appear frequently and must not receive any label:
+
+| Pattern | Example | Reason |
 |---|---|---|
-| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; pre-filled spans where possible | Import into annotation tool (or edit directly) |
-| `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Work through this list first |
-| `data/annotation/sr08_gold_sample.csv` | Original sample with metadata | Reference only |
-
-### 2.1 Annotation status
-
-Each record in the JSONL has an `annotation_status` field:
-
-| Status | Count | Meaning |
-|---|---|---|
-| `pre-filled` | 47 | Tier-2 (structural `. -`), non-pre-1700 — high confidence; review and accept or correct |
-| `partial` | 136 | Tier-1 (heuristic), non-pre-1700 — verify each span before accepting |
-| `manual` | 212 | Pre-1700 or tier-0 — annotate from scratch |
-
-### 2.2 Suggested order
-
-1. **Pre-1700 tier-0** (~130 records) — the records the evaluation rests on; follow §3 carefully
-2. **1700-1800 tier-0** (37 records) — transitional register; may be either author-before-title or modern structure
-3. **Modern/19th-c tier-0** (45 records) — no ISBD markers but modern structure; usually short
-4. **Partial tier-1** (136 records) — review auto-extracted spans, correct boundaries
-5. **Pre-filled tier-2** (47 records) — spot-check; most are correct
+| Founding year | `gegr. 1791`, `gestiftet 1840` | Not a publication year; not a YEAR entity |
+| Life dates in parentheses | `(1734 - 1805)` | Include in the enclosing TITLE span when they identify the subject |
+| Life dates after colon | `:7. Januar 1787 - 28. März 1860` | Life-date delimiter, not a subtitle separator |
+| Series letter suffix | `/ K`, `/ M`, `/ A1` | Single letter after ` / ` is always a series designator, never a PERSON |
+| Volume number after `;` | `; 3`, `; Bd. 2` | Sub-series enumeration, not a second PERSON |
+| Newspaper issue label | `Ausgabe vom Dienstag, den 18. Mai 1937` | Daily issue date, not an edition statement |
+| DDB catalog separator | `::` | Not an ISBD area separator; what follows is not OTHER_TITLE |
+| Cataloger's note | `[Katalog]`, `[Notizen]`, `[Entwurf]` | Bracketed additions by the cataloger, not part of the title |
+| Generic dedicatee | `Herrn N.N. gewidmet` | Not the author; do not label PERSON |
+| Embedded Latin phrases | `Anno MDXLVI`, `In nomine Dei` | Part of the enclosing TITLE or PERSON span |
+| `durch` / `von` without translation keyword | `durch Johann Schmidt` | Label PERSON (author/editor), not TRANSLATOR |
+| Leichenpredigt deceased | `Bey der Begräbnis … Maria Dorothea Müllers` | Subject of the sermon, not the author |
 
 ---
 
-## 3. Pre-1700 annotation rules
+## 6. Span boundary rules
 
-### 3.1 Author-before-title structure
-
-In pre-1700 titles the author's credentials appear **before** the main title — there is no ` /` separator. The pattern is:
-
-```
-[credential + name + role | PERSON] [main title | TITLE] [subtitle | OTHER_TITLE]
-```
-
-Example:
-```
-Input:  "D. Johann Gerhard, Professoris zu Jena, Erklärung der Historien des Leidens"
-Output: [D. Johann Gerhard, Professoris zu Jena | PERSON]
-        [Erklärung der Historien des Leidens | TITLE]
-```
-
-### 3.2 PERSON span boundaries
-
-**Include in the PERSON span:**
-- Degree abbreviations immediately before the name: `D.` (Doktor), `M.` (Magister), `Lic.`, `Mag.`
-- Full personal name (first name + surname)
-- Role or position phrases: `Pfarrers zu X`, `der H. Schrifft Lehrers`, `Professoris`, `Pastoris`
-- Genitive / prepositional post identifiers: `zu Jena`, `in Leipzig`, `bey der Gemeine zu X`
-
-**Stop the PERSON span** at the first token that is clearly part of the work title (a content noun, verb phrase, or `Das ist:`).
-
-### 3.3 Common errors
-
-| Error | Wrong | Correct |
-|---|---|---|
-| Credential sequence labelled as TITLE | `D. Johann Gerhard, Professoris zu Jena` → TITLE | PERSON |
-| Degree abbreviation excluded from span | `Johann Gerhard` → PERSON | `D. Johann Gerhard, ...` → PERSON |
-| Dedicatee labelled as PERSON when not the author | `Herrn N.N. gewidmet` → PERSON | Not labelled |
-| Embedded Latin treated as separate entity | `Anno MDXLVI` → TITLE | Part of the enclosing TITLE span |
-| `durch` / `von` phrase labelled TRANSLATOR | `durch Johann Schmidt` → TRANSLATOR | PERSON (no translation keyword present) |
+1. **Offsets are character positions** into the raw `title` string, 0-indexed, end-exclusive. `title[start:end]` must equal the `text` field exactly — this is checked by `sr08_verify_spans.py`.
+2. **Trim leading and trailing whitespace** from span boundaries. `start` points to the first non-space character of the entity; `end` points one past the last non-space character.
+3. **No overlapping spans.** If a credential and name could each be labeled separately, merge them into one PERSON span.
+4. **No nested spans.** If a PERSON span would contain an embedded title fragment, stop the PERSON span before that fragment begins.
+5. **Contiguous substrings only.** No gap spans — `start` to `end` must cover a single uninterrupted substring.
+6. **Include the full naming unit in PERSON.** Degree abbreviation + first name + surname + role phrase + location phrase form one span: `D. Johann Gerhard, Professoris zu Jena` → one PERSON span, not three.
+7. **Separating punctuation between spans is not included in either span.** The ` / `, ` : `, `, ` between TITLE and PERSON or OTHER_TITLE belongs to neither.
 
 ---
 
-## 4. Modern records — watch for surname-first
+## 7. Instructions for LLM annotators
 
-Modern DDB catalog records frequently open with the author's surname in citation form before the actual title:
+This section specifies the exact task format for LLM-assisted annotation (SR-11 batch).
 
-```
-"Mayer, Anton L., Die Liturgie in der europäischen Geistesgeschichte / ..."
-```
+### 7.1 Input format
 
-The pre-fill script extracts everything before ` /` as `TITLE`. You must split this:
-
-```
-[Mayer, Anton L. | PERSON] [Die Liturgie in der europäischen Geistesgeschichte | TITLE]
-```
-
-The boundary is at the first comma-separated full name — once the title string clearly shifts to a noun phrase, that is where TITLE begins. There is no fixed separator in this pattern; use semantic judgement.
-
----
-
-## 5. Span format (output JSONL)
-
-Each record in `sr08_gold_prefilled.jsonl` has this structure:
+You will receive a JSON object:
 
 ```json
 {
-  "obj_id":       "ABCDE12345FGHIJ",
-  "title":        "D. Johann Gerhard, Professoris zu Jena, ...",
-  "dates":        "1662",
-  "dc_type":      "Leichenpredigt|Monografie",
-  "silver_tier":  "0",
-  "era":          "pre-1700",
-  "ddb_link":     "https://www.deutsche-digitale-bibliothek.de/item/ABCDE12345FGHIJ",
-  "spans": [
-    {"start": 0,  "end": 38, "label": "PERSON", "text": "D. Johann Gerhard, Professoris zu Jena"},
-    {"start": 40, "end": 82, "label": "TITLE",  "text": "Erklärung der Historien des Leidens"}
-  ],
-  "annotation_status": "manual",
-  "annotator":    "your-name",
-  "annotation_date": "2026-XX-XX",
-  "notes":        ""
+  "obj_id":      "KQCJ7APICPYVGBUZ544FKAICNU73FVKH",
+  "title":       "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti, Zwey rare Chymische Tractate",
+  "era":         "pre-1700",
+  "silver_tier": "0",
+  "dc_type":     "Monografie",
+  "ddb_link":    "https://www.deutsche-digitale-bibliothek.de/item/KQCJ7APICPYVGBUZ544FKAICNU73FVKH"
 }
 ```
 
-- `start` / `end` are **character offsets** into the `title` string (0-indexed, end exclusive)
-- Spans must be non-overlapping and contiguous substrings of `title`
-- Fill in `annotator` and `annotation_date` when you complete a record
-- Use `notes` for ambiguous cases
+### 7.2 Reasoning steps (chain-of-thought)
+
+Before producing the span list, work through these steps explicitly:
+
+1. **Era check** — Is `era == "pre-1700"`? If yes, look for an opening credential sequence (degree + name + role). The ` /` SoR pattern does not apply.
+2. **Structure identification** — Which pattern does this title follow? (author-before-title / ISBD SoR ` /` / subtitle only ` :` / no markers)
+3. **PERSON boundary** — Where exactly does the credential/name/role sequence end and the work title begin? Name the boundary token.
+4. **OTHER_TITLE check** — Is there a genuine subtitle introduced by ` : `, `Das ist:`, `oder`, or similar? Distinguish from life-date colons (followed by a date) and DDB separators (`::`) .
+5. **Phase 2 check** — Is there a translation keyword, a ` = ` parallel title, or a musical medium statement?
+6. **Verify** — For each span: does `title[start:end] == text`? Do any spans overlap?
+
+### 7.3 Output format
+
+Return a JSON object with only a `spans` array:
+
+```json
+{
+  "spans": [
+    {"start": 0,   "end": 102, "label": "PERSON", "text": "David Beuthers, Gewesenen Churfürstl. Sächsischen Probation-Meisters zu Dreßden, und Philosophi Adepti"},
+    {"start": 104, "end": 132, "label": "TITLE",  "text": "Zwey rare Chymische Tractate"}
+  ]
+}
+```
+
+- Return no other fields in the output object.
+- If no span of a given type exists, omit it — do not return empty spans.
+- If the title cannot be parsed (a fragment, a catalog note, non-German text), return a single TITLE span covering the full string and set `notes` to a brief explanation.
+- Compute `start` and `end` by finding the exact substring position in `title` — do not estimate.
+
+### 7.4 Self-check before submitting
+
+```
+For each span in the output:
+  assert title[span["start"]:span["end"]] == span["text"]
+
+For each pair of spans (i, j) where i != j:
+  assert not (span_i["start"] < span_j["end"] and span_j["start"] < span_i["end"])
+
+assert any(s["label"] == "TITLE" for s in spans)
+```
+
+If any check fails, revise the offsets before returning.
 
 ---
 
-## 6. Verification script
+## 8. Output format (JSONL)
+
+Each annotated record in `data/annotation/sr08_gold_prefilled.jsonl`:
+
+```json
+{
+  "obj_id":            "ABCDE12345FGHIJ",
+  "title":             "D. Johann Gerhard, Professoris zu Jena, Erklärung der Historien des Leidens",
+  "dates":             "1662",
+  "dc_type":           "Leichenpredigt|Monografie",
+  "silver_tier":       "0",
+  "era":               "pre-1700",
+  "ddb_link":          "https://www.deutsche-digitale-bibliothek.de/item/ABCDE12345FGHIJ",
+  "spans": [
+    {"start":  0, "end": 38, "label": "PERSON", "text": "D. Johann Gerhard, Professoris zu Jena"},
+    {"start": 40, "end": 75, "label": "TITLE",  "text": "Erklärung der Historien des Leidens"}
+  ],
+  "annotation_status": "manual",
+  "annotator":         "your-name",
+  "annotation_date":   "2026-XX-XX",
+  "notes":             ""
+}
+```
+
+- `annotation_status`: change to `reviewed` when you have checked and accepted the record; leave `pre-filled` / `partial` / `manual` until then.
+- `annotator`: your name or `llm-claude` / `llm-gpt4` for LLM-produced annotations.
+- `notes`: record ambiguous cases, boundary questions, or flagged records here.
+
+---
+
+## 9. Workflow
+
+### 9.1 Files
+
+| File | Contents | Action |
+|---|---|---|
+| `data/annotation/sr08_gold_prefilled.jsonl` | All 395 records; spans pre-filled where possible | Primary annotation file |
+| `data/annotation/sr08_manual_queue.csv` | 212 records flagged `manual`, sorted pre-1700 first | Work through this list first |
+| `data/annotation/sr08_gold_sample.csv` | Original stratified sample with metadata | Reference only |
+
+### 9.2 Annotation status
+
+| Status | Count | Meaning |
+|---|---|---|
+| `pre-filled` | 47 | Tier-2 structural (`. -`), non-pre-1700 — high confidence; review and accept or correct |
+| `partial` | 136 | Tier-1 heuristic, non-pre-1700 — spans are auto-extracted; verify each boundary |
+| `manual` | 212 | Pre-1700 or tier-0 — annotate from scratch; follow §4.8–§4.10 |
+
+### 9.3 Suggested order
+
+1. **Pre-1700 tier-0** (~130 records) — the evaluation rests on these; follow §4.8–§4.10 carefully; use DDB links to see the full record when the title string is unclear
+2. **1700–1800 tier-0** (~37 records) — transitional register; may follow either pre-1700 or modern structure
+3. **Modern / 19th-c tier-0** (~45 records) — no ISBD markers but modern structure; usually short
+4. **Partial tier-1** (136 records) — review auto-extracted spans; correct boundaries where needed
+5. **Pre-filled tier-2** (47 records) — spot-check only; most are correct
+
+---
+
+## 10. Verification
 
 After annotating a batch, run:
 
@@ -150,4 +428,4 @@ After annotating a batch, run:
 python3 scripts/sr08_verify_spans.py
 ```
 
-This checks that all character offsets are consistent and prints sample records for review.
+This checks `title[start:end] == text` for all spans and prints three sample records per annotation status for human spot-check.
