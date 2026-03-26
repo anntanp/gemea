@@ -63,7 +63,7 @@ dc:creator/contributor is absent in the majority of records across all eras — 
 **0.90 is above the ceiling of comparable benchmarks:**
 
 - **OntoNotes WORK_OF_ART** (works mentioned in text): BERT/RoBERTa typically 0.55–0.68 F1; state-of-the-art ~0.72. Consistently the lowest-scoring entity type in OntoNotes. — Weischedel, R., et al. (2013). *OntoNotes Release 5.0.* LDC2013T19. Linguistic Data Consortium. ⚠️ verify LDC catalog number and full author list.
-- **HIPE-2022** (historical NER in German newspapers, closest comparable): best systems 0.60–0.78 F1 on named entity types; title-like entities at the lower end. — Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). HIPE-2022: Naming the Past. *CLEF 2022 Working Notes*, CEUR-WS vol. 3180. ⚠️ verify author list and volume number against sr08_gold-set-composition.md §7.
+- **HIPE-2022** (historical NER in multilingual historical documents, closest comparable): German NERC-Coarse strict F1 — hipe2020-de best system 0.794, neural baseline 0.703; sonar-de (Berlin State Library 19C–20C) best 0.529, baseline 0.307. No TITLE entity type; `work` in classical commentaries (ajmc) is the closest analogue but scores 0.93+ partly due to high train/test mention overlap. — Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). Extended Overview of HIPE-2022: Named Entity Recognition and Linking in Multilingual Historical Documents. *CLEF 2022 Working Notes*, CEUR-WS Vol. 3180, paper-83. See [ref_hipe2022-overview.md](ref_hipe2022-overview.md).
 
 GeMeA's task is structurally more favourable than these benchmarks — the entire input *is* the title string, so there is no document context to search — but pre-1700 records introduce historical orthography and author-before-title structure that goes beyond anything in those benchmarks.
 
@@ -87,13 +87,13 @@ The primary metric is **per-label span F1** with exact character-offset and labe
 
 F1 is reported per label (TITLE, PERSON, OTHER_TITLE) rather than as a macro or micro average, because the labels have different prevalences and different practical importance. Averaging across labels would obscure failures on rare but critical types.
 
-**Confidence intervals** are computed using bootstrap resampling (Efron & Tibshirani, 1993): resample the gold set with replacement 1000 times, compute F1 on each resample, and take the 2.5th–97.5th percentile as the 95% CI. Bootstrap is used rather than the Wilson interval because F1 is not a simple proportion — it is a ratio of precision and recall, each of which is itself a ratio — and has no closed-form variance. The 95% level is the field convention in NLP evaluation (Dror et al., 2018; Søgaard et al., 2014) and matches the reporting standard in HIPE-2022, the most directly comparable historical NER benchmark.
+**Confidence intervals** are computed using bootstrap resampling (Efron & Tibshirani, 1993): resample the gold set with replacement 1000 times, compute F1 on each resample, and take the 2.5th–97.5th percentile as the 95% CI. Bootstrap is used rather than the Wilson interval because F1 is not a simple proportion — it is a ratio of precision and recall, each of which is itself a ratio — and has no closed-form variance. The 95% level is the field convention in NLP evaluation (Dror et al., 2018; Søgaard et al., 2014). Note: HIPE-2022 does not report confidence intervals — it cannot be cited for this convention.
 
 Every F1 number reported in the paper must be accompanied by its 95% bootstrap CI. Bare F1 values without CIs should not appear in evaluation tables or claims.
 
 **References:**
 - Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter before citing.
-- Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). HIPE-2022: Naming the Past. *CLEF 2022 Working Notes*, CEUR-WS vol. 3180. ⚠️ confirm paper explicitly reports 95% bootstrap CI before citing for this convention.
+- Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). Extended Overview of HIPE-2022: Named Entity Recognition and Linking in Multilingual Historical Documents. *CLEF 2022 Working Notes*, CEUR-WS Vol. 3180, paper-83. ⚠️ Does not report bootstrap CI — cite for F1 benchmarks and exact span match convention only.
 - Dror, R., et al. (2018). Deep Dominance — How to Properly Compare Deep Neural Models. *ACL 2018*.
 - Søgaard, A., et al. (2014). Simple, Robust Methods for Statistical Testing in NLP.
 
