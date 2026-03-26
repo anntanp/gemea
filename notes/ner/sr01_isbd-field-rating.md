@@ -1,7 +1,7 @@
 # GeMeA — ISBD Field Rating: Spec and Methodology
 
 **Script:** `scripts/rate_isbd_fields.py`
-**Output:** `data/processed/isbd_field_ratings.csv`, `data/processed/isbd_examples.csv`
+**Output:** `data/processed/sr01_isbd_field_ratings.csv`, `data/processed/sr01_isbd_examples.csv`
 **Phase:** 0a — NER Training Data (see [roadmap.md](../roadmap.md))
 **ADR:** [sr01_isbd-field-rating-adr.md](sr01_isbd-field-rating-adr.md)
 
@@ -139,7 +139,7 @@ The sub-classes follow the ISBD/RDA/MARC tripartite agent model: **person** | **
 
 ## Output Schema
 
-`data/processed/isbd_field_ratings.csv` — one row per record.
+`data/processed/sr01_isbd_field_ratings.csv` — one row per record.
 
 | Column | Type | Description |
 |---|---|---|
@@ -165,7 +165,7 @@ The sub-classes follow the ISBD/RDA/MARC tripartite agent model: **person** | **
 | `n_fields` | int | Sum of all f_* flags |
 | `silver_tier` | int | 0 / 1 / 2 — see below |
 
-`data/processed/isbd_examples.csv` (generated with `--examples N`) — N records per ISBD pattern with `ddb_url`.
+`data/processed/sr01_isbd_examples.csv` (generated with `--examples N`) — N records per ISBD pattern with `ddb_url`.
 
 ---
 
@@ -271,7 +271,7 @@ Results from `rate_isbd_fields.py` on `DF_DE_TITLES_20240125b.pkl` (4,477,780 re
 
 This approach differs from blind auxiliary-column labeling (ruled out in ADR-03) because the label is only applied when the value actually appears in the title. It is a downstream enrichment step for the silver dataset, not a change to field ratings.
 
-**Script:** `scripts/build_silver_spans.py` — described in Phase 0a of the roadmap. Inputs: `isbd_field_ratings.csv` + `DF_DE_TITLES` (with auxiliary columns). Output: `data/processed/silver_spans.jsonl` with span-level NER labels per silver-tier record.
+**Script:** `scripts/build_silver_spans.py` — described in Phase 0a of the roadmap. Inputs: `sr01_isbd_field_ratings.csv` + `DF_DE_TITLES` (with auxiliary columns). Output: `data/processed/silver_spans.jsonl` with span-level NER labels per silver-tier record.
 - **` ;` ambiguity** — ` ;` in the title area signals a subsequent statement of responsibility (compound SoR); in a series area it separates title from volume number. Mitigated by two complementary patterns: (1) SERIES requires `\([^)]+;\s*[^)]*\d[^)]*\)` — the ` ;` must be inside parentheses with a digit, so a bare ` ;` in the title area will never fire it; (2) `f_person_compound` detects compound SoR via ` /[^(]+;` — ` /` followed by content then ` ;` outside parentheses, distinguishing `Titel / Autor A ; Autor B` (SoR) from `(Series ; Bd. 3)` (series).
 - **Multi-volume records** — some records have multiple `. -` separators for volume entries; the script takes only the first split, potentially missing volume-level fields in entries 3+.
 - **False positives in heuristic tier** — ` :` fires on non-ISBD colons (URLs, ratios); ` /` fires on fractions or paths. Silver tier 1 should be validated on a ~200-record sample before use.

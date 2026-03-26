@@ -46,7 +46,7 @@ Before doing anything with labels, the corpus was characterised along two dimens
 
 ### Phase 2 — Field presence rating and tier assignment
 
-`scripts/rate_isbd_fields.py` ran over all 4.47M records and produced `data/processed/isbd_field_ratings.csv` with binary flags for each ISBD field and a confidence tier.
+`scripts/rate_isbd_fields.py` ran over all 4.47M records and produced `data/processed/sr01_isbd_field_ratings.csv` with binary flags for each ISBD field and a confidence tier.
 
 **Two-tier detection (ADR-02):**
 - **Structural tier** (`has_dot_dash = True`): apply area-aware parsing; field boundaries unambiguous
@@ -111,7 +111,7 @@ True class distribution of `f_person = 1` (heuristic tier), mapped to the ISBD/R
 |---|---|---|
 | Corpus characterisation | ✅ Done | Length thresholds, era distribution |
 | Signal detection | ✅ Done | Pattern counts, SR-01/02 findings |
-| Field rating | ✅ Done | `isbd_field_ratings.csv` (4.47M rows) |
+| Field rating | ✅ Done | `sr01_isbd_field_ratings.csv` (4.47M rows) |
 | Precision validation | ✅ Done | Per-field FP rates, accept/exclude decisions |
 | Trailing period (SR-05) | ✅ Done | Excluded — 93% FP, zero marginal value |
 | SoR disambiguation | ✅ Done | `f_resp_*` sub-classification schema |

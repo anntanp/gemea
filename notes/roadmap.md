@@ -32,7 +32,7 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 
 ### Deliverables
 
-- [x] `scripts/rate_isbd_fields.py` — rates all 4.47M titles in `DF_DE_TITLES` for ISBD field presence; outputs `data/processed/isbd_field_ratings.csv` with `silver_tier` column
+- [x] `scripts/rate_isbd_fields.py` — rates all 4.47M titles in `DF_DE_TITLES` for ISBD field presence; outputs `data/processed/sr01_isbd_field_ratings.csv` with `silver_tier` column
   - Tier 2 (structural): `has_dot_dash AND f_resp_person AND ≥1 Manifestation field` — 4,613 records (0.1%)
   - Tier 1 (heuristic): `n_fields ≥ 3` OR `(f_person AND f_year)` — 335,524 records (7.5%)
   - Tier 0 (unrated): all others — 4,137,643 records (92.4%)
@@ -46,7 +46,7 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 - [x] `notes/ner/sr01_isbd-field-rating-adr.md` — ADR for tier design and flag decisions
 - [x] Historical language scope (SR-06) — 200-record stratified sample; Early Modern German 93%, Latin ~0.5%; **no Latin stratum needed** for gold set; Early Modern German (pre-1750) is the primary historical challenge. See `notes/ner/sr06_historical-scope.md`.
 - [x] Corpus characterisation (SR-10) — `DF_DE_TITLES` provenance, token-length distribution (p25=4, p75=14), era-stratified length. See `notes/ner/sr10_de-titles-distribution.md`, `notes/ner/sr10_title-length-thresholds.md`.
-- [ ] `scripts/build_silver_spans.py` — span extraction from accepted flags; inputs: `isbd_field_ratings.csv` + DF_DE_TITLES auxiliary columns (`dc_publisher`, `dc_creator`, `dc_contributor`, `agents`); output: `data/processed/silver_spans.jsonl`
+- [ ] `scripts/build_silver_spans.py` — span extraction from accepted flags; inputs: `sr01_isbd_field_ratings.csv` + DF_DE_TITLES auxiliary columns (`dc_publisher`, `dc_creator`, `dc_contributor`, `agents`); output: `data/processed/silver_spans.jsonl`
   - PLACE / PUBLISHER enrichment: match `dc_publisher` value as substring in title; label only if found
   - PERSON enrichment: match `dc_creator` / `dc_contributor` names against post-` /` segment; use `f_resp_person` flag only (exclude `f_resp_org`, `f_resp_editor`, `f_resp_other`)
   - Output: `{obj_id, title, spans: [{start, end, text, label}]}`
@@ -61,7 +61,7 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 DF_DE_TITLES_20240125b.pkl
       │
       ▼  [DONE]
-rate_isbd_fields.py  →  data/processed/isbd_field_ratings.csv
+rate_isbd_fields.py  →  data/processed/sr01_isbd_field_ratings.csv
       │
       ▼  [NEXT]
 build_silver_spans.py  ←  auxiliary columns (dc_publisher, dc_creator, agents)

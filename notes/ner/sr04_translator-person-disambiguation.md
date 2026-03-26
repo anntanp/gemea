@@ -21,7 +21,7 @@
 
 Pool: **28,570** heuristic-tier records with `f_person = 1` (no area separator).
 
-`scripts/evaluate_translator_heuristic.py` evaluates the heuristic against manual `true_class` annotations in `data/processed/translator_validation_sample.csv`.
+`scripts/evaluate_translator_heuristic.py` evaluates the heuristic against manual `true_class` annotations in `data/processed/sr04_translator_validation_sample.csv`.
 
 ---
 

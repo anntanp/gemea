@@ -101,7 +101,7 @@ Rate only the `title` column. The goal of this script is to assess what is detec
 - PUBLISHER and PLACE recall is low for heuristic-tier records; `dc_publisher` could provide high-quality imprint labels for ~3M records without `. -`
 
 **🔧 Mitigations:**
-- A future script can join `isbd_field_ratings.csv` with `dc_publisher` for richer corpus statistics (outside the scope of NER training data)
+- A future script can join `sr01_isbd_field_ratings.csv` with `dc_publisher` for richer corpus statistics (outside the scope of NER training data)
 - The paper's evaluation section should note that publisher/place coverage reflects title-string detection only
 
 ---

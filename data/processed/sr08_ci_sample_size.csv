@@ -1,0 +1,13 @@
+stratum,metric,target_F1,ci_halfwidth,instances_needed,prevalence,records_needed
+Pre-1700,TITLE,0.7,±5 pp,323,1.0,323
+Pre-1700,TITLE,0.7,±10 pp,81,1.0,81
+Pre-1700,PERSON,0.7,±5 pp,323,0.087,3713
+Pre-1700,PERSON,0.7,±10 pp,81,0.087,932
+1700-1800,TITLE,0.75,±5 pp,289,1.0,289
+1700-1800,TITLE,0.75,±10 pp,73,1.0,73
+1700-1800,PERSON,0.7,±5 pp,323,0.05,6460
+1700-1800,PERSON,0.7,±10 pp,81,0.05,1620
+19th-c,TITLE,0.8,±5 pp,246,1.0,246
+19th-c,TITLE,0.8,±10 pp,62,1.0,62
+Modern,TITLE,0.85,±5 pp,196,1.0,196
+Modern,TITLE,0.85,±10 pp,49,1.0,49

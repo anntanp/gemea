@@ -7,13 +7,13 @@ All data tables produced by scripts for the NER pipeline, ordered by pipeline st
 | Table name | Note + section | Purpose | Script | Output file |
 |---|---|---|---|---|
 | **Stage 1 — Corpus characterisation** |||||
-| ISBD field ratings | [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Rates each DF_DE_TITLES record by ISBD signal presence; assigns silver tier (0/1/2) | `sr01_rate_isbd_fields.py` | `data/processed/isbd_field_ratings.csv` |
-| ISBD examples | [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Sample records illustrating each ISBD field type | `sr01_check_isbd_titles.py` | `data/processed/isbd_examples.csv` |
+| ISBD field ratings | [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Rates each DF_DE_TITLES record by ISBD signal presence; assigns silver tier (0/1/2) | `sr01_rate_isbd_fields.py` | `data/processed/sr01_isbd_field_ratings.csv` |
+| ISBD examples | [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Sample records illustrating each ISBD field type | `sr01_check_isbd_titles.py` | `data/processed/sr01_isbd_examples.csv` |
 | Title length distribution | [sr10_de-titles-distribution.md](sr10_de-titles-distribution.md) | Token length quartiles per era; defines short/medium/long thresholds for gold set stratification | `sr10_analyse_title_lengths.py` | ⚠️ output file not confirmed |
 | **Stage 2 — Silver label quality** |||||
-| Heuristic validation sample | [sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md) | 200-record stratified sample for FP rate estimation per heuristic field | `sr03_validate_heuristic_fields.py` | `data/processed/heuristic_validation_sample.csv` |
-| Trailing period sample | [sr05_trailing-period-noise.md](sr05_trailing-period-noise.md) | 200-record sample of titles ending in `.`; FP rate = 93%; led to exclusion of trailing period as signal | `sr05_trailing_period_review.py` | `data/processed/trailing_period_sample.csv` |
-| Translator validation sample | [sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md) | 100-record sample for TRANSLATOR/PERSON disambiguation; found 0 true translators | `sr04_validate_translator_disambiguation.py` | `data/processed/translator_validation_sample.csv` |
+| Heuristic validation sample | [sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md) | 200-record stratified sample for FP rate estimation per heuristic field | `sr03_validate_heuristic_fields.py` | `data/processed/sr03_heuristic_validation_sample.csv` |
+| Trailing period sample | [sr05_trailing-period-noise.md](sr05_trailing-period-noise.md) | 200-record sample of titles ending in `.`; FP rate = 93%; led to exclusion of trailing period as signal | `sr05_trailing_period_review.py` | `data/processed/sr05_trailing_period_sample.csv` |
+| Translator validation sample | [sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md) | 100-record sample for TRANSLATOR/PERSON disambiguation; found 0 true translators | `sr04_validate_translator_disambiguation.py` | `data/processed/sr04_translator_validation_sample.csv` |
 | **Stage 3 — Historical scope** |||||
 | Historical sample | [sr06_historical-scope.md](sr06_historical-scope.md) | 200-record stratified sample (Leichenpredigt + pre-1800 Monografie) for language/register assessment | `sr06_historical_scope.py` | `data/processed/sr06_historical_sample.csv` |
 | Historical evaluated | [sr06_historical-scope.md](sr06_historical-scope.md) | Evaluated results with true-class labels; documents EARLY_MODERN_DE 93%, LATIN 0.5% | `sr06_evaluate_historical.py` | `data/processed/sr06_historical_evaluated.csv` |

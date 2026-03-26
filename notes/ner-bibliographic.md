@@ -405,7 +405,7 @@ NER applies to ~71% of records (~3.5–7M unique pairs after deduplication). LLM
 
 **8.1 Silver labeling from the ISBD pipeline**
 
-The ~28% of records where ISBD area structure is present (`has_dot_dash`) become auto-labeled training examples. Silver candidate selection is handled by `scripts/rate_isbd_fields.py` → `data/processed/isbd_field_ratings.csv`:
+The ~28% of records where ISBD area structure is present (`has_dot_dash`) become auto-labeled training examples. Silver candidate selection is handled by `scripts/rate_isbd_fields.py` → `data/processed/sr01_isbd_field_ratings.csv`:
 
 - **Silver tier 2** (primary): `has_dot_dash AND f_person AND ≥1 manifestation field` — structural annotation, multi-field spans; use as primary training set
 - **Silver tier 1** (augmentation): `n_fields ≥ 3` or `(f_person AND f_year)` — partial annotation; validate ~200 records before use

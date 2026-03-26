@@ -1,0 +1,6 @@
+era,tier-0_actual,tier-1_actual,tier-2_actual,total_actual,tier-0_target,tier-1_target,tier-2_target,total_target,tier-0_delta,tier-1_delta,tier-2_delta,total_delta
+1700-1800,37,33,10,80,30,20,10,60,7,13,0,20
+19th-c,15,30,15,60,15,30,15,60,0,0,0,0
+modern,20,40,20,80,20,40,20,80,0,0,0,0
+pre-1700,96,34,0,130,80,15,5,100,16,19,-5,30
+unknown,10,35,0,45,0,0,0,0,10,35,0,45

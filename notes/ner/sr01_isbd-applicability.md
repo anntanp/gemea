@@ -13,7 +13,7 @@ Three notes share the `sr01_` prefix. They are not redundant — each covers a d
 | Note | Stage | What it contains |
 |---|---|---|
 | [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) | Initial scan | Raw output of [sr01_check_isbd_titles.py](../../scripts/sr01_check_isbd_titles.py) (2026-03-17). DataFrame schema, raw per-pattern counts (` :` 20.3%, trailing `.` 17.5%, ` /` 0.8%, etc.), and a first-pass note on trailing period noise. Motivated building the full field-rating pipeline. |
-| [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Full rating run | Documents [sr01_rate_isbd_fields.py](../../scripts/sr01_rate_isbd_fields.py) — the detection logic, output schema (`isbd_field_ratings.csv`), silver tier definitions, and validation sample methodology. Source of the corpus-wide tier counts (tier 2: 4,613 records; tier 1: 335,524 records). |
+| [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) | Full rating run | Documents [sr01_rate_isbd_fields.py](../../scripts/sr01_rate_isbd_fields.py) — the detection logic, output schema (`sr01_isbd_field_ratings.csv`), silver tier definitions, and validation sample methodology. Source of the corpus-wide tier counts (tier 2: 4,613 records; tier 1: 335,524 records). |
 | [sr01_isbd-applicability.md](sr01_isbd-applicability.md) *(this file)* | Synthesis | Rule-by-rule applicability decisions derived from the rating run and subsequent SR-03/SR-04 validation. Answers: which signals to use, which to exclude, and which require sub-classification or era guards. |
 
 The "28%" figure that appears in early notes (including the original ADR-02) came from [sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md) — the proportion of records with any ISBD signal excluding trailing `.`. The corrected structural-tier figure (`. -` present in **1.2%** of records) comes from the full rating run in [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md).
@@ -37,7 +37,7 @@ Title proper : other title information / statement of responsibility
 
 ## 2. Rule-by-rule applicability
 
-Coverage %: share of 4,477,780 DF_DE_TITLES records where the flag fires, from `sr01_rate_isbd_fields.py` → `data/processed/isbd_field_ratings.csv`. FP rates from SR-03 200-record stratified sample ([sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md)).
+Coverage %: share of 4,477,780 DF_DE_TITLES records where the flag fires, from `sr01_rate_isbd_fields.py` → `data/processed/sr01_isbd_field_ratings.csv`. FP rates from SR-03 200-record stratified sample ([sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md)).
 
 | Signal | Pattern | Coverage | FP rate | Decision |
 |---|---|---|---|---|

@@ -111,7 +111,7 @@ rng = np.random.default_rng(seed=42)
 
 # Load corpus and ratings (silver_tier is in the ratings CSV, not in the pkl)
 df = pd.read_pickle("data/DF_DE_TITLES_20240125b.pkl")
-ratings = pd.read_csv("data/processed/isbd_field_ratings.csv", usecols=["obj_id", "silver_tier"])
+ratings = pd.read_csv("data/processed/sr01_isbd_field_ratings.csv", usecols=["obj_id", "silver_tier"])
 df = df.merge(ratings, on="obj_id", how="left")
 df["silver_tier"] = df["silver_tier"].fillna(0).astype(int).astype(str)
 

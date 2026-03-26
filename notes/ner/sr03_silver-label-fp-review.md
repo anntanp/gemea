@@ -20,7 +20,7 @@ Heuristic patterns over-fire on non-ISBD content:
 
 ## 2. Review method
 
-`scripts/sr03_validate_heuristic_fields.py` produced a 200-record stratified sample at `data/processed/heuristic_validation_sample.csv`, with one stratum per heuristic field flag. `scripts/sr03_fp_review.py` applied automated regex rules + per-row overrides to classify each active flag as TP or FP, writing results to the `fp_fields` and `notes` columns.
+`scripts/sr03_validate_heuristic_fields.py` produced a 200-record stratified sample at `data/processed/sr03_heuristic_validation_sample.csv`, with one stratum per heuristic field flag. `scripts/sr03_fp_review.py` applied automated regex rules + per-row overrides to classify each active flag as TP or FP, writing results to the `fp_fields` and `notes` columns.
 
 ---
 
