@@ -131,9 +131,16 @@ Targets are grounded in benchmark ceilings (OntoNotes WORK_OF_ART: 0.55–0.72; 
 
 ### D-10 — Evaluation metric: per-label point-estimate F1, exact span match; bootstrap deferred
 
-**Decision:** Report micro P/R/F1 per label per era as point estimates, following the HIPE-2022 reporting convention. Exact span match (both character boundaries and label must match). No macro/micro averages across labels. Sample sizes reported alongside every F1 figure. Bootstrap CI deferred to future work.
+**Decision:** Report micro P/R/F1 per label (TITLE, OTHER_TITLE, PERSON) per era as point estimates, following the HIPE-2022 reporting convention. Exact span match throughout (both character boundaries and label must match). No macro or micro averages across labels. Sample sizes reported alongside every F1 figure. Bootstrap CI deferred to future work.
 
-**Why:** The paper's primary contribution is the pipeline, not a model comparison. Point estimates per era are sufficient to support the claim that the pipeline produces usable extractions across eras — bootstrap CI is necessary when the question is whether two systems differ significantly, which is not the question here. Additionally, per-stratum n (~100 records) would produce wide CIs (±10–15 pp) that are more likely to obscure than inform without a larger sample. Exact span match is the standard NERC protocol, consistent with HIPE-2022 strict regime (Ehrmann et al., 2022) and CoNLL benchmarks.
+**Why — exact span match:** Gives a clean, unambiguous signal consistent with HIPE-2022 strict regime and CoNLL benchmarks. Fuzzy (overlapping boundary) match would inflate scores without indicating whether the extraction is usable for GND linking. Risk: boundary disagreement between annotators on long pre-1700 titles (TITLE vs. trailing author credential) — should be monitored during annotation and flagged in the paper.
+
+**Why — no macro/micro averages:**
+- *Micro average* pools all TP/FP/FN before computing F1 — dominated by TITLE (~100% prevalence), making OTHER_TITLE and PERSON invisible.
+- *Macro average* weights all labels equally regardless of prevalence — PERSON (0.2%–8.7% by era) would drag down the headline figure, misrepresenting pipeline utility for the primary goal of GND linking.
+- Per-label reporting is transparent: it shows where the pipeline succeeds (modern TITLE) and where it struggles (pre-1700 PERSON).
+
+**Why — point estimates over bootstrap:** The contribution is the pipeline, not a model comparison. Bootstrap CI is necessary when asking whether two systems differ significantly — that is not the question here. Per-stratum n (~100) would also produce wide CIs (±10–15 pp) that are more misleading than informative at this sample size.
 
 **Notes:** [sr08_evaluation-design.md](sr08_evaluation-design.md) §4
 

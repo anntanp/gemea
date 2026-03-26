@@ -82,29 +82,36 @@ These targets are grounded in benchmark ceilings, not in an assumed intervention
 
 ## 4. Metric
 
-The primary metric is **per-label span F1** with exact character-offset and label match, reported separately per era and per tier. A span is correct only if both its boundaries and its label match the gold annotation exactly — partial matches do not count. This is the standard evaluation protocol for sequence labeling tasks and is consistent with HIPE-2022 (Ehrmann et al., 2022) and CoNLL NER benchmarks.
+### 4.1 Span match
 
+**Exact span match** is used: a prediction is correct only if both character boundaries and the label match the gold annotation exactly. Partial boundary overlaps do not count. This is the standard NERC evaluation protocol (HIPE-2022 strict regime, Ehrmann et al., 2022; CoNLL benchmarks) and gives a clean signal — the model either found the right span or it didn't.
 
-F1 is reported per label (TITLE, PERSON, OTHER_TITLE) rather than as a macro or micro average, because the labels have different prevalences and different practical importance. Averaging across labels would obscure failures on rare but critical types.
+Fuzzy (overlapping boundary) match would inflate scores without telling us whether the extracted title is actually usable for GND linking. Exact match is therefore the more appropriate choice for the end goal.
 
-**CI strategy: point estimates following HIPE-2022 protocol, bootstrap as future work.**
+One risk: **boundary disagreement between annotators** on long pre-1700 titles, where the edge between TITLE and a trailing author credential is genuinely ambiguous. If annotators disagree systematically, exact span match will penalise the model for annotation inconsistency rather than extraction failure. This should be flagged in the paper and monitored during annotation.
 
-For the current paper, evaluation follows the HIPE-2022 reporting convention: micro Precision, Recall, and F1 per label per era, as point estimates. Sample sizes are reported alongside each figure so readers can judge reliability directly. This is consistent with the most directly comparable historical NER benchmark (Ehrmann et al., 2022) and is sufficient for a resource track paper whose primary contribution is the pipeline, not a model comparison.
+### 4.2 Per-label reporting vs. averages
+
+F1 is reported **per label** (TITLE, OTHER_TITLE, PERSON) per era. No macro or micro averages across labels.
+
+**Why not micro average:** micro F1 pools all TP/FP/FN across all labels before computing the score. Because TITLE is present in ~100% of records, micro F1 would be almost entirely determined by TITLE performance — OTHER_TITLE and PERSON would be invisible.
+
+**Why not macro average:** macro F1 computes F1 per label then averages, weighting all three labels equally regardless of prevalence. PERSON appears in 0.2%–8.7% of records depending on era; averaging it equally with TITLE would let poor PERSON performance (which is already accepted as indicative-only) drag down the headline figure, misrepresenting the pipeline's actual utility for GND linking.
+
+Per-label reporting is transparent about what the pipeline does well (modern TITLE) and where it struggles (pre-1700 PERSON), which is exactly what a resource paper needs to convey.
+
+### 4.3 CI strategy: point estimates now, bootstrap deferred
+
+For the current paper, evaluation follows the HIPE-2022 reporting convention: micro Precision, Recall, and F1 per label per era, as point estimates, with sample sizes reported alongside every figure so readers can judge reliability directly.
 
 Bootstrap CI (Efron & Tibshirani, 1993) would be the more rigorous approach — F1 has no closed-form variance (it is a ratio of precision and recall, each of which is itself a ratio of counts, so there is no algebraic formula to propagate uncertainty through the full expression), meaning resampling is the only general way to quantify uncertainty — but is deferred for two reasons:
 
 1. **Small per-stratum n.** With ~100 records per era stratum, bootstrap CIs will be wide (±10–15 pp). Reporting wide CIs without the sample size to tighten them risks being misleading rather than informative; it is cleaner to state the n and let the reader draw conclusions.
 2. **Contribution scope.** The paper's claim is that the pipeline produces usable extractions across eras, not that one model configuration is significantly better than another. Point estimates per era are sufficient to support that claim. Bootstrap CI becomes necessary when comparing two systems where the difference is small — that is a model comparison paper, not this one.
 
-**Exact span match** (both boundaries and label must match) is used throughout, consistent with HIPE-2022 strict regime and CoNLL NER benchmarks. Partial boundary matches are not counted.
-
 **References:**
 - Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). Extended Overview of HIPE-2022: Named Entity Recognition and Linking in Multilingual Historical Documents. *CLEF 2022 Working Notes*, CEUR-WS Vol. 3180, paper-83. ⚠️ Does not report bootstrap CI — cite for F1 benchmarks and exact span match convention only.
 - Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter before citing.
-
-**References:**
-- Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter before citing.
-- Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). Extended Overview of HIPE-2022: Named Entity Recognition and Linking in Multilingual Historical Documents. *CLEF 2022 Working Notes*, CEUR-WS Vol. 3180, paper-83. ⚠️ Does not report bootstrap CI — cite for F1 benchmarks and exact span match convention only.
 - Dror, R., et al. (2018). Deep Dominance — How to Properly Compare Deep Neural Models. *ACL 2018*.
 - Søgaard, A., et al. (2014). Simple, Robust Methods for Statistical Testing in NLP.
 
