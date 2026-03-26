@@ -67,6 +67,8 @@ dc:creator/contributor is absent in the majority of records across all eras — 
 
 GeMeA's task is structurally more favourable than these benchmarks — the entire input *is* the title string, so there is no document context to search — but pre-1700 records introduce historical orthography and author-before-title structure that goes beyond anything in those benchmarks.
 
+**Why we target 0.85 for modern records despite OntoNotes WORK_OF_ART SOTA at ~0.72:** the tasks differ structurally in our favour. OntoNotes requires finding work titles embedded anywhere in running prose — the entity boundary is ambiguous and surrounding context is noisy. GeMeA input is the title string itself: no search problem, only segmentation. This justifies a higher target for modern and 19th-c records. Pre-1700 is where we concede (target 0.70) — author-before-title structure and non-standard orthography introduce difficulty that OntoNotes does not have.
+
 **Conservative and achievable targets, stratified by era:**
 
 | Stratum | TITLE F1 target | PERSON F1 target |

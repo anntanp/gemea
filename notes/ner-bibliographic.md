@@ -2,7 +2,7 @@
 
 Context: NER is the **fallback** in `link_gnd_works.py` for records without ISBD markers. The primary extractor is the rule-based ISBD parser. NER only runs when that fails.
 
-**Scale of the fallback**: analysis of 115K Goethe-Faust DDB items ([isbd-title-analysis.md](../../goethe-faust/notes/isbd-title-analysis.md)) shows only **~29% of titles carry any ISBD pattern**, meaning NER applies to ~71% of records — the majority, not a small edge case. The dominant ISBD signal is ` :` (18%); the ` / ` split used by the parser appears in only 2.1% of titles. These figures are from one DDB provider subset and may vary across the full corpus.
+**Scale of the fallback**: analysis of 115K Goethe-Faust DDB items ([isbd-title-analysis.md](../../goethe-faust/notes/isbd-title-analysis.md)) shows only **~29% of titles carry any ISBD pattern**, meaning NER applies to ~71% of records — the majority, not a small edge case. The dominant ISBD signal is ` :` (18%); the ` / ` split used by the parser appears in only 2.1% of titles. These figures are from one DDB provider subset and may vary across the full corpus. The corpus-wide SR-01 analysis (4.47M records) confirms **71.6% NER fallback** — see [spiel_ner-fallback-coverage.md](ner/spiel_ner-fallback-coverage.md) for the full derivation.
 
 Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITLE`, `LANGUAGE`, `MEDIUM`, `EDITION`, `PUBLISHER`, `PLACE`, `YEAR`, `SERIES`, `VOLUME`.
 
