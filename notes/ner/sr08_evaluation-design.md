@@ -4,6 +4,21 @@ Companion to [sr08_gold-set-composition.md](sr08_gold-set-composition.md). Docum
 
 ---
 
+## Tables
+
+| Table | Section | Purpose | Backing data |
+|---|---|---|---|
+| Agent/person coverage by era | [§1](#1-primary-goal) | Shows dc:creator/contributor absence rate and ner_person prevalence per era; motivates PERSON priority by stratum | `sr08_agent_coverage_by_era.csv`, `sr08_person_in_title_by_era.csv` |
+| Label priority order | [§1](#1-primary-goal) | Ranks evaluation labels by role and priority | — |
+| F1 targets by stratum | [§3](#3-f1-targets) | Conservative achievable F1 thresholds per era, grounded in benchmark ceilings | — |
+| Corpus cell sizes (era × tier) | [§5](#5-binding-constraint-for-sample-size) | Actual record counts per era × silver_tier cell; replaces round-number allocation targets | `sr08_corpus_cell_sizes.csv` |
+| CI sample size requirements | [§6](#6-minimum-sample-size-per-stratum) | Wilson interval computation of minimum instances and records needed per stratum and CI target | `sr08_ci_sample_size.csv` |
+| Gold set size by CI target | [§6](#6-minimum-sample-size-per-stratum) | Minimum records per era at ±5 pp and ±10 pp; used to select ±10 pp as feasible target | `sr08_ci_sample_size.csv` |
+| Gold set composition audit | [§8](#8-revised-allocation-strategy) | Current vs. original allocation targets per era × tier; identifies tier-1 over-representation | `sr08_gold_composition_audit.csv` |
+| Proposed revised allocation | [§8](#8-revised-allocation-strategy) | New tier allocation boosting tier-0 in high-risk strata; target vs. actual totals per era | — |
+
+---
+
 ## 1. Primary goal
 
 The NER model's primary job is **TITLE extraction**. GND work linking depends on having a clean title string.
@@ -194,18 +209,20 @@ Within tier-0, pre-1700 and 1700–1800 are the highest-risk strata: author-befo
 | Unknown | 10 | 35 | 0 | 45 | 0 | +45 |
 | **Total** | **178** | **172** | **45** | **395** | **300** | **+95** |
 
-The original targets summed to only 300; the extra 95 records came from genre oversampling (Leichenpredigt, Einblattdruck) and the unknown era. The current set already oversamples pre-1700 relative to original targets — but the tier composition is off: tier-1 is over-represented (172 records, 43.5%) relative to its evaluation value.
+The original targets summed to only 300; the extra 95 records came from genre oversampling (Leichenpredigt, Einblattdruck) and the unknown era. The current set already oversamples pre-1700 relative to original targets — but the tier composition is off: tier-1 is over-represented (172 records, 43.5%).
+
+Tier-1 records have partial ISBD signals (heuristic ` /` or ` :` but not the full `. -` separator). They test model behaviour on records with weak structural cues — useful, but not where the model is most likely to fail. Tier-0 has no structural signals at all: the model must rely entirely on learned patterns, which is both the hardest case and the most important one (92.4% of the corpus). Each additional tier-0 record in the gold set evaluates the model on a more representative and more challenging example than a tier-1 record would. Tier-1's evaluation contribution is real but lower per record than tier-0.
 
 **Proposed revised allocation** (total kept at 395, tier-0 boosted, tier-2 minimised):
 
-| Era | Tier-0 | Tier-1 | Tier-2 | Total | Rationale |
-|---|---|---|---|---|---|
-| Pre-1700 | 110 | 20 | 0 | 130 | Hardest stratum; PERSON fallback; corpus has 0 tier-2 |
-| 1700–1800 | 75 | 15 | 5 | 95 | Transitional; PERSON fallback; minimal tier-2 spot-check |
-| 19th-c | 55 | 15 | 5 | 75 | TITLE primary; tier-0 boosted over current 15 |
-| Modern | 55 | 10 | 5 | 70 | TITLE primary; tier-0 boosted; corpus has only 70 tier-2 total |
-| Unknown | 15 | 10 | 0 | 25 | Reduced; era unknown limits evaluation utility |
-| **Total** | **310** | **70** | **15** | **395** | Tier-0 share: 78.5% vs. current 45.1% |
+| Era | Tier-0 | Tier-1 | Tier-2 | Total (target) | Total (actual) | Rationale |
+|---|---|---|---|---|---|---|
+| Pre-1700 | 110 | 20 | 0 | 130 | 130 | Hardest stratum; PERSON fallback; corpus has 0 tier-2 |
+| 1700–1800 | 75 | 15 | 5 | 95 | 80 | Transitional; PERSON fallback; minimal tier-2 spot-check |
+| 19th-c | 55 | 15 | 5 | 75 | 60 | TITLE primary; tier-0 boosted over current 15 |
+| Modern | 55 | 10 | 5 | 70 | 80 | TITLE primary; tier-0 boosted; corpus has only 70 tier-2 total |
+| Unknown | 15 | 10 | 0 | 25 | 45 | Reduced; era unknown limits evaluation utility |
+| **Total** | **310** | **70** | **15** | **395** | **395** | Tier-0 share: 78.5% vs. current 45.1% |
 
 Key changes from current:
 - Tier-0 share increases from 45.1% → 78.5%
