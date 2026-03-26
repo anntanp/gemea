@@ -22,7 +22,7 @@ Selection funnel:
 | No Language Tags (% of valid) | 384,405 (21.21%) |
 | **Titles tagged + identified as German** | **4,477,641 (53.29%)** |
 
-`DF_DE_TITLES` is a **language filter** on the full DDB TEXT dump: `dc:language` = German AND `langid` = German. Not filtered by `dc:type`, provider, or era. Tokenization in the source notebook uses `spacy.load` (model unspecified in the trace).
+`DF_DE_TITLES` is a filtered snapshot of the DDB corpus: `ddb:hierarchyType` = `content` (the "Valid HTYPEs" step in the funnel above), then `dc:language` = German AND `langid` = German. Not filtered by `dc:type`, provider, or era beyond these two steps. Tokenization in the source notebook uses `spacy.load` (model unspecified in the trace).
 
 **Implication.** The corpus spans all eras and `dc:type` values — both long ISBD strings and short bare titles. ISBD coverage figures (20.2% ` :`, 0.8% ` /`) reflect this broad population.
 

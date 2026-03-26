@@ -1,14 +1,14 @@
 # Architecture Decision Record — NER for Bibliographic Title Extraction
 
 **Status:** In progress — SR-08 annotation pending; SR-09, SR-11 blocked
-**Scope:** NER pipeline for extracting structured bibliographic entities from `DF_DE_TITLES` (4.47M German DDB title strings)
+**Scope:** NER pipeline for extracting structured bibliographic entities from `DF_DE_TITLES` — a filtered snapshot of the DDB corpus (4.47M records; `ddb:hierarchyType` = `content`, `dc:language` + `langid` = German)
 **Full notes:** [ner-bibliographic.md](../ner-bibliographic.md)
 
 ---
 
 ## 1. Context
 
-DDB title strings are the primary text surface for bibliographic entity extraction in GeMeA. The goal is to extract Work-level entities (`TITLE`, `OTHER_TITLE`, `PERSON`) to support GND work linking. The pipeline must handle 4.47M records spanning pre-1700 Early Modern German to contemporary titles, with no consistent structural markup.
+DDB title strings are the primary text surface for bibliographic entity extraction in GeMeA. The goal is to extract Work-level entities (`TITLE`, `OTHER_TITLE`, `PERSON`) to support GND work linking. `DF_DE_TITLES` is a filtered snapshot (4.47M records) derived from the DDB corpus by selecting `ddb:hierarchyType` = `content`, then applying `dc:language` + `langid` = German — not the full DDB corpus. It spans pre-1700 Early Modern German to contemporary titles, with no consistent structural markup.
 
 ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority of records. NER is the fallback for the majority. The two approaches are complementary: ISBD parsing handles structured records reliably; NER handles the unstructured majority.
 
