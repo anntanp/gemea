@@ -129,11 +129,11 @@ Targets are grounded in benchmark ceilings (OntoNotes WORK_OF_ART: 0.55–0.72; 
 
 ---
 
-### D-10 — Evaluation metric: per-label bootstrap F1, 95% CI, exact span match
+### D-10 — Evaluation metric: per-label point-estimate F1, exact span match; bootstrap deferred
 
-**Decision:** Report per-label span F1 (exact character-offset + label match), per era and per tier. CI: 95% bootstrap (1000 samples). No macro/micro averages. Every F1 number in the paper must carry its CI.
+**Decision:** Report micro P/R/F1 per label per era as point estimates, following the HIPE-2022 reporting convention. Exact span match (both character boundaries and label must match). No macro/micro averages across labels. Sample sizes reported alongside every F1 figure. Bootstrap CI deferred to future work.
 
-**Why:** F1 has no closed-form variance — bootstrap is required (Efron & Tibshirani, 1993). Per-label reporting avoids averaging across labels with different prevalences and practical importance. Exact span match is the standard NER protocol (consistent with HIPE-2022, Ehrmann et al., 2022). 95% is the field convention (Dror et al., 2018).
+**Why:** The paper's primary contribution is the pipeline, not a model comparison. Point estimates per era are sufficient to support the claim that the pipeline produces usable extractions across eras — bootstrap CI is necessary when the question is whether two systems differ significantly, which is not the question here. Additionally, per-stratum n (~100 records) would produce wide CIs (±10–15 pp) that are more likely to obscure than inform without a larger sample. Exact span match is the standard NERC protocol, consistent with HIPE-2022 strict regime (Ehrmann et al., 2022) and CoNLL benchmarks.
 
 **Notes:** [sr08_evaluation-design.md](sr08_evaluation-design.md) §4
 

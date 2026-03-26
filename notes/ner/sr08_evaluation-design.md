@@ -87,9 +87,20 @@ The primary metric is **per-label span F1** with exact character-offset and labe
 
 F1 is reported per label (TITLE, PERSON, OTHER_TITLE) rather than as a macro or micro average, because the labels have different prevalences and different practical importance. Averaging across labels would obscure failures on rare but critical types.
 
-**Confidence intervals** are computed using bootstrap resampling (Efron & Tibshirani, 1993): resample the gold set with replacement 1000 times, compute F1 on each resample, and take the 2.5th–97.5th percentile as the 95% CI. Bootstrap is used rather than the Wilson interval because F1 is not a simple proportion — it is a ratio of precision and recall, each of which is itself a ratio — and has no closed-form variance. The 95% level is the field convention in NLP evaluation (Dror et al., 2018; Søgaard et al., 2014). Note: HIPE-2022 does not report confidence intervals — it cannot be cited for this convention.
+**CI strategy: point estimates following HIPE-2022 protocol, bootstrap as future work.**
 
-Every F1 number reported in the paper must be accompanied by its 95% bootstrap CI. Bare F1 values without CIs should not appear in evaluation tables or claims.
+For the current paper, evaluation follows the HIPE-2022 reporting convention: micro Precision, Recall, and F1 per label per era, as point estimates. Sample sizes are reported alongside each figure so readers can judge reliability directly. This is consistent with the most directly comparable historical NER benchmark (Ehrmann et al., 2022) and is sufficient for a resource track paper whose primary contribution is the pipeline, not a model comparison.
+
+Bootstrap CI (Efron & Tibshirani, 1993) would be the more rigorous approach — F1 has no closed-form variance (it is a ratio of precision and recall, each of which is itself a ratio of counts, so there is no algebraic formula to propagate uncertainty through the full expression), meaning resampling is the only general way to quantify uncertainty — but is deferred for two reasons:
+
+1. **Small per-stratum n.** With ~100 records per era stratum, bootstrap CIs will be wide (±10–15 pp). Reporting wide CIs without the sample size to tighten them risks being misleading rather than informative; it is cleaner to state the n and let the reader draw conclusions.
+2. **Contribution scope.** The paper's claim is that the pipeline produces usable extractions across eras, not that one model configuration is significantly better than another. Point estimates per era are sufficient to support that claim. Bootstrap CI becomes necessary when comparing two systems where the difference is small — that is a model comparison paper, not this one.
+
+**Exact span match** (both boundaries and label must match) is used throughout, consistent with HIPE-2022 strict regime and CoNLL NER benchmarks. Partial boundary matches are not counted.
+
+**References:**
+- Ehrmann, M., Romanello, M., Najem-Meyer, S., Doucet, A., & Clematide, S. (2022). Extended Overview of HIPE-2022: Named Entity Recognition and Linking in Multilingual Historical Documents. *CLEF 2022 Working Notes*, CEUR-WS Vol. 3180, paper-83. ⚠️ Does not report bootstrap CI — cite for F1 benchmarks and exact span match convention only.
+- Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter before citing.
 
 **References:**
 - Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter before citing.

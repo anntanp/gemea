@@ -86,7 +86,7 @@ sr08_verify_spans.py      (Doccano · pre-1700 first)
                 │
                 ▼
          Gold set (395 records)
-         ±10 pp CI · TITLE per era
+         point-estimate F1 · TITLE per era
                 │
                 ▼  SR-09
      NuNER Zero evaluation
@@ -192,10 +192,10 @@ See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full co
 - Re-run `sr08_sample_gold.py` with revised allocation once annotation is complete (tier-0 boost: 45% → 79%; see evaluation design §8)
 
 **Key decisions from evaluation design:**
-- **Size:** 395 records — sufficient for ±10 pp CI on TITLE F1 per era (±5 pp would require ~1,054 records; deferred due to time constraints)
-- **CI method:** 95% bootstrap F1 (1000 samples); every F1 number must carry a CI
+- **Size:** 395 records — sufficient for ±10 pp Wilson CI on TITLE F1 per era (±5 pp would require ~1,054 records; deferred due to time constraints)
+- **CI method:** point estimates (micro P/R/F1 per label per era), following HIPE-2022 reporting convention; sample sizes reported alongside every F1 figure. Bootstrap CI deferred — per-stratum n (~100) would produce wide CIs (±10–15 pp), and the paper's contribution is the pipeline, not a model comparison.
 - **Primary metric:** TITLE F1, reported per era — goal is reliable title extraction for GND linking
-- **PERSON metric:** secondary fallback; evaluated for pre-1700 and 1700–1800 only (person names in title: 8.7% and 5.0% respectively); CI will be wide (±15–20 pp) — report as indicative only
+- **PERSON metric:** secondary fallback; evaluated for pre-1700 and 1700–1800 only (person names in title: 8.7% and 5.0% respectively); report as indicative only given small n
 - **ner_person baseline:** derived from FLERT (Schweter & Akbik, 2020, arXiv:2011.06993)
 - **F1 targets per era:**
 
