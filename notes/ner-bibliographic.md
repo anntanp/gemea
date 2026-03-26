@@ -59,12 +59,12 @@ DF_DE_TITLES (4.47 M)
           ▼  sr08_sample_gold.py              │  SR-11
 ┌─────────────────────────┐     ┌─────────────────────────────┐
 │  SR-08 · Gold sampling  │     │  SR-11 · LLM annotation     │
-│  ~395 records           │     │  ~4–5 K tier-0, pre-1750    │
+│  395 records ✅          │     │  ~4–5 K tier-0, pre-1750    │
 │  era × tier × dc_type   │     │  (blocked on SR-08 seed)    │
 │  (SR-06: pre-1700       │     └─────────────────────────────┘
 │  stratum, no Latin)     │
 └────────────┬────────────┘
-             │  sr08_prefill_spans.py
+             │  sr08_prefill_spans.py ✅
      ┌───────┴──────────────────┐
      │                          │
      ▼                          ▼
@@ -73,14 +73,20 @@ Pre-filled / partial        Manual queue
 post-1700                   pre-1700 + tier-0
 sr08_gold_prefilled.jsonl   sr08_manual_queue.csv
      │                          │
-     ▼                          ▼
-sr08_verify_spans.py        Human annotation
-(span offset check)         (pre-1700 first)
+     ▼                          │
+sr08_doccano_import.py ✅       │
+sr08-doccano-import.jsonl       │
+(Doccano import ready)          │
+     │                          ▼
+     ▼                    Human annotation
+sr08_verify_spans.py      (Doccano · pre-1700 first)
+(span offset check)             │
      │                          │
      └──────────┬───────────────┘
                 │
                 ▼
-         Gold set (~395)
+         Gold set (395 records)
+         ±10 pp CI · TITLE per era
                 │
                 ▼  SR-09
      NuNER Zero evaluation
@@ -104,7 +110,7 @@ sr08_verify_spans.py        Human annotation
 | [SR-05](#25-sr-05--trailing-period-noise) | Trailing period noise | ✅ Resolved | — |
 | [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
 | [SR-07](#27-sr-07--frbr-metric-scope-for-paper) | FRBR metric scope for paper | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
-| [SR-08](#28-sr-08--gold-set-composition) | Gold set composition | 🔲 Open | [SR-09](#29-sr-09--nunner-zero-evaluation) |
+| [SR-08](#28-sr-08--gold-set-composition) | Gold set composition | 🔄 In progress — sample drawn, Doccano import ready, annotation pending | [SR-09](#29-sr-09--nunner-zero-evaluation) |
 | [SR-09](#29-sr-09--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-08 | — |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
 | [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔲 Open — blocked on SR-08 seed | — |
@@ -171,16 +177,38 @@ sr08_verify_spans.py        Human annotation
 - **Implication for SR-08:** gold set Phase 1 annotation covers `TITLE`, `OTHER_TITLE`, `PERSON` only. Expression labels (`TRANSLATOR`, `PARALLEL_TITLE`) should be included in the annotation schema from the start (to avoid re-annotation) but are not required for the initial evaluation pass.
 
 ### 2.8 SR-08 — Gold set composition
-**Status:** Open — blocks SR-09
+**Status:** In progress — annotation pending; blocks SR-09
 
-See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full content. Annotation procedure: [sr08_annotation-guide.md](ner/sr08_annotation-guide.md). Label naming rationale: [sr08_label-design-rationale.md](ner/sr08_label-design-rationale.md).
+See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full content. Annotation procedure: [sr08_annotation-guide.md](ner/sr08_annotation-guide.md). Label naming rationale: [sr08_label-design-rationale.md](ner/sr08_label-design-rationale.md). Evaluation design rationale: [sr08_evaluation-design.md](ner/sr08_evaluation-design.md).
 
-- **Size:** ~500 manually annotated records; 50-record seed annotated first (seeds SR-11 prompt and serves as the bootstrapping set)
-- **Stratification:** era (modern / 19th c. / 1700–1800 / pre-1700) × silver tier (2 / 1 / 0) × `dc_type`; Leichenpredigt and Einblattdruck oversampled to ~50 each; tier-0 pre-1700 over-represented (primary inference path)
+**Completed:**
+- Gold sample drawn: **395 records** (`sr08_sample_gold.py`) — era × tier × dc_type stratified; Leichenpredigt and Einblattdruck oversampled
+- Spans pre-filled: **183 records** with ISBD-derived spans (`sr08_prefill_spans.py`) — tier-1/2, post-1700; 212 records in manual queue (`sr08_manual_queue.csv`)
+- Doccano import file ready: `data/annotation/sr08-doccano-import.jsonl` (`sr08_doccano_import.py`)
+- Evaluation design documented: CI target, F1 thresholds, metric, sample size rationale — see [sr08_evaluation-design.md](ner/sr08_evaluation-design.md)
+
+**Pending:**
+- Human annotation in Doccano (pre-1700 tier-0 first; 2 annotators required for manual queue)
+- Re-run `sr08_sample_gold.py` with revised allocation once annotation is complete (tier-0 boost: 45% → 79%; see evaluation design §8)
+
+**Key decisions from evaluation design:**
+- **Size:** 395 records — sufficient for ±10 pp CI on TITLE F1 per era (±5 pp would require ~1,054 records; deferred due to time constraints)
+- **CI method:** 95% bootstrap F1 (1000 samples); every F1 number must carry a CI
+- **Primary metric:** TITLE F1, reported per era — goal is reliable title extraction for GND linking
+- **PERSON metric:** secondary fallback; evaluated for pre-1700 and 1700–1800 only (person names in title: 8.7% and 5.0% respectively); CI will be wide (±15–20 pp) — report as indicative only
+- **ner_person baseline:** derived from FLERT (Schweter & Akbik, 2020, arXiv:2011.06993)
+- **F1 targets per era:**
+
+| Era | TITLE F1 target | PERSON F1 target |
+|---|---|---|
+| Modern | ≥ 0.85 | — (person names rarely in title: 0.2%) |
+| 19th-c | ≥ 0.80 | — |
+| 1700–1800 | ≥ 0.75 | ≥ 0.70 |
+| Pre-1700 | ≥ 0.70 | ≥ 0.70 |
+
 - **Schema:** Phase 1 labels `TITLE`, `OTHER_TITLE`, `PERSON`; annotate Phase 2 labels `TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM` in the same pass to avoid re-annotation
 - **No Latin stratum (from SR-06):** true Latin prevalence ~0.5% — too rare to stratify; mark `lang=la` if encountered
-- **Pre-1750 PERSON annotation (from SR-03):** ` /` SoR heuristic is a systematic false negative for pre-1750 — authors appear before the work title. Annotators must use opening credential + name + role pattern; PERSON F1 tracked separately for pre-1700 stratum. See [sr03_silver-label-fp-review.md §5](ner/sr03_silver-label-fp-review.md#5-pre-1750-false-negatives--author-before-title) and [sr08 §4](ner/sr08_gold-set-composition.md#4-annotation-guidelines-for-pre-1750-records)
-- **Decision thresholds:** overall F1 ≥ 0.80; TITLE F1 ≥ 0.85; PERSON F1 (pre-1700) ≥ 0.75; LLM agreement ≥ 0.85
+- **Pre-1750 PERSON annotation (from SR-03):** ` /` SoR heuristic is a systematic false negative for pre-1750 — authors appear before the work title. Annotators must use opening credential + name + role pattern; PERSON F1 tracked separately for pre-1700 stratum
 
 ### 2.9 SR-09 — NuNER Zero evaluation
 **Status:** Open — blocked on SR-08
