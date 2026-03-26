@@ -164,11 +164,55 @@ Script: `sr08_ci_sample_size.py`; data: `data/processed/sr08_ci_sample_size.csv`
 
 ---
 
-## 7. What needs to be done to finalise allocation
+## 7. Pending items
 
-1. ~~Fix the TITLE F1 usability threshold~~ — resolved: see §3
-2. ~~Pull actual corpus cell sizes~~ — resolved: see §5
-3. ~~Compute minimum per-stratum record counts~~ — resolved: see §6
-4. **Cap at corpus availability and redistribute** — tier-2 is nearly exhausted (0 pre-1700, 70 modern); allocation must shift toward tier-0 and tier-1
-5. **Update the allocation table** in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
-6. ~~Decide whether to expand the gold set~~ — resolved: ±10 pp CI adopted due to time constraints; current 395-record set is sufficient
+- [x] Fix the TITLE F1 usability threshold — resolved: see §3
+- [x] Pull actual corpus cell sizes — resolved: see §5
+- [x] Compute minimum per-stratum record counts — resolved: see §6
+- [x] Decide whether to expand the gold set — resolved: ±10 pp CI adopted due to time constraints; current 395-record set is sufficient
+- [ ] Cap at corpus availability and redistribute — see §8
+- [ ] Update the allocation table in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
+
+---
+
+## 8. Revised allocation strategy
+
+**Principle: oversample problematic strata, not corpus proportions.**
+
+Tier-0 is the hardest inference path (no ISBD signals) and the most prevalent in the corpus (92.4%). Tier-2 is structurally clean — a small spot-check is enough to verify the prefill logic but contributing many tier-2 records inflates F1 scores without testing the model on difficult cases. The allocation should therefore heavily favour tier-0, with tier-1 included for structural coverage and tier-2 minimised.
+
+Within tier-0, pre-1700 and 1700–1800 are the highest-risk strata: author-before-title structure, historical orthography, and dc:creator absent in 67–71% of records making PERSON extraction the only fallback. These should receive the most records.
+
+**Audit of current gold set** — script: `sr08_gold_composition_audit.py`; data: `data/processed/sr08_gold_composition_audit.csv`:
+
+| Era | Tier-0 (actual) | Tier-1 (actual) | Tier-2 (actual) | Total (actual) | Total (target) | Delta |
+|---|---|---|---|---|---|---|
+| Pre-1700 | 96 | 34 | 0 | 130 | 100 | +30 |
+| 1700–1800 | 37 | 33 | 10 | 80 | 60 | +20 |
+| 19th-c | 15 | 30 | 15 | 60 | 60 | 0 |
+| Modern | 20 | 40 | 20 | 80 | 80 | 0 |
+| Unknown | 10 | 35 | 0 | 45 | 0 | +45 |
+| **Total** | **178** | **172** | **45** | **395** | **300** | **+95** |
+
+The original targets summed to only 300; the extra 95 records came from genre oversampling (Leichenpredigt, Einblattdruck) and the unknown era. The current set already oversamples pre-1700 relative to original targets — but the tier composition is off: tier-1 is over-represented (172 records, 43.5%) relative to its evaluation value.
+
+**Proposed revised allocation** (total kept at 395, tier-0 boosted, tier-2 minimised):
+
+| Era | Tier-0 | Tier-1 | Tier-2 | Total | Rationale |
+|---|---|---|---|---|---|
+| Pre-1700 | 110 | 20 | 0 | 130 | Hardest stratum; PERSON fallback; corpus has 0 tier-2 |
+| 1700–1800 | 75 | 15 | 5 | 95 | Transitional; PERSON fallback; minimal tier-2 spot-check |
+| 19th-c | 55 | 15 | 5 | 75 | TITLE primary; tier-0 boosted over current 15 |
+| Modern | 55 | 10 | 5 | 70 | TITLE primary; tier-0 boosted; corpus has only 70 tier-2 total |
+| Unknown | 15 | 10 | 0 | 25 | Reduced; era unknown limits evaluation utility |
+| **Total** | **310** | **70** | **15** | **395** | Tier-0 share: 78.5% vs. current 45.1% |
+
+Key changes from current:
+- Tier-0 share increases from 45.1% → 78.5%
+- Tier-1 reduced from 172 → 70 (less structural signal = less evaluation value per record)
+- Tier-2 reduced from 45 → 15 (spot-check only)
+- 1700–1800 total increased from 80 → 95 (PERSON fallback priority)
+- Modern reduced from 80 → 70 (lower risk, TITLE only)
+- Unknown reduced from 45 → 25
+
+All proposed counts are well within corpus availability (see §5).
