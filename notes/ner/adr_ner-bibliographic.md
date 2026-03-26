@@ -1,4 +1,4 @@
-# ADR — NER for Bibliographic Title Extraction
+# Architecture Decision Record — NER for Bibliographic Title Extraction
 
 **Status:** In progress — SR-08 annotation pending; SR-09, SR-11 blocked
 **Scope:** NER pipeline for extracting structured bibliographic entities from `DF_DE_TITLES` (4.47M German DDB title strings)
@@ -24,6 +24,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 
 **Consequence:** NER applies to ~92.4% of the corpus (tier-0, no ISBD signals) — the majority, not a small edge case.
 
+**Notes:** [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) · [sr01_isbd-applicability.md](sr01_isbd-applicability.md) · [silver-dataset-pipeline.md](silver-dataset-pipeline.md)
+
 ---
 
 ### D-02 — Parser must prioritise ` :` over ` /`
@@ -31,6 +33,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 **Decision:** `OTHER_TITLE` / `TITLE` boundary uses ` :` as the primary split signal. ` /` (SoR) is secondary.
 
 **Why (SR-02):** ` :` appears in 20.2% of titles; ` /` appears in only 0.8%. Prioritising ` /` would miss 96% of subtitle splits.
+
+**Notes:** [sr01_isbd-field-rating.md](sr01_isbd-field-rating.md) · [sr01_isbd-field-rating-adr.md](sr01_isbd-field-rating-adr.md)
 
 ---
 
@@ -40,6 +44,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 
 **Why (SR-03, SR-05):** FP rates above 15% degrade silver label quality below usefulness. `f_parallel` and `f_edition` were found to fire predominantly on false positives. Trailing `.` adds no detection power beyond `has_dot_dash`.
 
+**Notes:** [sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md) · [sr05_trailing-period-noise.md](sr05_trailing-period-noise.md)
+
 ---
 
 ### D-04 — TRANSLATOR and EDITOR dropped as silver label targets
@@ -47,6 +53,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 **Decision:** `TRANSLATOR` and `EDITOR` are not viable silver label types. `f_person` sub-classified as: `f_resp_person` (true author SoR), `f_resp_org` (corporate body), `f_resp_family` (family), `f_resp_editor` (editor role), `f_resp_other` (non-SoR).
 
 **Why (SR-04):** 0 true translators found in 100-record sample. EDITOR detection: 0 F1. Only 35% of `f_person` records are true author SoRs; 41% are non-SoR false positives, 19% corporate bodies, 5% editors. The ISBD/RDA agent model requires sub-classification, not a flat TRANSLATOR label.
+
+**Notes:** [sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md)
 
 ---
 
@@ -56,6 +64,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 
 **Why (SR-06):** Latin heuristic has 83% FP rate — standard German Protestant/academic vocabulary (`Anno`, `Christi`, `Doctor`) triggers false positives. EARLY_MODERN_DE heuristic achieves F1 = 0.95 after two rule fixes.
 
+**Notes:** [sr06_historical-scope.md](sr06_historical-scope.md)
+
 ---
 
 ### D-06 — FRBR scope: Work labels in Phase 1, Expression labels in Phase 2
@@ -64,6 +74,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 
 **Why (SR-07):** DDB objects are Manifestation-level. Work-level labels are the minimum viable set for GND linking quality metrics. Expression labels require additional heuristics and are not needed to establish the paper's primary contribution. Annotating Phase 2 labels in the same pass avoids re-annotation.
 
+**Notes:** [sr08_label-design-rationale.md](sr08_label-design-rationale.md) · [sr08_gold-set-composition.md](sr08_gold-set-composition.md)
+
 ---
 
 ### D-07 — NER model path: NuNER Zero → LLM labeling → fine-tune xlm-roberta-base
@@ -71,6 +83,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 **Decision:** Evaluate NuNER Zero zero-shot first (SR-09). If TITLE F1 meets threshold: deploy zero-shot. If not: generate 4k–5k LLM-labeled records (SR-11) and fine-tune `xlm-roberta-base` on silver + LLM-labeled set.
 
 **Why:** NuNER Zero is the strongest available zero-shot NER model for this task size and language profile (see [ref_gliner-nunerzero-comparison.md](ref_gliner-nunerzero-comparison.md)). Fine-tuning on silver labels alone risks propagating ISBD-induced label noise; LLM annotation of tier-0 records provides coverage where silver labels are absent.
+
+**Notes:** [ref_gliner-nunerzero-comparison.md](ref_gliner-nunerzero-comparison.md) · [sr11_labeling-strategy.md](sr11_labeling-strategy.md)
 
 ---
 
@@ -91,6 +105,8 @@ ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority o
 
 Targets are grounded in benchmark ceilings (OntoNotes WORK_OF_ART: 0.55–0.72; HIPE-2022 historical German: 0.60–0.78), not assumed intervention rates.
 
+**Notes:** [sr08_evaluation-design.md](sr08_evaluation-design.md) · [sr08_gold-set-composition.md](sr08_gold-set-composition.md)
+
 ---
 
 ### D-09 — Tier allocation: oversample tier-0, minimise tier-2
@@ -99,6 +115,8 @@ Targets are grounded in benchmark ceilings (OntoNotes WORK_OF_ART: 0.55–0.72; 
 
 **Why (SR-08):** Tier-0 is the hardest inference path (no ISBD signals), the most prevalent in corpus (92.4%), and the stratum where NER matters most. Tier-2 records inflate F1 without testing difficult cases. Pre-1700 tier-0 is the primary failure risk: author-before-title structure + historical orthography + dc:creator absent in 67%.
 
+**Notes:** [sr08_evaluation-design.md](sr08_evaluation-design.md) §8 · [sr08_gold-set-composition.md](sr08_gold-set-composition.md)
+
 ---
 
 ### D-10 — Evaluation metric: per-label bootstrap F1, 95% CI, exact span match
@@ -106,6 +124,8 @@ Targets are grounded in benchmark ceilings (OntoNotes WORK_OF_ART: 0.55–0.72; 
 **Decision:** Report per-label span F1 (exact character-offset + label match), per era and per tier. CI: 95% bootstrap (1000 samples). No macro/micro averages. Every F1 number in the paper must carry its CI.
 
 **Why:** F1 has no closed-form variance — bootstrap is required (Efron & Tibshirani, 1993). Per-label reporting avoids averaging across labels with different prevalences and practical importance. Exact span match is the standard NER protocol (consistent with HIPE-2022, Ehrmann et al., 2022). 95% is the field convention (Dror et al., 2018).
+
+**Notes:** [sr08_evaluation-design.md](sr08_evaluation-design.md) §4
 
 ---
 
