@@ -347,6 +347,8 @@ These patterns appear frequently and must not receive any label:
 
 ## 7. Span boundary rules
 
+> For the full set of TITLE boundary curation decisions (leading articles, parentheticals, truncation markers, pre-1700 separator rules, etc.), see [sr08_title-boundary-curation.md](sr08_title-boundary-curation.md). The rules below state the general principles; that note is the authoritative reference for case-by-case decisions.
+
 1. **Offsets are character positions** into the raw `title` string, 0-indexed, end-exclusive. `title[start:end]` must equal the `text` field exactly — this is checked by `sr08_verify_spans.py`.
 2. **Trim leading and trailing whitespace** from span boundaries. `start` points to the first non-space character of the entity; `end` points one past the last non-space character.
 3. **No overlapping spans.** If a credential and name could each be labeled separately, merge them into one PERSON span.

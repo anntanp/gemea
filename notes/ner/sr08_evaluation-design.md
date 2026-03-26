@@ -88,7 +88,7 @@ These targets are grounded in benchmark ceilings, not in an assumed intervention
 
 Fuzzy (overlapping boundary) match would inflate scores without telling us whether the extracted title is actually usable for GND linking. Exact match is therefore the more appropriate choice for the end goal.
 
-One risk: **boundary disagreement between annotators** on long pre-1700 titles, where the edge between TITLE and a trailing author credential is genuinely ambiguous. If annotators disagree systematically, exact span match will penalise the model for annotation inconsistency rather than extraction failure. This should be flagged in the paper and monitored during annotation.
+One risk: **boundary disagreement between annotators** on long pre-1700 titles, where the edge between TITLE and a trailing author credential is genuinely ambiguous. If annotators disagree systematically, exact span match will penalise the model for annotation inconsistency rather than extraction failure. This should be flagged in the paper and monitored during annotation. Curation decisions for each structural case are documented in [sr08_title-boundary-curation.md](sr08_title-boundary-curation.md) and must be applied uniformly.
 
 ### 4.2 Per-label reporting vs. averages
 
