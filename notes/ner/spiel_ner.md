@@ -22,24 +22,6 @@ Title proper : other title information / statement of responsibility
 | ` =` | Parallel title | `Faust = Faust` |
 | ` ;` | Series volume separator | `(Schriften ; Bd. 7)` |
 
-**What actually holds in DDB:**
-
-Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/processed/sr03_heuristic_validation_sample.csv`. Full rule-by-rule decisions: [sr01_isbd-applicability.md §2](sr01_isbd-applicability.md).
-
-| Signal | Coverage | Decision |
-|---|---|---|
-| `. -` area separator | [**1.2%**](sr01_isbd-field-rating.md) | ✅ Accept — high precision when present |
-| ` :` subtitle | [20.2%](sr01_isbd-field-rating.md) | ✅ Accept — [~8% FP](sr03_silver-label-fp-review.md) |
-| 4-digit year | [14.6%](sr01_isbd-field-rating.md) | ✅ Accept — [~6% FP](sr03_silver-label-fp-review.md) |
-| ` /` SoR | [0.8%](sr01_isbd-field-rating.md) | ⚠️ Sub-classify — [36% FP for PERSON; 41% non-SoR](sr04_translator-person-disambiguation.md) |
-| ` =` parallel title | [0.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~80% FP](sr03_silver-label-fp-review.md); DDB serials repurpose `=` for enumeration (e.g. [`7. Januar-30. December 1891 = 1.-21. Stück`](https://ddb.de/item/UAEOTQYLDUDCNSSG2IXPY4JM6G4MDD27)) |
-| Edition keyword | [3.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~83% FP](sr03_silver-label-fp-review.md); newspapers use "Ausgabe vom [date]" as issue label (e.g. [`Erste Ausgabe vom Dienstag, den 18. Mai 1937.`](https://ddb.de/item/YASRD5RWR6SXOLRMJ24A66FL4EWJ5ZNP)) |
-| Trailing `.` | [17.5%](sr01_isbd-title-analysis.md) | ❌ Exclude — [~93% FP](sr05_trailing-period-noise.md) ([abbreviations](sr05_abbreviations.md), ordinals) |
-
-- Most DDB records are catalogued with **title-area punctuation only** — `. -` area separators are nearly absent
-- ` /` (SoR) fires on four distinct content types: individual person ([35%](sr04_translator-person-disambiguation.md)), corporate body ([19%](sr04_translator-person-disambiguation.md)), editor ([5%](sr04_translator-person-disambiguation.md)), non-SoR false positive ([41%](sr04_translator-person-disambiguation.md)) — sub-classification required before use as a PERSON label
-- Pre-1750 records have **no ` /` marker** even when an author is named — author credentials appear before the title, not after it
-
 ## 1. Scale of the fallback
 
 ~**71.6%** of DF_DE_TITLES (3.2M of 4.48M records) are expected to use the NER fallback.
@@ -141,7 +123,25 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
 
 **395 records** — drawn from DF_DE_TITLES, stratified by era × silver tier × dc_type. ([sr08_gold-set-composition.md](sr08_gold-set-composition.md), [sr08_evaluation-design.md](sr08_evaluation-design.md))
 
-### 6.1 Era and title distribution
+### 6.1 ISBD signal coverage in DDB
+
+Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/processed/sr03_heuristic_validation_sample.csv`. Full rule-by-rule decisions: [sr01_isbd-applicability.md §2](sr01_isbd-applicability.md).
+
+| Signal | Coverage | Decision |
+|---|---|---|
+| `. -` area separator | [**1.2%**](sr01_isbd-field-rating.md) | ✅ Accept — high precision when present |
+| ` :` subtitle | [20.2%](sr01_isbd-field-rating.md) | ✅ Accept — [~8% FP](sr03_silver-label-fp-review.md) |
+| 4-digit year | [14.6%](sr01_isbd-field-rating.md) | ✅ Accept — [~6% FP](sr03_silver-label-fp-review.md) |
+| ` /` SoR | [0.8%](sr01_isbd-field-rating.md) | ⚠️ Sub-classify — [36% FP for PERSON; 41% non-SoR](sr04_translator-person-disambiguation.md) |
+| ` =` parallel title | [0.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~80% FP](sr03_silver-label-fp-review.md); DDB serials repurpose `=` for enumeration (e.g. [`7. Januar-30. December 1891 = 1.-21. Stück`](https://ddb.de/item/UAEOTQYLDUDCNSSG2IXPY4JM6G4MDD27)) |
+| Edition keyword | [3.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~83% FP](sr03_silver-label-fp-review.md); newspapers use "Ausgabe vom [date]" as issue label (e.g. [`Erste Ausgabe vom Dienstag, den 18. Mai 1937.`](https://ddb.de/item/YASRD5RWR6SXOLRMJ24A66FL4EWJ5ZNP)) |
+| Trailing `.` | [17.5%](sr01_isbd-title-analysis.md) | ❌ Exclude — [~93% FP](sr05_trailing-period-noise.md) ([abbreviations](sr05_abbreviations.md), ordinals) |
+
+- Most DDB records are catalogued with **title-area punctuation only** — `. -` area separators are nearly absent
+- ` /` (SoR) fires on four distinct content types: individual person ([35%](sr04_translator-person-disambiguation.md)), corporate body ([19%](sr04_translator-person-disambiguation.md)), editor ([5%](sr04_translator-person-disambiguation.md)), non-SoR false positive ([41%](sr04_translator-person-disambiguation.md)) — sub-classification required before use as a PERSON label
+- Pre-1750 records have **no ` /` marker** even when an author is named — author credentials appear before the title, not after it
+
+### 6.2 Era and title distribution
 
 The four era strata are defined by NER difficulty, not by equal corpus size. Title length is the primary difficulty signal — longer titles mean harder TITLE boundary detection. ([sr10_de-titles-distribution.md](sr10_de-titles-distribution.md))
 
@@ -161,7 +161,7 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 - **19th-c** median stabilises at 8 tokens; 28.3% short. NER challenge shifts from boundary ambiguity to domain noise: newspaper records misuse `=` and edition keywords; corporate SoRs dominate ` /` signals.
 - **Modern** median 8 tokens, 30.9% short, 51.4% medium — digital-born metadata with richer descriptions, but subtitles stored separately, so ` :` recall drops even when a subtitle exists.
 
-### 6.2 Composition and size
+### 6.3 Composition and size
 
 - Sized for **±10 pp Wilson CI on TITLE F1 per era** — minimum ~265 records; 395 comfortably exceeds this
 - ±5 pp would require 1,054 records — not feasible
@@ -173,13 +173,13 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 | Silver tier | tier-0 / tier-1 / tier-2 | Must cover all inference paths; tier-0 is 92.4% of corpus |
 | dc_type | Leichenpredigt, Monografie, Einblattdruck | Genre-specific structure; Leichenpredigt has highest pre-1750 density |
 
-### 6.3 PERSON constraint
+### 6.4 PERSON constraint
 
 - Person names in title: 8.7% pre-1700, 5.0% 1700–1800 — far too sparse to hit ±10 pp CI without thousands of records
 - ±10 pp on PERSON needs 932 pre-1700 records, 1,620 for 1700–1800 — not feasible
 - Decision: accept wide CI on PERSON; report as indicative only; must be stated explicitly in the paper
 
-### 6.4 Annotation scope
+### 6.5 Annotation scope
 
 - Leichenpredigt and Einblattdruck oversampled (~40–50 each) — highest-risk failure modes
 - Phase 2 labels (`TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`) annotated in the same pass to avoid re-annotation — excluded from Phase 1 evaluation claims
