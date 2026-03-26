@@ -12,6 +12,16 @@ DDB title strings are the primary text surface for bibliographic entity extracti
 
 ISBD punctuation (`. -`, ` :`, ` /`) provides structural signals in a minority of records. NER is the fallback for the majority. The two approaches are complementary: ISBD parsing handles structured records reliably; NER handles the unstructured majority.
 
+Each record is assigned a **silver tier** by `sr01_rate_isbd_fields.py` based on how many and which ISBD heuristic fields fire:
+
+| Tier | Criteria | Corpus share | Role |
+|---|---|---|---|
+| **2** | `has_dot_dash` AND `f_person` AND at least one of `f_edition`, `f_place`, `f_publisher`, `f_year`, `f_series` | 0.1% (4,613 records) | Primary silver training set — structural area separator present; multi-field span labeling with high confidence |
+| **1** | `n_fields ≥ 3` OR (`f_person` AND `f_year`) | 7.5% (335,524 records) | Augmentation set — partial ISBD evidence; Work + Expression level annotation |
+| **0** | All others — no reliable ISBD signal | 92.4% (4,137,643 records) | Not selected as silver candidates; primary NER inference target |
+
+`has_dot_dash` (`. -` area separator) is the gating condition for tier-2: it is present in only 1.2% of records, which directly caps tier-2 at 0.1%. Tier-0 is where NER does all the work.
+
 ---
 
 ## 2. Decisions
