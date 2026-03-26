@@ -147,15 +147,3 @@ Targets are grounded in benchmark ceilings (OntoNotes WORK_OF_ART: 0.55–0.72; 
 | LLM annotation prompt design (SR-11) | SR-08 50-record seed | Early Modern German author-before-title prompt spec |
 | Silver tier field weighting (SR-12) | SR-03 extension, SR-08 | Replace binary threshold with precision-weighted score |
 | Revised allocation re-sample | SR-08 annotation complete | Re-run `sr08_sample_gold.py` with tier-0 boost |
-
----
-
-## 4. References
-
-- Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall. ⚠️ verify page/chapter.
-- Ehrmann, M., et al. (2022). HIPE-2022: Naming the Past. *CLEF 2022 Working Notes*, CEUR-WS vol. 3180. ⚠️ verify author list and volume.
-- Weischedel, R., et al. (2013). *OntoNotes Release 5.0.* LDC2013T19. ⚠️ verify catalog number.
-- Dror, R., et al. (2018). Deep Dominance. *ACL 2018*.
-- Schweter, S., & Akbik, A. (2020). FLERT: Document-Level Features for Named Entity Recognition. arXiv:2011.06993.
-- Zaratiana, U., et al. (2024). GLiNER. *NAACL 2024*.
-- Bogdanov, S., et al. (2024). NuNER. *EMNLP 2024*.
