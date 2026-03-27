@@ -110,7 +110,19 @@ Per 25-year bucket (N = 4,048,683 titles with year; 1500+):
 
 ---
 
-## 5. References
+## 5. Longest title in the dataset
+
+The record with the highest `all_tokens` count (921 tokens; 506 `content_tokens`) is a collective review of 33 pamphlets from the *Allgemeine Literatur-Zeitung*, 1831:
+
+> [Sammelrezension von 33 Schriften, veranlasst durch die aufrührerischen Bewegungen im Königreiche Hannover.] (Fortsetzung vom vorigen Stück.) Rezensiert werden: 1) Gans, S. P.: Ueber die Verarmung der Städte und des Landmanns …
+
+`obj_id`: [`52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB`](https://www.deutsche-digitale-bibliothek.de/item/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB) — link validated 2026-03-27.
+
+This is a pathological case: the full `title` field contains the enumerated bibliographic descriptions of all 33 reviewed works concatenated into one string, not a single descriptive title. It represents a cataloging artifact where a multi-item review was ingested as a single title record, inflating the token count far beyond any genuine title.
+
+---
+
+## 6. References
 
 The post-1775 title-length shift is attributed to a publishing convention change (early modern → modern title-page norms), not to cataloging standardization. The following are high-confidence anchors for that claim:
 

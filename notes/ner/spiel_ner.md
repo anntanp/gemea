@@ -97,6 +97,20 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
 
 ### 5.2 Target scores
 
+**How the strata were determined:**
+
+- *Era* and *stratum* are used interchangeably throughout — each era is one evaluation stratum
+- Strata are defined by **NER difficulty**, not by equal corpus size or calendar convention
+- Primary signal: title-length distribution — longer titles mean harder TITLE boundary detection (see §7.2, `data/processed/sr10_era_length_summary.csv`)
+- Secondary signal: register shift — author placement, orthography, and ISBD adoption all change discontinuously at the same boundaries
+
+| Stratum | Boundary rationale |
+|---|---|
+| Pre-1700 | Author-before-title convention; early modern orthography; no ISBD; 46.9% long titles, median 13 tokens |
+| 1700–1800 | Transition: ISBD adoption begins ~1750; author placement mixed; 32.0% long titles |
+| 19th-c | ISBD stabilises; serials and newspapers dominate; median drops to 8 tokens |
+| Modern (≥1900) | Digital-born metadata; subtitles in separate fields; short titles; ISBD rare in title string |
+
 - F1 targets are grounded in benchmark ceilings, not assumed performance
 
 | Stratum | TITLE F1 target | PERSON F1 target |
@@ -119,11 +133,72 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
 - Deferred here due to **low** sample size — ~100 records per era stratum yields ±10–15 pp CIs, too wide to be informative
 - Becomes necessary when comparing two systems where the difference is small; not required here as the paper's claim is pipeline viability, not model comparison
 
-## 6. Gold Dataset
+## 6. Silver Dataset
+
+**Why a silver dataset is necessary:**
+
+- 4.5M records cannot be manually annotated; a fully supervised approach requires labeled data at scale
+- NuNER Zero is zero-shot — it produces predictions, but without any labeled signal there is no way to measure where it fails or to fine-tune if it does
+- The fallback plan (LLM annotation + fine-tuned XLM-R) requires training data; silver labels are the only scalable source
+
+**How ISBD punctuation enables automatic labeling:**
+
+- ISBD signals are structural markers embedded in the title string — each punctuation pattern maps directly to a label:
+
+| Signal | Fires on | Silver label assigned |
+|---|---|---|
+| ` :` | Subtitle boundary | `OTHER_TITLE` — text after ` :` |
+| ` /` (after sub-classification) | True person SoR | `PERSON` — text after ` /` |
+| 4-digit year in expected position | Publication year | year span (Manifestation, deferred) |
+
+- No human annotation needed — the rule fires on the string, the span is extracted, the label is assigned automatically across all 4.5M records
+- The text *before* any firing signal is assigned `TITLE` by default — the rule-based pipeline implicitly labels the majority class at zero cost
+
+### 6.1 Silver tiers
+
+Three tiers reflect three qualitatively distinct inference paths — not a spectrum, but categorical evidence levels. ([sr01_isbd-field-rating.md](sr01_isbd-field-rating.md), [sr01_isbd-applicability.md](sr01_isbd-applicability.md))
+
+| Tier | Label | Criterion | Inference path |
+|---|---|---|---|
+| **2** | Structural | `has_dot_dash` AND `f_person` AND ≥1 of {place, publisher, year, series} | Deterministic ISBD parsing — multi-field spans extractable with high confidence |
+| **1** | Heuristic | `n_fields ≥ 3` OR (`f_person` AND `f_year`) | Converging weak signals — no area separator, but enough co-occurring fields to reduce coincidence risk |
+| **0** | Fallback | All else | No ISBD signal — pure NER inference; model must rely on learned patterns alone |
+
+- **Tier 2 gating criterion**: `. -` area separator (`has_dot_dash`) — indicates fully structured ISBD record; its presence is categorical, not a degree
+- **Tier 1 threshold**: `n_fields ≥ 3` requires at least three independent signals to fire together; OR `f_person AND f_year` because authorship + date co-occurrence is a strong heuristic for a structured SoR
+- **Tier 0** is the primary NER target — 92.4% of DF_DE_TITLES; model performance matters most here. Note: tier-0 ≠ "no signals at all" — 71.6% have zero accepted ISBD signals (§1 NER fallback); the remaining ~20.8 pp have partial signals (e.g. only ` :` fires) but insufficient convergence to reach the tier-1 threshold (`n_fields < 3` and no `f_person AND f_year`)
+- Fields excluded from tier logic: `f_parallel` (~80% FP), `f_edition` (~83% FP) — validated by SR-03 ([sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md))
+- `f_person` requires sub-classification before use: 36% FP as PERSON; 41% are non-SoR false positives ([sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md))
+
+### 6.2 Tier composition
+
+Source: `data/processed/sr01_isbd_field_ratings.csv` (4,477,780 records; run 2026-03-21) and `data/processed/sr08_corpus_cell_sizes.csv`.
+
+**Corpus-wide:**
+
+| Tier | Records | % |
+|---|---|---|
+| Tier 2 — structural | 4,613 | 0.1% |
+| Tier 1 — heuristic | 335,524 | 7.5% |
+| Tier 0 — fallback | 4,137,643 | 92.4% |
+
+**By era:**
+
+| Era | Tier 0 | Tier 1 | Tier 2 | Total |
+|---|---|---|---|---|
+| Pre-1700 | 259,434 | 19,102 | 0 | 278,536 |
+| 1700–1800 | 530,576 | 36,088 | 1,274 | 567,938 |
+| 19th-c | 830,570 | 91,610 | 3,265 | 925,445 |
+| Modern | 1,123,728 | 75,185 | 70 | 1,198,983 |
+
+- **Pre-1700: zero tier-2 records** — pre-ISBD titles predate area-separator conventions; `has_dot_dash` never fires
+- **Modern: only 70 tier-2 records** — digital-born metadata stores subtitle in a separate field, so `. -` does not appear in the title string even when the full ISBD record exists
+
+## 7. Gold Dataset
 
 **395 records** — drawn from DF_DE_TITLES, stratified by era × silver tier × dc_type. ([sr08_gold-set-composition.md](sr08_gold-set-composition.md), [sr08_evaluation-design.md](sr08_evaluation-design.md))
 
-### 6.1 ISBD signal coverage in DDB
+### 7.1 ISBD signal coverage in DDB
 
 Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/processed/sr03_heuristic_validation_sample.csv`. Full rule-by-rule decisions: [sr01_isbd-applicability.md §2](sr01_isbd-applicability.md).
 
@@ -141,18 +216,20 @@ Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/
 - ` /` (SoR) fires on four distinct content types: individual person ([35%](sr04_translator-person-disambiguation.md)), corporate body ([19%](sr04_translator-person-disambiguation.md)), editor ([5%](sr04_translator-person-disambiguation.md)), non-SoR false positive ([41%](sr04_translator-person-disambiguation.md)) — sub-classification required before use as a PERSON label
 - Pre-1750 records have **no ` /` marker** even when an author is named — author credentials appear before the title, not after it
 
-### 6.2 Era and title distribution
+### 7.2 Era and title distribution
 
 The four era strata are defined by NER difficulty, not by equal corpus size. Title length is the primary difficulty signal — longer titles mean harder TITLE boundary detection. ([sr10_de-titles-distribution.md](sr10_de-titles-distribution.md))
 
 ![Title-length distribution by year](../images/fig_title_lengths.png)
 
+- Longest title: 921 tokens — a [cataloging artifact](sr10_de-titles-distribution.md#5-longest-title-in-the-dataset): 33 concatenated bibliographic descriptions from a collective review in *Allgemeine Literatur-Zeitung* (1831). [DDB record](https://www.deutsche-digitale-bibliothek.de/item/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB)
+
 Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_summary.py`). Record counts include title-regex year fallback; totals differ from `sr08_corpus_cell_sizes.csv`, which uses the `dates` column only.
 
 | Era | Corpus records | Short ≤4 | Medium 5–14 | Long >14 | Median tokens | Key NER challenge |
 |---|---|---|---|---|---|---|
-| Pre-1700 | 331,349 | 15.7% | 37.4% | **46.9%** | 13 | Author-before-title; early modern orthography; long title-page transcriptions |
-| 1700–1800 | 827,456 | 27.4% | 40.6% | **32.0%** | 9 | Transition period; author placement mixed; title lengths still elevated |
+| Pre-1700 | 331,349 | 15.7% | 37.4% | **46.9%** | 13 | [Author-before-title](https://www.deutsche-digitale-bibliothek.de/item/KQCJ7APICPYVGBUZ544FKAICNU73FVKH); early modern orthography; [long title-page transcriptions](https://www.deutsche-digitale-bibliothek.de/item/PBKMFCEQ2CM622H4SXHBIA5KYYJUQO6U) |
+| 1700–1800 | 827,456 | 27.4% | 40.6% | **32.0%** | 9 | Transition period; [author placement mixed](https://www.deutsche-digitale-bibliothek.de/item/TESMJCHDS7J3G74XAGVKMC7JBBD6F4PV); title lengths still elevated |
 | 19th-c | 1,382,993 | 28.3% | 47.4% | 24.3% | 8 | Serials and newspapers dominate; corporate SoRs; `Ausgabe` noise |
 | Modern (≥1900) | 1,935,982 | 30.9% | 51.4% | 17.6% | 8 | Short bare titles; subtitle often in separate field; ISBD rare |
 
@@ -161,11 +238,34 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 - **19th-c** median stabilises at 8 tokens; 28.3% short. NER challenge shifts from boundary ambiguity to domain noise: newspaper records misuse `=` and edition keywords; corporate SoRs dominate ` /` signals.
 - **Modern** median 8 tokens, 30.9% short, 51.4% medium — digital-born metadata with richer descriptions, but subtitles stored separately, so ` :` recall drops even when a subtitle exists.
 
-### 6.3 Composition and size
+### 7.3 Gold Set, Confidence Interval, and Sampling
 
-- Sized for **±10 pp Wilson CI on TITLE F1 per era** — minimum ~265 records; 395 comfortably exceeds this
-- ±5 pp would require 1,054 records — not feasible
-- TITLE prevalence ~100% per record → record count ≈ entity instance count
+**What is a CI and why does it matter here?**
+
+- F1 is computed on a finite gold set — the observed F1 is a point estimate with sampling uncertainty
+- A **confidence interval** (CI) quantifies that uncertainty: "the true F1 lies within ±X pp of the observed value with 95% probability"[^ci95]
+- Narrower CI → stronger claim; wider CI → result is only indicative
+- CI width is determined by **sample size** and **prevalence** of the entity being measured: rare labels need far more records to achieve the same CI width as common ones
+
+**Wilson CI — why not Wald?**
+
+| | Wald CI | Wilson CI |
+|---|---|---|
+| Formula | p̂ ± z·√(p̂(1−p̂)/n) | Inverts the score test; recentres the interval |
+| Behaviour near 0 or 1 | Breaks — can produce negative lower bound or upper bound > 1 | Well-behaved at all prevalences |
+| Small n | Unreliable | Reliable |
+| Used here | ❌ | ✅ |
+
+- Wald CI assumes the normal approximation holds — it fails when p̂ is close to 0 or 1, or when n is small; both conditions hold for PERSON in early strata
+- Wilson CI inverts the score test directly; remains valid for low prevalence and small samples ([Brown et al., 2001](https://doi.org/10.1214/ss/1009213286))
+
+**Sample size targets**
+
+- TITLE prevalence ~100% per record → record count ≈ entity instance count → Wilson CI on TITLE F1 ≈ Wilson CI on proportion
+- ±10 pp Wilson CI on TITLE F1 per era → minimum **~265 records per stratum**; 395 total (stratified) comfortably exceeds this
+- ±5 pp would require 1,054 records — not feasible given annotation cost
+
+**Stratification dimensions**
 
 | Dimension | Strata | Why |
 |---|---|---|
@@ -173,18 +273,19 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 | Silver tier | tier-0 / tier-1 / tier-2 | Must cover all inference paths; tier-0 is 92.4% of corpus |
 | dc_type | Leichenpredigt, Monografie, Einblattdruck | Genre-specific structure; Leichenpredigt has highest pre-1750 density |
 
-### 6.4 PERSON constraint
+### 7.4 PERSON constraint
 
 - Person names in title: 8.7% pre-1700, 5.0% 1700–1800 — far too sparse to hit ±10 pp CI without thousands of records
 - ±10 pp on PERSON needs 932 pre-1700 records, 1,620 for 1700–1800 — not feasible
 - Decision: accept wide CI on PERSON; report as indicative only; must be stated explicitly in the paper
 
-### 6.5 Annotation scope
+### 7.5 Annotation scope
 
 - Leichenpredigt and Einblattdruck oversampled (~40–50 each) — highest-risk failure modes
 - Phase 2 labels (`TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`) annotated in the same pass to avoid re-annotation — excluded from Phase 1 evaluation claims
 
 
+[^ci95]: The 95% figure is a conventional choice (α = 0.05). It means: if the same sampling procedure were repeated many times, 95% of the resulting intervals would contain the true value. It does not mean the true value has a 95% chance of falling in this particular interval.
 [^langid]: `dc:language = 'ger'` (Dublin Core metadata-declared language, ISO 639-2) AND `langid = 'ger'` (automatic language identification applied as a second filter to correct mis-declared records). <https://pypi.org/project/langid/>
 [^bootstrap]: Efron, B., & Tibshirani, R. (1993). *An Introduction to the Bootstrap.* Chapman & Hall.
 [^exact]: **Entity-level exact-match F1** — a predicted span counts as correct only if both its boundaries and label exactly match the gold annotation.
