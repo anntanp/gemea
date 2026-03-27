@@ -30,6 +30,8 @@ Title proper : other title information / statement of responsibility
 - **DF_DE_TITLES** (4.48M records — German-language `content`-type DDB objects, filtered by `dc:language` + `langid`[^langid]; 4.48M of 16.8M total DDB objects): 28.4% have ≥1 accepted ISBD signal → **71.6% NER fallback**. Trailing `.` excluded (93% FP — [sr05_trailing-period-noise.md](sr05_trailing-period-noise.md)). ([sr01_isbd-title-analysis.md](sr01_isbd-title-analysis.md), [sr10_de-titles-distribution.md](sr10_de-titles-distribution.md))
 - Both estimates converge within 0.6 pp, confirming the pilot generalises to the full corpus.
 
+![Title-length distribution by year](../images/fig_title_lengths.png)
+
 ## 2. Label set
 
 **Phase 1 (paper scope):** `TITLE`, `OTHER_TITLE`, `PERSON`
