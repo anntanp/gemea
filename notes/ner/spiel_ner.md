@@ -126,7 +126,7 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
 | Pre-1700 | ≥ 0.70 | ≥ 0.70 |
 
 - **Why not 0.90?** — above the ceiling of comparable benchmarks:
-  - OntoNotes WORK_OF_ART SOTA ~0.72 ⚠️ *unverified — no paper in references yet*
+  - OntoNotes WORK_OF_ART: DeepPavlov reports **0.532 F1** ([DeepPavlov NER docs](https://docs.deeppavlov.ai/en/0.0.8/components/ner.html)); Schweter & Akbik (2021) FLERT is the SOTA paper in references but does not report per-entity scores
   - HIPE-2022 German NERC-Coarse strict F1: hipe2020-de best system **0.794** (19C–20C Swiss/Luxembourgish newspapers); neural baseline 0.703
   - HIPE-2022 **sonar** (Berlin State Library, 19C–20C German newspapers, no train set): best system (AAUZH) **0.529**, neural baseline (XLM-R BASE) **0.307** — most comparable to GeMeA; low scores driven by absence of a train set, forcing cross-dataset transfer (Ehrmann et al., 2022, Table 7)
   - Pre-1700 historical orthography + author-before-title structure goes beyond anything in these benchmarks
