@@ -159,7 +159,25 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
 - No human annotation needed — the rule fires on the string, the span is extracted, the label is assigned automatically across all 4.5M records
 - The text *before* any firing signal is assigned `TITLE` by default — the rule-based pipeline implicitly labels the majority class at zero cost
 
-### 6.1 Silver tiers
+### 6.1 ISBD signal coverage in DDB
+
+Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/processed/sr03_heuristic_validation_sample.csv`. Full rule-by-rule decisions: [sr01_isbd-applicability.md §2](sr01_isbd-applicability.md).
+
+| Signal | Coverage | Decision |
+|---|---|---|
+| `. -` area separator | [**1.2%**](sr01_isbd-field-rating.md) | ✅ Accept — high precision when present |
+| ` :` subtitle | [20.2%](sr01_isbd-field-rating.md) | ✅ Accept — [~8% FP](sr03_silver-label-fp-review.md) |
+| 4-digit year | [14.6%](sr01_isbd-field-rating.md) | ✅ Accept — [~6% FP](sr03_silver-label-fp-review.md) |
+| ` /` SoR | [0.8%](sr01_isbd-field-rating.md) | ⚠️ Sub-classify — [36% FP for PERSON; 41% non-SoR](sr04_translator-person-disambiguation.md) |
+| ` =` parallel title | [0.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~80% FP](sr03_silver-label-fp-review.md); DDB serials repurpose `=` for enumeration (e.g. [`7. Januar-30. December 1891 = 1.-21. Stück`](https://ddb.de/item/UAEOTQYLDUDCNSSG2IXPY4JM6G4MDD27)) |
+| Edition keyword | [3.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~83% FP](sr03_silver-label-fp-review.md); newspapers use "Ausgabe vom [date]" as issue label (e.g. [`Erste Ausgabe vom Dienstag, den 18. Mai 1937.`](https://ddb.de/item/YASRD5RWR6SXOLRMJ24A66FL4EWJ5ZNP)) |
+| Trailing `.` | [17.5%](sr01_isbd-title-analysis.md) | ❌ Exclude — [~93% FP](sr05_trailing-period-noise.md) ([abbreviations](sr05_abbreviations.md), ordinals) |
+
+- Most DDB records are catalogued with **title-area punctuation only** — `. -` area separators are nearly absent
+- ` /` (SoR) fires on four distinct content types: individual person ([35%](sr04_translator-person-disambiguation.md)), corporate body ([19%](sr04_translator-person-disambiguation.md)), editor ([5%](sr04_translator-person-disambiguation.md)), non-SoR false positive ([41%](sr04_translator-person-disambiguation.md)) — sub-classification required before use as a PERSON label
+- Pre-1750 records have **no ` /` marker** even when an author is named — author credentials appear before the title, not after it
+
+### 6.2 Silver tiers
 
 Three tiers reflect three qualitatively distinct inference paths — not a spectrum, but categorical evidence levels. ([sr01_isbd-field-rating.md](sr01_isbd-field-rating.md), [sr01_isbd-applicability.md](sr01_isbd-applicability.md))
 
@@ -175,7 +193,7 @@ Three tiers reflect three qualitatively distinct inference paths — not a spect
 - Fields excluded from tier logic: `f_parallel` (~80% FP), `f_edition` (~83% FP) — validated by SR-03 ([sr03_silver-label-fp-review.md](sr03_silver-label-fp-review.md))
 - `f_person` requires sub-classification before use: 36% FP as PERSON; 41% are non-SoR false positives ([sr04_translator-person-disambiguation.md](sr04_translator-person-disambiguation.md))
 
-### 6.2 Tier composition
+### 6.3 Tier composition
 
 Source: `data/processed/sr01_isbd_field_ratings.csv` (4,477,780 records; run 2026-03-21) and `data/processed/sr08_corpus_cell_sizes.csv`.
 
@@ -202,24 +220,6 @@ Source: `data/processed/sr01_isbd_field_ratings.csv` (4,477,780 records; run 202
 ## 7. Gold Dataset
 
 **395 records** — drawn from DF_DE_TITLES, stratified by era × silver tier × dc_type. ([sr08_gold-set-composition.md](sr08_gold-set-composition.md), [sr08_evaluation-design.md](sr08_evaluation-design.md))
-
-### 7.1 ISBD signal coverage in DDB
-
-Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/processed/sr03_heuristic_validation_sample.csv`. Full rule-by-rule decisions: [sr01_isbd-applicability.md §2](sr01_isbd-applicability.md).
-
-| Signal | Coverage | Decision |
-|---|---|---|
-| `. -` area separator | [**1.2%**](sr01_isbd-field-rating.md) | ✅ Accept — high precision when present |
-| ` :` subtitle | [20.2%](sr01_isbd-field-rating.md) | ✅ Accept — [~8% FP](sr03_silver-label-fp-review.md) |
-| 4-digit year | [14.6%](sr01_isbd-field-rating.md) | ✅ Accept — [~6% FP](sr03_silver-label-fp-review.md) |
-| ` /` SoR | [0.8%](sr01_isbd-field-rating.md) | ⚠️ Sub-classify — [36% FP for PERSON; 41% non-SoR](sr04_translator-person-disambiguation.md) |
-| ` =` parallel title | [0.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~80% FP](sr03_silver-label-fp-review.md); DDB serials repurpose `=` for enumeration (e.g. [`7. Januar-30. December 1891 = 1.-21. Stück`](https://ddb.de/item/UAEOTQYLDUDCNSSG2IXPY4JM6G4MDD27)) |
-| Edition keyword | [3.6%](sr01_isbd-field-rating.md) | ❌ Exclude — [~83% FP](sr03_silver-label-fp-review.md); newspapers use "Ausgabe vom [date]" as issue label (e.g. [`Erste Ausgabe vom Dienstag, den 18. Mai 1937.`](https://ddb.de/item/YASRD5RWR6SXOLRMJ24A66FL4EWJ5ZNP)) |
-| Trailing `.` | [17.5%](sr01_isbd-title-analysis.md) | ❌ Exclude — [~93% FP](sr05_trailing-period-noise.md) ([abbreviations](sr05_abbreviations.md), ordinals) |
-
-- Most DDB records are catalogued with **title-area punctuation only** — `. -` area separators are nearly absent
-- ` /` (SoR) fires on four distinct content types: individual person ([35%](sr04_translator-person-disambiguation.md)), corporate body ([19%](sr04_translator-person-disambiguation.md)), editor ([5%](sr04_translator-person-disambiguation.md)), non-SoR false positive ([41%](sr04_translator-person-disambiguation.md)) — sub-classification required before use as a PERSON label
-- Pre-1750 records have **no ` /` marker** even when an author is named — author credentials appear before the title, not after it
 
 ### 7.2 Era and title distribution
 
