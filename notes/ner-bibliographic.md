@@ -112,7 +112,7 @@ sr08_verify_spans.py      (Doccano · pre-1700 first)
 | [SR-08](#28-sr-08--gold-set-composition) | Gold set composition | 🔄 In progress — sample drawn, Doccano import ready, annotation pending | [SR-09](#29-sr-09--nunner-zero-evaluation) |
 | [SR-09](#29-sr-09--nunner-zero-evaluation) | NuNER Zero evaluation | ✅ Resolved — FAIL (2026-03-27); fallback confirmed | — |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
-| [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔲 Open — blocked on SR-08 seed | — |
+| [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔄 Active — unblocked 2026-03-28; execution plan in [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) | — |
 | [SR-12](#212-sr-12--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-08 | — |
 
 ### 2.1 SR-01 — ISBD signal coverage (corpus-wide)

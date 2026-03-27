@@ -1,6 +1,62 @@
 # NER Labeling Strategy — Dataset Size and LLM Annotation
 
-Related: [ner-bibliographic.md §8](../ner-bibliographic.md), [SR-08](../ner-bibliographic.md#29-sr-09--gold-set-composition)
+**Status:** 🔄 Active — unblocked 2026-03-28 (SR-08 complete, SR-09 resolved)
+
+Related: [ner-bibliographic.md §8](../ner-bibliographic.md), [SR-08](../ner-bibliographic.md#28-sr-08--gold-set-composition), [SR-09](../ner-bibliographic.md#29-sr-09--nuner-evaluation)
+
+---
+
+## 0. Why this is now the active path
+
+SR-09 (2026-03-27) confirmed NuNER zero-shot is not viable: F1 = 0.000 on all labels and all prompt variants on tier-2 records. Root cause: token-level classifier with no concept of bibliographic field segmentation. The LLM one-time labeler → fine-tune `xlm-roberta-base` path is confirmed.
+
+SR-08 is complete: 395-record gold sample drawn, tier-2 records pre-filled (47), tier-1 partially filled, manual queue exported (`sr08_manual_queue.csv`). SR-11 is now unblocked.
+
+---
+
+## 0.1 Execution plan
+
+Three phases in order. Phase 1 unblocks evaluation; phases 2–3 build the training set.
+
+### Phase 1 — Validate LLM annotation prompt (independent of gold annotation)
+
+Gold set annotation is done by human in parallel (SR-08, fully independent). Phase 1 only validates the prompt before Phase 2.
+
+| Step | What | Records | Output |
+|---|---|---|---|
+| 1a | Run prompt on tier-2 pre-filled records | 47 | Agreement rate vs. ISBD silver spans |
+| 1b | Revise prompt if agreement < 85% on any label | — | Updated system prompt |
+
+The 47 tier-2 records are the validation set — ISBD-derived ground truth exists. These records are part of the gold sample and are not used as few-shot examples; they are only used to measure prompt accuracy before Phase 2.
+
+### Phase 2 — Annotate training batch (pre-1750 tier-0)
+
+| Step | What | Records | Output |
+|---|---|---|---|
+| 2a | Sample 4–5K pre-1750 tier-0 records | 4–5K | `sr11_training_sample.csv` |
+| 2b | Stratify by dc_type: Leichenpredigt, Monografie, Einblattdruck | — | Stratum-balanced sample |
+| 2c | Run Claude batch annotation (batches of 20–50) | 4–5K | `sr11_llm_labeled.jsonl` |
+| 2d | Post-process: detect and discard hallucinated/malformed spans | — | `sr11_llm_labeled_clean.jsonl` |
+
+### Phase 3 — Fine-tune xlm-roberta-base
+
+| Step | What | Notes |
+|---|---|---|
+| 3a | Assemble training set | Silver tier-1/2 (~340K) + LLM-labeled tier-0 (~4–5K) |
+| 3b | Convert to IOB2 token labels | Character spans → token-aligned IOB2 |
+| 3c | Fine-tune `xlm-roberta-base` | Token classification head; multilingual pretraining |
+| 3d | Evaluate on gold set | Point-estimate F1 per label per era (held out, human-verified) |
+
+**Gold set is held out for evaluation only — not included in training, not used as few-shot examples.**
+
+---
+
+## 0.2 Open decisions
+
+- **Gold set in training?** Current plan: hold out entirely. Alternative: leave-one-era-out CV. Decision deferred to Phase 3.
+- **Era mix for training sample:** uniform across pre-1700 / 1700–1800, or weighted by corpus distribution? Leichenpredigt and Einblattdruck oversampled as in SR-08.
+- **xlm-roberta-base vs. large?** Base chosen for feasibility (§10 decision). Large benchmarked as stretch goal if base results are marginal.
+- **Small fine-tuned LLM (Qwen3-1.7B + LoRA)?** Listed in §10 as a third benchmark option; deferred until base XLM-R results are available.
 
 ---
 
@@ -51,19 +107,17 @@ Using Claude (or another capable LLM) to generate the pre-1750 labeled dataset i
    - Label definitions (FRBR Work scope: TITLE, OTHER_TITLE, PERSON)
    - Inline Bracketed output format
    - Pre-1750 author-before-title rule
-   - 5 few-shot examples drawn from the SR-08 gold set (once available) or manually annotated
+   - 5 few-shot examples drawn from outside the SR-08 gold set (see §4.3; gold set is held out for evaluation only)
 3. Run Claude API in batches; log model version and prompt hash for reproducibility
 4. Spot-check 200 records manually (~5%) — compute agreement rate; if below 85%, revise prompt and re-run
 5. Use as fine-tuning data; evaluate on SR-08 gold set (held out, human-annotated)
 
-### 2.4 Bootstrapping problem
+### 2.4 Few-shot example source
 
-The few-shot examples in the prompt should ideally come from the SR-08 gold set — but SR-08 requires annotation work first. Two options:
+The SR-08 gold set is held out for evaluation and must not be used as few-shot examples — that would contaminate the evaluation. Examples come from two sources only:
 
-- **Option A (sequential):** Annotate 50–100 records manually as the prompt seed; use these to generate 4k–5k LLM labels; use the LLM-labeled set for fine-tuning and a separate 200-record human sample as the evaluation set
-- **Option B (parallel):** Run Claude zero-shot first, spot-check 200 records, use the verified subset as few-shot examples for a second pass
-
-Option A is cleaner — the 50-record manual seed is also the start of the SR-08 gold set.
+- **Manually curated examples** (§4.3) — 5 patterns covering the main pre-1750 structures; verified against real DDB records before use
+- **Additional examples from outside the gold sample** — if more coverage is needed, draw additional records from `sr01_isbd_field_ratings.csv` excluding the 395 gold sample `obj_id`s; annotate manually and add to §4.3
 
 ---
 
@@ -142,7 +196,7 @@ Do not treat early modern spelling variants as annotation errors. The following 
 
 ### 4.3 Few-shot examples
 
-Include 5 examples covering the main structural patterns. Production examples should come from the manually annotated SR-08 seed set. Until then, use the following (verify against real DDB records before the full batch run):
+Include 5 examples covering the main structural patterns. Examples must come from outside the SR-08 gold set (held out for evaluation). The following are manually curated — verify against real DDB records before the full batch run:
 
 **Pattern A — credential + name + role + title (most common pre-1750 pattern):**
 ```
