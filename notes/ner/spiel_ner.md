@@ -230,7 +230,7 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 |---|---|---|---|---|---|---|
 | Pre-1700 | 331,349 | 15.7% | 37.4% | **46.9%** | 13 | [Author-before-title](https://www.deutsche-digitale-bibliothek.de/item/KQCJ7APICPYVGBUZ544FKAICNU73FVKH); early modern orthography; [long title-page transcriptions](https://www.deutsche-digitale-bibliothek.de/item/PBKMFCEQ2CM622H4SXHBIA5KYYJUQO6U) |
 | 1700–1800 | 827,456 | 27.4% | 40.6% | **32.0%** | 9 | Transition period; [author placement mixed](https://www.deutsche-digitale-bibliothek.de/item/TESMJCHDS7J3G74XAGVKMC7JBBD6F4PV); title lengths still elevated |
-| 19th-c | 1,382,993 | 28.3% | 47.4% | 24.3% | 8 | Serials and newspapers dominate; corporate SoRs; `Ausgabe` noise |
+| 19th-c | 1,382,993 | 28.3% | 47.4% | 24.3% | 8 | Serials and newspapers dominate; corporate SoRs; `Ausgabe` [noise](https://www.deutsche-digitale-bibliothek.de/item/YASRD5RWR6SXOLRMJ24A66FL4EWJ5ZNP) |
 | Modern (≥1900) | 1,935,982 | 30.9% | 51.4% | 17.6% | 8 | Short bare titles; subtitle often in separate field; ISBD rare |
 
 - **Pre-1700** is the hardest stratum: 46.9% long titles, median 13 tokens. Title-page conventions fold subtitle, author, place, and printer into one string — TITLE boundary is structurally ambiguous. Author credentials appear *before* the title with no ` /` marker; no ISBD punctuation.
@@ -251,7 +251,6 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 
 | | Wald CI | Wilson CI |
 |---|---|---|
-| Formula | p̂ ± z·√(p̂(1−p̂)/n) | Inverts the score test; recentres the interval |
 | Behaviour near 0 or 1 | Breaks — can produce negative lower bound or upper bound > 1 | Well-behaved at all prevalences |
 | Small n | Unreliable | Reliable |
 | Used here | ❌ | ✅ |
