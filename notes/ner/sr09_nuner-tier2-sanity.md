@@ -2,8 +2,8 @@
 
 **Purpose:** Pilot evaluation of NuNER Zero on tier-2 pre-filled records, using ISBD-derived silver spans as pseudo-gold. Confirms whether NuNER Zero produces plausible output on DDB title strings before committing to full gold annotation.
 
-**Script:** `scripts/sr09_eval_nunerzero_tier2.py`
-**Output:** `data/processed/sr09_nunerzero_tier2_results.csv`
+**Script:** `scripts/sr09_eval_nuner_tier2.py`
+**Output:** `data/processed/sr09_nuner_tier2_results.csv`
 
 ---
 

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-# Purpose:      SR-09 — Sanity check: evaluate NuNER Zero on tier-2 pre-filled records
+# Purpose:      SR-09 — Sanity check: evaluate NuNER on tier-2 pre-filled records
 #               using ISBD-derived silver spans as pseudo-gold.
 #               Computes exact span match precision, recall, and F1 per label.
-#               See notes/ner/sr09_nunerzero-tier2-sanity.md for design rationale.
+#               See notes/ner/sr09_nuner-tier2-sanity.md for design rationale.
 #
-# Usage:        python3 scripts/sr09_eval_nunerzero_tier2.py
+# Usage:        python3 scripts/sr09_eval_nuner_tier2.py
 #                   [--input PATH]         # default: data/annotation/sr08_gold_prefilled.jsonl
-#                   [--output PATH]        # default: data/processed/sr09_nunerzero_tier2_results.csv
+#                   [--output PATH]        # default: data/processed/sr09_nuner_tier2_results.csv
 #                   [--detail PATH]        # optional: per-record JSONL with predictions + gold
-#                   [--threshold FLOAT]    # NuNER Zero score threshold (default: 0.5)
-#                   [--model STR]          # HuggingFace model ID (default: numind/NuNER-Zero)
+#                   [--threshold FLOAT]    # NuNER score threshold (default: 0.5)
+#                   [--model STR]          # HuggingFace model ID (default: numind/NuNer_Zero)
 #
 # Inputs:       data/annotation/sr08_gold_prefilled.jsonl  (status == "pre-filled")
-# Outputs:      data/processed/sr09_nunerzero_tier2_results.csv
+# Outputs:      data/processed/sr09_nuner_tier2_results.csv
 #               (optional) per-record detail JSONL
 #
 # Dependencies: gliner, pandas
@@ -28,7 +28,7 @@ import pandas as pd
 
 ROOT   = Path(__file__).parent.parent
 INPUT  = ROOT / "data" / "annotation" / "sr08_gold_prefilled.jsonl"
-OUTPUT = ROOT / "data" / "processed" / "sr09_nunerzero_tier2_results.csv"
+OUTPUT = ROOT / "data" / "processed" / "sr09_nuner_tier2_results.csv"
 
 # Named prompt sets for experimentation.
 # "default"    — generic; baseline run.

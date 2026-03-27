@@ -41,4 +41,4 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | `sr08_prefill_spans.py` | SR-08: pre-fill TITLE / OTHER_TITLE / PERSON spans for tier-1 and tier-2 records using ISBD rules; marks pre-1700 and tier-0 records as manual; writes `sr08_gold_prefilled.jsonl` and `sr08_manual_queue.csv` |
 | `sr08_verify_spans.py` | SR-08: verify character offset integrity of pre-filled spans; prints sample records for manual spot-check |
 | `sr11_dctype_by_era.py` | SR-11: count and rank dc_type values per era stratum (pre-1700 / 1700-1800 / 19th-c / modern / unknown); writes `data/processed/sr11_dctype_by_era.csv` |
-| `sr09_eval_nunerzero_tier2.py` | SR-09: NuNER Zero tier-2 sanity check — run NuNER Zero on tier-2 pre-filled records, compare to ISBD-derived silver spans, report exact-span-match P/R/F1 per label; writes `data/processed/sr09_nunerzero_tier2_results.csv` |
+| `sr09_eval_nuner_tier2.py` | SR-09: NuNER tier-2 sanity check — run NuNER on tier-2 pre-filled records, compare to ISBD-derived silver spans, report exact-span-match P/R/F1 per label; writes `data/processed/sr09_nuner_tier2_results.csv` |

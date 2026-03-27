@@ -1,5 +1,17 @@
 # GeMeA NER Pipeline — Presentation Spiel
 
+## Chain of thought
+
+1. **§0 ISBD structure** — Establishes the punctuation signals embedded in DDB title strings that enable automatic label assignment; the foundation for the silver dataset.
+2. **§1 Scale of the fallback** — Shows that 71.6% of DF_DE_TITLES lack any ISBD signal, establishing why NER is necessary at scale.
+3. **§2 Label set** — Defines the three Phase 1 labels (TITLE, OTHER_TITLE, PERSON) and grounds their selection in FRBR Work-level identity.
+4. **§3 Why off-the-shelf NER fails** — Eliminates existing models across label, domain, and register dimensions, motivating a custom solution.
+5. **§4 Why NuNER Zero** — Selects NuNER Zero as the first-pass model based on zero-shot capability and token-level architecture, with fallback to fine-tuned XLM-R.
+6. **§5 Evaluation metric** — Establishes exact span match per label per era as the protocol, and explains why wide CIs require pre-defined targets to yield a usable conclusion.
+7. **§6 Silver dataset** — Describes how ISBD signals produce automatic labels at scale, tiered by confidence, for the 28.4% of records with structural signals.
+8. **§7 Gold dataset** — Specifies the 395-record human-annotated evaluation set, stratified by era and silver tier, with sample sizes grounded in ±10 pp CI constraints.
+9. **§8 Target scores** — Sets per-stratum F1 targets grounded in benchmark ceilings, converting the wide-CI evaluation into a binary viability claim.
+
 ## 0. ISBD Punctuation Structure
 
 ISBD (International Standard Bibliographic Description) structures a catalog record into **areas** separated by `. -` (space · period · space · hyphen · space). Each area is internally punctuated with trailing marks that signal the next field. ([sr01_isbd-field-rating.md](sr01_isbd-field-rating.md), [sr01_isbd-applicability.md](sr01_isbd-applicability.md))
@@ -66,7 +78,7 @@ SR-06 measured the historical stratum: **93% Early Modern German, ~0.5% Latin** 
 
 **Historical NER models are the wrong task.** Models trained for historical NER (e.g. HIPE-2022 systems) extract person and place names from newspaper text. That is a different task — named entity recognition in running prose — not catalog string segmentation. Their label sets and training distributions do not transfer.
 
-**The path forward** — NuNER Zero is the first test: a zero-shot token classifier that can be prompted with label descriptions (`"title of the work"`, `"subtitle"`, `"author name"`). If its precision falls below threshold, the fallback is LLM annotation + fine-tuned `xlm-roberta-base`. ([../ner-bibliographic.md §5–6](../ner-bibliographic.md))
+**The path forward** — NuNER was evaluated zero-shot (SR-09, 2026-03-27): F1 = 0.000 across all labels and all prompt variants on tier-2 records. Root cause: token-level classifier with no concept of bibliographic field segmentation — cannot learn from prompts alone that author-shaped tokens at the start of an ISBD string are TITLE. **Fallback confirmed: LLM annotation + fine-tune `xlm-roberta-base`.** ([../ner-bibliographic.md §6](../ner-bibliographic.md), [sr09_nuner-tier2-sanity.md](sr09_nuner-tier2-sanity.md))
 
 ## 4. Why NuNER Zero
 
@@ -81,10 +93,10 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
 | ❌ | Zero-shot capability **not evaluated in the paper** | Authors explicitly disclaim it (p. 11836); cited zero-shot benchmarks are not from this publication |
 | ❌ | Training data English-only (C4 + GPT-3.5) | No German, no historical text, no bibliographic domain |
 | ❌ | Heavy-tailed concept distribution — rare types likely underperform | `TRANSLATOR`, `SERIES` far less frequent in training than `PERSON`, `LOCATION` |
-| ❌ | Not evaluated on historical German, ISBD strings, or DDB data | SR-09 (500 stratified records) required before any conclusion |
+| ❌ | Not evaluated on historical German, ISBD strings, or DDB data | SR-09 (tier-2 sanity check, 2026-03-27): **F1 = 0.000 all labels** — confirmed not viable |
 
-- **vs. GLiNER** — same zero-shot premise, span-based with 12-token cap. NuNER Zero preferred: no length ceiling, stronger numbers. The +3.1 pp headline is not comparable: GLiNER reports entity-level exact-match F1[^exact]; NuNER reports macro-averaged token-classification F1[^macro].
-- **vs. fine-tuned xlm-roberta-base** — supervised XLM-R would likely gain ~22 pp F1 (MultiCONER zero-shot vs. supervised gap), but requires labeled data that doesn't exist yet. NuNER Zero is the bridge.
+- **vs. GLiNER** — same zero-shot premise, span-based with 12-token cap. NuNER preferred: no length ceiling, stronger numbers. The +3.1 pp headline is not comparable: GLiNER reports entity-level exact-match F1[^exact]; NuNER reports macro-averaged token-classification F1[^macro].
+- **vs. fine-tuned xlm-roberta-base** — supervised XLM-R would likely gain ~22 pp F1 (MultiCONER zero-shot vs. supervised gap). NuNER evaluated and ruled out (SR-09); XLM-R fine-tuning is the confirmed path.
 
 ## 5. Evaluation metric
 
@@ -99,38 +111,7 @@ NuNER Zero (NuMind, EMNLP 2024) — zero-shot NER token classifier, ~180M params
   - Macro F1 excluded: PERSON appears in 0.2%–8.7% of records — averaging it equally with TITLE would let low PERSON performance misrepresent the pipeline's actual utility
 - **Point estimates** (micro P/R/F1 per label per era), following HIPE-2022 convention; sample size reported alongside every figure
 - Bootstrap CI deferred — ~100 records per era stratum yields ±10–15 pp CIs, too wide to be informative; see §5.3
-
-### 5.2 Target scores
-
-**How the strata were determined:**
-
-- *Era* and *stratum* are used interchangeably throughout — each era is one evaluation stratum
-- Strata are defined by **NER difficulty**, not by equal corpus size or calendar convention
-- Primary signal: title-length distribution — longer titles mean harder TITLE boundary detection (see §7.2, `data/processed/sr10_era_length_summary.csv`)
-- Secondary signal: register shift — author placement, orthography, and ISBD adoption all change discontinuously at the same boundaries
-
-| Stratum | Boundary rationale |
-|---|---|
-| Pre-1700 | Author-before-title convention; early modern orthography; no ISBD; 46.9% long titles, median 13 tokens |
-| 1700–1800 | Transition: ISBD adoption begins ~1750; author placement mixed; 32.0% long titles |
-| 19th-c | ISBD stabilises; serials and newspapers dominate; median drops to 8 tokens |
-| Modern (≥1900) | Digital-born metadata; subtitles in separate fields; short titles; ISBD rare in title string |
-
-- F1 targets are grounded in benchmark ceilings, not assumed performance
-
-| Stratum | TITLE F1 target | PERSON F1 target |
-|---|---|---|
-| Modern | ≥ 0.85 | — (person names in title: 0.2%) |
-| 19th-c | ≥ 0.80 | — |
-| 1700–1800 | ≥ 0.75 | ≥ 0.70 |
-| Pre-1700 | ≥ 0.70 | ≥ 0.70 |
-
-- **Why not 0.90?** — above the ceiling of comparable benchmarks:
-  - OntoNotes WORK_OF_ART: DeepPavlov reports **0.532 F1** ([DeepPavlov NER docs](https://docs.deeppavlov.ai/en/0.0.8/components/ner.html)); Schweter & Akbik (2021) FLERT is the SOTA paper in references but does not report per-entity scores
-  - HIPE-2022 German NERC-Coarse strict F1: hipe2020-de best system **0.794** (19C–20C Swiss/Luxembourgish newspapers); neural baseline 0.703
-  - HIPE-2022 **sonar** (Berlin State Library, 19C–20C German newspapers, no train set): best system (AAUZH) **0.529**, neural baseline (XLM-R BASE) **0.307** — most comparable to GeMeA; low scores driven by absence of a train set, forcing cross-dataset transfer (Ehrmann et al., 2022, Table 7)
-  - Pre-1700 historical orthography + author-before-title structure goes beyond anything in these benchmarks
-- **Why PERSON only for pre-1700 and 1700–1800?** — person names appear in only 0.6% of 19th-c and 0.2% of modern titles; NER adds nothing there regardless of F1 ([sr08_evaluation-design.md §1](sr08_evaluation-design.md))
+- **Target scores anchor the viability claim under wide CI** — with ±10–15 pp CIs per era stratum, the evaluation cannot distinguish nearby F1 values; pre-defined targets grounded in benchmark ceilings (§8) convert the result to a binary: observed F1 above target = pipeline viable; below = not. Without them, a wide-CI result supports no conclusion.
 
 ### 5.3 Ideal evaluation metric
 
@@ -323,6 +304,38 @@ Minimum records per era by CI target (`data/processed/sr08_ci_sample_size.csv`, 
 - Leichenpredigt and Einblattdruck oversampled (~40–50 each) — highest-risk failure modes
 - Phase 2 labels (`TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`) annotated in the same pass to avoid re-annotation — excluded from Phase 1 evaluation claims
 
+
+## 8. Target scores
+
+**How the strata were determined:**
+
+- *Era* and *stratum* are used interchangeably throughout — each era is one evaluation stratum
+- Strata are defined by **NER difficulty**, not by equal corpus size or calendar convention
+- Primary signal: title-length distribution — longer titles mean harder TITLE boundary detection (see §7.2, `data/processed/sr10_era_length_summary.csv`)
+- Secondary signal: register shift — author placement, orthography, and ISBD adoption all change discontinuously at the same boundaries
+
+| Stratum | Boundary rationale |
+|---|---|
+| Pre-1700 | Author-before-title convention; early modern orthography; no ISBD; 46.9% long titles, median 13 tokens |
+| 1700–1800 | Transition: ISBD adoption begins ~1750; author placement mixed; 32.0% long titles |
+| 19th-c | ISBD stabilises; serials and newspapers dominate; median drops to 8 tokens |
+| Modern (≥1900) | Digital-born metadata; subtitles in separate fields; short titles; ISBD rare in title string |
+
+- F1 targets are grounded in benchmark ceilings, not assumed performance
+
+| Stratum | TITLE F1 target | PERSON F1 target |
+|---|---|---|
+| Modern | ≥ 0.85 | — (person names in title: 0.2%) |
+| 19th-c | ≥ 0.80 | — |
+| 1700–1800 | ≥ 0.75 | ≥ 0.70 |
+| Pre-1700 | ≥ 0.70 | ≥ 0.70 |
+
+- **Why not 0.90?** — above the ceiling of comparable benchmarks:
+  - OntoNotes WORK_OF_ART: DeepPavlov reports **0.532 F1** ([DeepPavlov NER docs](https://docs.deeppavlov.ai/en/0.0.8/components/ner.html)); Schweter & Akbik (2021) FLERT is the SOTA paper in references but does not report per-entity scores
+  - HIPE-2022 German NERC-Coarse strict F1: hipe2020-de best system **0.794** (19C–20C Swiss/Luxembourgish newspapers); neural baseline 0.703
+  - HIPE-2022 **sonar** (Berlin State Library, 19C–20C German newspapers, no train set): best system (AAUZH) **0.529**, neural baseline (XLM-R BASE) **0.307** — most comparable to GeMeA; low scores driven by absence of a train set, forcing cross-dataset transfer (Ehrmann et al., 2022, Table 7)
+  - Pre-1700 historical orthography + author-before-title structure goes beyond anything in these benchmarks
+- **Why PERSON only for pre-1700 and 1700–1800?** — person names appear in only 0.6% of 19th-c and 0.2% of modern titles; NER adds nothing there regardless of F1 ([sr08_evaluation-design.md §1](sr08_evaluation-design.md))
 
 [^ci95]: The 95% figure is a conventional choice (α = 0.05). It means: if the same sampling procedure were repeated many times, 95% of the resulting intervals would contain the true value. It does not mean the true value has a 95% chance of falling in this particular interval.
 [^langid]: `dc:language = 'ger'` (Dublin Core metadata-declared language, ISO 639-2) AND `langid = 'ger'` (automatic language identification applied as a second filter to correct mis-declared records). <https://pypi.org/project/langid/>

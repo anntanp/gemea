@@ -15,7 +15,7 @@ Target label set: `TITLE`, `OTHER_TITLE`, `PERSON`, `TRANSLATOR`, `PARALLEL_TITL
 | [3. FRBR label scope](#3-frbr-label-scope) | Label definitions organised by FRBR level (Work, Expression, Manifestation) |
 | [4. Historical language scope](#4-historical-language-scope) | Risk assessment for pre-modern German and Latin titles; impact on model choice |
 | [5. Model options](#5-model-options) | Comparison table: spaCy, Flair, gbert, xlm-roberta, LLM, NuNER Zero, GLiNER, GROBID |
-| [6. NuNER Zero — zero-shot NER](#6-nunner-zero--zero-shot-ner-current-recommendation) | Current recommendation: usage code, merge logic, evaluation requirement |
+| [6. NuNER Zero — zero-shot NER](#6-nunner-zero--zero-shot-ner-evaluated--not-viable) | Evaluated 2026-03-27 — FAIL; F1 = 0.000 all labels; fallback confirmed |
 | [7. LLM options at inference time](#7-llm-options-at-inference-time) | Cost/effort comparison for all-NER-record inference paths |
 | [8. If no labeled training data is available](#8-if-no-labeled-training-data-is-available) | Silver labeling from ISBD pipeline; LLM one-time labeler; distant supervision |
 | [9. Available datasets for fine-tuning](#9-available-datasets-for-fine-tuning) | empathyai/books-ner, HIPE-2022, CLEF-HIPE-2020, GermEval 2014 |
@@ -88,11 +88,10 @@ sr08_verify_spans.py      (Doccano · pre-1700 first)
          Gold set (395 records)
          point-estimate F1 · TITLE per era
                 │
-                ▼  SR-09
-     NuNER Zero evaluation
-     precision ≥ threshold?
-     ├── yes → zero-shot inference
-     └── no  → fine-tune xlm-roberta-base
+                ▼  SR-09 ✅ RESOLVED 2026-03-27
+     NuNER Zero evaluation — FAIL
+     F1 = 0.000 all labels, all prompt sets
+     └── fine-tune xlm-roberta-base  ◄ confirmed path
 ```
 
 ---
@@ -111,7 +110,7 @@ sr08_verify_spans.py      (Doccano · pre-1700 first)
 | [SR-06](#26-sr-06--historical-and-latin-title-scope) | Historical and Latin title scope | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
 | [SR-07](#27-sr-07--frbr-metric-scope-for-paper) | FRBR metric scope for paper | ✅ Resolved | [SR-08](#28-sr-08--gold-set-composition) |
 | [SR-08](#28-sr-08--gold-set-composition) | Gold set composition | 🔄 In progress — sample drawn, Doccano import ready, annotation pending | [SR-09](#29-sr-09--nunner-zero-evaluation) |
-| [SR-09](#29-sr-09--nunner-zero-evaluation) | NuNER Zero evaluation | 🔲 Open — blocked on SR-08 | — |
+| [SR-09](#29-sr-09--nunner-zero-evaluation) | NuNER Zero evaluation | ✅ Resolved — FAIL (2026-03-27); fallback confirmed | — |
 | [SR-10](#210-sr-10--df_de_titles-source-and-title-length-scope) | DF_DE_TITLES source and title-length scope | ✅ Resolved — [de-titles-distribution.md](ner/sr10_de-titles-distribution.md) | — |
 | [SR-11](#211-sr-11--labeling-strategy-and-prompt-design) | Labeling strategy and prompt design (pre-1750) | 🔲 Open — blocked on SR-08 seed | — |
 | [SR-12](#212-sr-12--field-level-weighting-for-silver-tier-assignment) | Field-level weighting for silver tier assignment | 🔲 Future — blocked on SR-03 ext., SR-04, SR-08 | — |
@@ -210,10 +209,13 @@ See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full co
 - **No Latin stratum (from SR-06):** true Latin prevalence ~0.5% — too rare to stratify; mark `lang=la` if encountered
 - **Pre-1750 PERSON annotation (from SR-03):** ` /` SoR heuristic is a systematic false negative for pre-1750 — authors appear before the work title. Annotators must use opening credential + name + role pattern; PERSON F1 tracked separately for pre-1700 stratum
 
-### 2.9 SR-09 — NuNER Zero evaluation
-**Status:** Open — blocked on SR-08
-- **Requirement:** run NuNER Zero zero-shot on 500 stratified fallback records; assess TITLE and PERSON F1 on gold set
-- **Decision gate:** precision ≥ threshold → use zero-shot; else → LLM labeling + fine-tune `xlm-roberta-base` on silver + LLM-labeled set
+### 2.9 SR-09 — NuNER evaluation
+**Status:** ✅ Resolved — 2026-03-27 — FAIL; fallback confirmed
+- **Evaluated:** tier-2 pre-filled records (47 records, ISBD-derived silver spans as pseudo-gold); three prompt sets: `default`, `catalog`, `structural`
+- **Results:** F1 = 0.000 across all labels and all prompt sets. `default` prompts produce token-level fragments (145 TITLE FP, 0 TP); domain-specific prompts suppress all predictions below threshold (0 FP, 0 TP)
+- **Root cause:** NuNER is a token classifier trained on English newswire NER; it has no concept of bibliographic field segmentation and cannot learn from prompts alone that author-shaped tokens at the start of an ISBD string are TITLE, not PERSON
+- **Decision:** fallback confirmed → LLM annotation of gold set + fine-tune `xlm-roberta-base`
+- **Detail:** [sr09_nuner-tier2-sanity.md](ner/sr09_nuner-tier2-sanity.md), script: `sr09_eval_nuner_tier2.py`
 
 ### 2.10 SR-10 — DF_DE_TITLES source and title-length scope
 **Status:** Resolved — see [de-titles-distribution.md](ner/sr10_de-titles-distribution.md)
@@ -337,9 +339,11 @@ The Latin risk row in the table above is overstated for this corpus. Latin title
 
 ---
 
-## 6. NuNER Zero — zero-shot NER (current recommendation)
+## 6. NuNER — zero-shot NER (evaluated — not viable)
 
-[NuNER Zero](https://huggingface.co/numind/NuNER_Zero) (NuMind, 2024) is the current SOTA compact zero-shot NER model, outperforming GLiNER-large-v2.1 by +3.1% F1. Unlike GLiNER, it is a token classifier rather than span-based, so it handles arbitrarily long entities — relevant for verbose DDB title strings.
+**SR-09 result (2026-03-27): FAIL.** F1 = 0.000 across all labels and all prompt sets on tier-2 records. See [sr09_nuner-tier2-sanity.md](ner/sr09_nuner-tier2-sanity.md). Fallback confirmed: LLM annotation + fine-tune `xlm-roberta-base`.
+
+[NuNER Zero](https://huggingface.co/numind/NuNer_Zero) (NuMind, 2024) is the current SOTA compact zero-shot NER model, outperforming GLiNER-large-v2.1 by +3.1% F1. Unlike GLiNER, it is a token classifier rather than span-based, so it handles arbitrarily long entities — relevant for verbose DDB title strings.
 
 ```python
 from gliner import GLiNER
@@ -379,7 +383,7 @@ entities = merge_entities(entities, text)
 # → [{"text": "Faust drittes Buch", "label": "title", "score": 0.91}, ...]
 ```
 
-BERT-sized — runs on CPU, same deployment footprint as GLiNER. Zero-shot precision on DDB strings is unknown; **evaluate on ~500 stratified fallback records before committing** (see [SR-09](#29-sr-09--nunner-zero-evaluation)).
+BERT-sized — runs on CPU, same deployment footprint as GLiNER. **SR-09 evaluation (2026-03-27) confirmed NuNER is not viable for this task** — see [SR-09](#29-sr-09--nuner-evaluation) and [sr09_nuner-tier2-sanity.md](ner/sr09_nuner-tier2-sanity.md).
 
 For a detailed pros/cons comparison of GLiNER and NuNER Zero with citable benchmark figures, see [ref_gliner-nunerzero-comparison.md](ner/ref_gliner-nunerzero-comparison.md).
 
@@ -467,8 +471,10 @@ For records where a GND Werk URI was confirmed via the local GND instance, the e
 
 ## 10. Decision
 
-1. **Try NuNER Zero first** — compact zero-shot encoder-based NER, no training data, runs locally, handles arbitrarily long spans. Evaluate on 500 stratified fallback records (see [SR-09](#29-sr-09--nunner-zero-evaluation)). Zero-shot LLM NER is a known step down from fine-tuned models (~88 vs ~93 F1 on CoNLL2003; Zhan et al. 2026) — expect similar or larger gap on out-of-distribution historical German.
-2. **If NuNER Zero precision is insufficient**, use an LLM to label those same records and fine-tune. Benchmark three options:
+**Update 2026-03-27:** NuNER zero-shot evaluated and confirmed not viable (SR-09 — F1 = 0.000). Step 1 below is resolved; the path is step 2.
+
+1. ~~**Try NuNER first**~~ — **DONE, FAIL** (SR-09, 2026-03-27). Token-level classifier; no concept of bibliographic field segmentation; F1 = 0.000 on all labels across all prompt sets on tier-2 records.
+2. **LLM annotation + fine-tune** — use an LLM to label the gold set records and fine-tune. Benchmark three options:
    - `xlm-roberta-large` — primary; strongest multilingual encoder; documented HIPE-2022 backbone
    - `mdeberta-v3-base` — lighter multilingual alternative
    - Fine-tuned small LLM (Qwen3-1.7B or LLaMA3.2-1B + LoRA, Inline Bracketed format) — competitive with encoder models on general-domain NER (Zhan et al. 2026); unknown on historical German
