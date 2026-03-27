@@ -32,6 +32,9 @@ Title proper : other title information / statement of responsibility
 
 ![Title-length distribution by year](../images/fig_title_lengths.png)
 
+- Longest title: 921 tokens — a [cataloging artifact](sr10_de-titles-distribution.md#5-longest-title-in-the-dataset): 33 concatenated bibliographic descriptions from a collective review in *Allgemeine Literatur-Zeitung* (1831). [DDB record](https://www.deutsche-digitale-bibliothek.de/item/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB)
+
+
 ## 2. Label set
 
 **Phase 1 (paper scope):** `TITLE`, `OTHER_TITLE`, `PERSON`
@@ -220,11 +223,7 @@ Coverage from `data/processed/sr01_isbd_field_ratings.csv`; FP rates from `data/
 
 ### 7.2 Era and title distribution
 
-The four era strata are defined by NER difficulty, not by equal corpus size. Title length is the primary difficulty signal — longer titles mean harder TITLE boundary detection. ([sr10_de-titles-distribution.md](sr10_de-titles-distribution.md))
-
-![Title-length distribution by year](../images/fig_title_lengths.png)
-
-- Longest title: 921 tokens — a [cataloging artifact](sr10_de-titles-distribution.md#5-longest-title-in-the-dataset): 33 concatenated bibliographic descriptions from a collective review in *Allgemeine Literatur-Zeitung* (1831). [DDB record](https://www.deutsche-digitale-bibliothek.de/item/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB)
+The four era strata are defined by NER difficulty, not by equal corpus size. Title length is the primary difficulty signal — longer titles mean harder TITLE boundary detection. 
 
 Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_summary.py`). Record counts include title-regex year fallback; totals differ from `sr08_corpus_cell_sizes.csv`, which uses the `dates` column only.
 
