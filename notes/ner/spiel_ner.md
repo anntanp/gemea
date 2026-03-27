@@ -219,7 +219,10 @@ Source: `data/processed/sr01_isbd_field_ratings.csv` (4,477,780 records; run 202
 
 ## 7. Gold Dataset
 
-**395 records** — drawn from DF_DE_TITLES, stratified by era × silver tier × dc_type. ([sr08_gold-set-composition.md](sr08_gold-set-composition.md), [sr08_evaluation-design.md](sr08_evaluation-design.md))
+- **Ground truth** — human-annotated spans are the only basis for computing F1; without a gold set there is no way to measure model performance
+- **Stratified evaluation** — overall accuracy is uninformative; the gold set enables per-label (TITLE, OTHER_TITLE, PERSON) × per-era F1, revealing exactly where the model succeeds and where it fails
+- **Pipeline claim** — the paper's contribution is that the pipeline produces usable extractions across eras; gold evaluation is the evidence for that claim
+- **Failure mode coverage** — the gold set must include all inference paths (tier-0, tier-1, tier-2) and the highest-risk genres (Leichenpredigt, Einblattdruck) or the evaluation cannot generalise to the full corpus
 
 ### 7.2 Era and title distribution
 
@@ -239,9 +242,23 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 - **19th-c** median stabilises at 8 tokens; 28.3% short. NER challenge shifts from boundary ambiguity to domain noise: newspaper records misuse `=` and edition keywords; corporate SoRs dominate ` /` signals.
 - **Modern** median 8 tokens, 30.9% short, 51.4% medium — digital-born metadata with richer descriptions, but subtitles stored separately, so ` :` recall drops even when a subtitle exists.
 
-### 7.3 Gold Set, Confidence Interval, and Sampling
+### 7.3 Stratification Dimensions
 
-**What is a CI and why does it matter here?**
+| Dimension | Strata | Why |
+|---|---|---|
+| Era | pre-1700 / 1700–1800 / 19th-c / modern | Difficulty and register vary sharply across eras |
+| Silver tier | tier-0 / tier-1 / tier-2 | Must cover all inference paths; tier-0 is 92.4% of corpus |
+
+**Oversampling (not a stratification axis):**
+
+| Genre | Target n | Rationale |
+|---|---|---|
+| Leichenpredigt | ~40–50 | Highest pre-1750 density; most structurally distinctive title-page conventions |
+| Einblattdruck | ~40–50 | Highest-risk failure mode for NER boundary detection |
+
+- Drawn from pre-1700 / 1700–1800 strata — oversampling within era, not a separate dimension ([sr08_gold-set-composition.md](sr08_gold-set-composition.md))
+
+### 7.4 Confidence Interval
 
 - F1 is computed on a finite gold set — the observed F1 is a point estimate with sampling uncertainty
 - A **confidence interval** (CI) quantifies that uncertainty: "the true F1 lies within ±X pp of the observed value with 95% probability"[^ci95]
@@ -259,27 +276,49 @@ Source: `data/processed/sr10_era_length_summary.csv` (script: `sr10_era_length_s
 - Wald CI assumes the normal approximation holds — it fails when p̂ is close to 0 or 1, or when n is small; both conditions hold for PERSON in early strata
 - Wilson CI inverts the score test directly; remains valid for low prevalence and small samples ([Brown et al., 2001](https://doi.org/10.1214/ss/1009213286))
 
-**Sample size targets**
+### 7.5 Sample Size Targets
+
+**395 records** — drawn from DF_DE_TITLES, stratified by era × silver tier × dc_type. ([sr08_gold-set-composition.md](sr08_gold-set-composition.md), [sr08_evaluation-design.md](sr08_evaluation-design.md))
 
 - TITLE prevalence ~100% per record → record count ≈ entity instance count → Wilson CI on TITLE F1 ≈ Wilson CI on proportion
-- ±10 pp Wilson CI on TITLE F1 per era → minimum **~265 records per stratum**; 395 total (stratified) comfortably exceeds this
-- ±5 pp would require 1,054 records — not feasible given annotation cost
 
-**Stratification dimensions**
+**Minimum instance count formula** (Wilson interval approximation, treating F1 as a proportion):
 
-| Dimension | Strata | Why |
+$$n = \frac{z^2 \cdot p(1-p)}{e^2}$$
+
+| Term | Value used | Meaning |
 |---|---|---|
-| Era | pre-1700 / 1700–1800 / 19th-c / modern | Difficulty and register vary sharply across eras |
-| Silver tier | tier-0 / tier-1 / tier-2 | Must cover all inference paths; tier-0 is 92.4% of corpus |
-| dc_type | Leichenpredigt, Monografie, Einblattdruck | Genre-specific structure; Leichenpredigt has highest pre-1750 density |
+| $n$ | — | Minimum entity instances needed |
+| $z$ | 1.96 | Z-score for 95% CI |
+| $p$ | target F1 per stratum | Assumed true F1 (worst-case variance at p = 0.5) |
+| $e$ | 0.05 or 0.10 | Desired half-width (±5 pp or ±10 pp) |
 
-### 7.4 PERSON constraint
+- Records needed = $n$ / entity prevalence per stratum (TITLE ≈ 100%; PERSON from `sr08_check_person_in_title.py`)
+- This is a lower bound — bootstrap CI for F1 is empirically wider; actual required $n$ may be larger
+
+Minimum records per era by CI target (`data/processed/sr08_ci_sample_size.csv`, script: `sr08_ci_sample_size.py`):
+
+| Stratum | Metric | Target F1 | ±5 pp records | ±10 pp records | Current gold |
+|---|---|---|---|---|---|
+| Pre-1700 | TITLE | ≥ 0.70 | 323 | 81 | 130 ✅ |
+| Pre-1700 | PERSON | ≥ 0.70 | 3,713 | 932 | 130 ❌ |
+| 1700–1800 | TITLE | ≥ 0.75 | 289 | 73 | 80 ✅ |
+| 1700–1800 | PERSON | ≥ 0.70 | 6,460 | 1,620 | 80 ❌ |
+| 19th-c | TITLE | ≥ 0.80 | 246 | 62 | 60 ✅ |
+| Modern | TITLE | ≥ 0.85 | 196 | 49 | 80 ✅ |
+| **Total (TITLE only)** | | | **1,054** | **265** | **350** ✅ |
+
+- **±10 pp chosen** — ±5 pp requires 1,054 records (not feasible); current 395-record set exceeds the 265-record ±10 pp minimum
+- **PERSON CI is not achievable at practical cost** — ±10 pp on PERSON alone requires 932 pre-1700 and 1,620 1700–1800 records; see §7.6
+
+
+### 7.6 PERSON Constraint
 
 - Person names in title: 8.7% pre-1700, 5.0% 1700–1800 — far too sparse to hit ±10 pp CI without thousands of records
 - ±10 pp on PERSON needs 932 pre-1700 records, 1,620 for 1700–1800 — not feasible
 - Decision: accept wide CI on PERSON; report as indicative only; must be stated explicitly in the paper
 
-### 7.5 Annotation scope
+### 7.7 Annotation scope
 
 - Leichenpredigt and Einblattdruck oversampled (~40–50 each) — highest-risk failure modes
 - Phase 2 labels (`TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM`) annotated in the same pass to avoid re-annotation — excluded from Phase 1 evaluation claims
