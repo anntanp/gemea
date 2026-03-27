@@ -4,17 +4,17 @@
 #               with counts derived from the actual corpus.
 # Usage:        python3 scripts/sr08_corpus_cell_sizes.py
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl
-#               data/processed/isbd_field_ratings.csv
+#               data/processed/sr01_isbd_field_ratings.csv
 # Outputs:      data/processed/sr08_corpus_cell_sizes.csv  — era × tier counts and percentages
 # Dependencies: pandas, numpy
-# Assumptions:  isbd_field_ratings.csv has obj_id and silver_tier columns;
+# Assumptions:  sr01_isbd_field_ratings.csv has obj_id and silver_tier columns;
 #               era derivation uses same bins as sr08_sample_gold.py
 
 import pandas as pd
 import numpy as np
 
 PKL     = "data/DF_DE_TITLES_20240125b.pkl"
-RATINGS = "data/processed/isbd_field_ratings.csv"
+RATINGS = "data/processed/sr01_isbd_field_ratings.csv"
 OUT     = "data/processed/sr08_corpus_cell_sizes.csv"
 
 df = pd.read_pickle(PKL)

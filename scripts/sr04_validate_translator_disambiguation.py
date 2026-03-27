@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# Purpose:      Sample 100 f_person-flagged records from isbd_field_ratings.csv and
+# Purpose:      Sample 100 f_person-flagged records from sr01_isbd_field_ratings.csv and
 #               apply the translator keyword heuristic to split PERSON (author) from
 #               TRANSLATOR. Writes a review sheet for manual validation of heuristic
 #               precision (SR-04).
 # Usage:        python3 scripts/sr04_validate_translator_disambiguation.py [--ratings PATH]
 #                   [--output PATH] [--n N] [--seed N]
-# Inputs:       data/processed/isbd_field_ratings.csv — output of rate_isbd_fields.py
-# Outputs:      data/processed/translator_validation_sample.csv — review sheet
+# Inputs:       data/processed/sr01_isbd_field_ratings.csv — output of rate_isbd_fields.py
+# Outputs:      data/processed/sr04_translator_validation_sample.csv — review sheet
 # Dependencies: pandas
-# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
+# Assumptions:  sr01_isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 
 import re
 import argparse
@@ -17,8 +17,8 @@ from pathlib import Path
 import pandas as pd
 
 ROOT            = Path(__file__).parent.parent
-RATINGS_DEFAULT = ROOT / "data" / "processed" / "isbd_field_ratings.csv"
-OUTPUT_DEFAULT  = ROOT / "data" / "processed" / "translator_validation_sample.csv"
+RATINGS_DEFAULT = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
+OUTPUT_DEFAULT  = ROOT / "data" / "processed" / "sr04_translator_validation_sample.csv"
 DDB_ITEM_URL    = "https://ddb.de/item/{}"
 
 # Translator keywords — matched case-insensitively anywhere after ' /'

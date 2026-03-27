@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Purpose:      Evaluate the translator keyword heuristic (SR-04) against manual
-#               true_class annotations in translator_validation_sample.csv.
+#               true_class annotations in sr04_translator_validation_sample.csv.
 #               Prints precision, recall, F1 for TRANSLATOR and EDITOR detection,
 #               and a confusion matrix heuristic_class vs true_class.
 # Usage:        python3 scripts/sr04_evaluate_translator_heuristic.py [--input PATH]
-# Inputs:       data/processed/translator_validation_sample.csv — annotated review sheet
+# Inputs:       data/processed/sr04_translator_validation_sample.csv — annotated review sheet
 # Outputs:      stdout — precision/recall/F1 table + confusion matrix
 # Dependencies: pandas
 # Assumptions:  true_class column is fully annotated (no blank rows).
@@ -114,8 +114,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--input",
-        default="data/processed/translator_validation_sample.csv",
-        help="Path to annotated CSV (default: data/processed/translator_validation_sample.csv)",
+        default="data/processed/sr04_translator_validation_sample.csv",
+        help="Path to annotated CSV (default: data/processed/sr04_translator_validation_sample.csv)",
     )
     args = parser.parse_args()
 

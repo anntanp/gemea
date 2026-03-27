@@ -6,10 +6,10 @@
 # Usage:        python3 scripts/sr08_sample_gold.py [--data PATH] [--ratings PATH]
 #                   [--output PATH] [--seed INT]
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl
-#               data/processed/isbd_field_ratings.csv
+#               data/processed/sr01_isbd_field_ratings.csv
 # Outputs:      data/annotation/sr08_gold_sample.csv
 # Dependencies: pandas, numpy
-# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
+# Assumptions:  sr01_isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 #               data/annotation/ is created if it does not exist.
 
 import argparse
@@ -21,7 +21,7 @@ import pandas as pd
 
 ROOT    = Path(__file__).parent.parent
 DATA    = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-RATINGS = ROOT / "data" / "processed" / "isbd_field_ratings.csv"
+RATINGS = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
 OUTPUT  = ROOT / "data" / "annotation" / "sr08_gold_sample.csv"
 DDB_URL = "https://www.deutsche-digitale-bibliothek.de/item/{}"
 

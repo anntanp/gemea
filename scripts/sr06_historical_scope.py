@@ -9,10 +9,10 @@
 # Usage:        python3 scripts/sr06_historical_scope.py [--data PATH] [--ratings PATH]
 #                   [--n N] [--seed N]
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl
-#               data/processed/isbd_field_ratings.csv
+#               data/processed/sr01_isbd_field_ratings.csv
 # Outputs:      data/processed/sr06_historical_sample.csv
 # Dependencies: pandas, re
-# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
+# Assumptions:  sr01_isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 
 import argparse
 import pickle
@@ -23,7 +23,7 @@ import pandas as pd
 
 ROOT    = Path(__file__).parent.parent
 DATA    = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-RATINGS = ROOT / "data" / "processed" / "isbd_field_ratings.csv"
+RATINGS = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
 OUTPUT  = ROOT / "data" / "processed" / "sr06_historical_sample.csv"
 DDB_URL = "https://ddb.de/item/{}"
 

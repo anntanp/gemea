@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Purpose:      SR-05 — Annotate trailing_period_sample.csv with true_class and notes.
+# Purpose:      SR-05 — Annotate sr05_trailing_period_sample.csv with true_class and notes.
 #               Applies rule-based classification to determine whether each trailing
 #               period is a genuine ISBD area-close or a noise source.
 #
@@ -12,8 +12,8 @@
 #                 NOISE       — index entry, single word, fragment, page reference
 #
 # Usage:        python3 scripts/sr05_trailing_period_review.py [--input PATH] [--output PATH]
-# Inputs:       data/processed/trailing_period_sample.csv
-# Outputs:      data/processed/trailing_period_sample.csv (true_class + notes filled)
+# Inputs:       data/processed/sr05_trailing_period_sample.csv
+# Outputs:      data/processed/sr05_trailing_period_sample.csv (true_class + notes filled)
 # Dependencies: pandas, re
 
 import re
@@ -22,7 +22,7 @@ from pathlib import Path
 import pandas as pd
 
 ROOT   = Path(__file__).parent.parent
-INPUT  = ROOT / "data" / "processed" / "trailing_period_sample.csv"
+INPUT  = ROOT / "data" / "processed" / "sr05_trailing_period_sample.csv"
 OUTPUT = INPUT  # overwrite in place
 
 # ── Pattern library ────────────────────────────────────────────────────────────

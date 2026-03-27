@@ -1,10 +1,10 @@
 """
 SR-03 False-Positive Review — German bibliographic NER heuristic validation.
-Purpose: Read heuristic_validation_sample.csv, determine which heuristic field flags
+Purpose: Read sr03_heuristic_validation_sample.csv, determine which heuristic field flags
          are false positives for each title, and write results back to the file.
          Combines automated regex rules with per-row manual overrides for edge cases.
 Usage: python scripts/sr03_fp_review.py
-Inputs: data/processed/heuristic_validation_sample.csv
+Inputs: data/processed/sr03_heuristic_validation_sample.csv
 Outputs: Same file, with fp_fields and notes columns populated.
 Dependencies: pandas
 Assumptions: CSV has 200 rows (excluding header); columns 1-17 as per SR-03 spec.
@@ -13,7 +13,7 @@ Assumptions: CSV has 200 rows (excluding header); columns 1-17 as per SR-03 spec
 import re
 import pandas as pd
 
-CSV_PATH = "/Users/mta/Documents/claude/gemea/data/processed/heuristic_validation_sample.csv"
+CSV_PATH = "/Users/mta/Documents/claude/gemea/data/processed/sr03_heuristic_validation_sample.csv"
 
 df = pd.read_csv(CSV_PATH, dtype=str, keep_default_na=False)
 df["fp_fields"] = ""

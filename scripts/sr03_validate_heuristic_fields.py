@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-# Purpose:      Sample 200 heuristic-tier records from isbd_field_ratings.csv and
+# Purpose:      Sample 200 heuristic-tier records from sr01_isbd_field_ratings.csv and
 #               present each title with its detected field flags for manual false-positive
 #               review. Writes a review sheet (CSV) pre-filled with detected flags;
 #               reviewer adds a 'fp_fields' column listing any fields that are false
 #               positives, and 'notes' for comments.
 # Usage:        python3 scripts/validate_heuristic_fields.py [--ratings PATH]
 #                   [--data PATH] [--output PATH] [--n N] [--seed N]
-# Inputs:       data/processed/isbd_field_ratings.csv — output of rate_isbd_fields.py
+# Inputs:       data/processed/sr01_isbd_field_ratings.csv — output of rate_isbd_fields.py
 #               data/DF_DE_TITLES_20240125b.pkl        — for DDB URL construction
-# Outputs:      data/processed/heuristic_validation_sample.csv — review sheet
+# Outputs:      data/processed/sr03_heuristic_validation_sample.csv — review sheet
 # Dependencies: pandas
-# Assumptions:  isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
+# Assumptions:  sr01_isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
 #               Heuristic tier = silver_tier 1 records with has_dot_dash == False.
 
 import argparse
@@ -20,9 +20,9 @@ from pathlib import Path
 import pandas as pd
 
 ROOT            = Path(__file__).parent.parent
-RATINGS_DEFAULT = ROOT / "data" / "processed" / "isbd_field_ratings.csv"
+RATINGS_DEFAULT = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
 DATA_DEFAULT    = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-OUTPUT_DEFAULT  = ROOT / "data" / "processed" / "heuristic_validation_sample.csv"
+OUTPUT_DEFAULT  = ROOT / "data" / "processed" / "sr03_heuristic_validation_sample.csv"
 DDB_ITEM_URL    = "https://ddb.de/item/{}"
 
 # Heuristic-only field flags (those that can produce false positives without `. -`)
@@ -44,7 +44,7 @@ def main() -> None:
         description="Sample heuristic-tier records for manual false-positive review."
     )
     parser.add_argument("--ratings", type=Path, default=RATINGS_DEFAULT,
-                        help="Path to isbd_field_ratings.csv (default: %(default)s)")
+                        help="Path to sr01_isbd_field_ratings.csv (default: %(default)s)")
     parser.add_argument("--data",    type=Path, default=DATA_DEFAULT,
                         help="Path to DF_DE_TITLES pkl, used only for dc_type column "
                              "if present (default: %(default)s)")

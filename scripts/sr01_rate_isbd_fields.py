@@ -7,8 +7,8 @@
 # Usage:        python3 scripts/sr01_rate_isbd_fields.py [--data PATH] [--output PATH]
 #                   [--examples N] [--batch-size N]
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with obj_id + title columns
-# Outputs:      data/processed/isbd_field_ratings.csv — field flags + silver_tier per record
-#               data/processed/isbd_examples.csv       — N examples per pattern (--examples)
+# Outputs:      data/processed/sr01_isbd_field_ratings.csv — field flags + silver_tier per record
+#               data/processed/sr01_isbd_examples.csv       — N examples per pattern (--examples)
 # Dependencies: pandas
 # Assumptions:  DataFrame has 'obj_id' and 'title' columns.
 #               data/processed/ directory will be created if absent.
@@ -26,8 +26,8 @@ import pandas as pd
 
 ROOT = Path(__file__).parent.parent
 DATA_DEFAULT = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-OUTPUT_DEFAULT = ROOT / "data" / "processed" / "isbd_field_ratings.csv"
-EXAMPLES_DEFAULT = ROOT / "data" / "processed" / "isbd_examples.csv"
+OUTPUT_DEFAULT = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
+EXAMPLES_DEFAULT = ROOT / "data" / "processed" / "sr01_isbd_examples.csv"
 DDB_ITEM_URL = "https://ddb.de/item/{}"
 
 # ---------------------------------------------------------------------------
@@ -294,7 +294,7 @@ def main() -> None:
                         help="Path to output CSV (default: %(default)s)")
     parser.add_argument("--examples",   type=int, default=0,
                         help="If >0, sample this many examples per ISBD pattern "
-                             "and write to isbd_examples.csv alongside --output")
+                             "and write to sr01_isbd_examples.csv alongside --output")
     parser.add_argument("--batch-size", type=int, default=100_000,
                         help="Rows per progress report (default: %(default)s)")
     args = parser.parse_args()
@@ -325,7 +325,7 @@ def main() -> None:
 
     # --- Examples ---
     if args.examples > 0:
-        examples_path = args.output.parent / "isbd_examples.csv"
+        examples_path = args.output.parent / "sr01_isbd_examples.csv"
         examples = sample_examples(rated, args.examples)
         examples.to_csv(examples_path, index=False)
         print(f"Wrote {len(examples):,} example rows → {examples_path}")

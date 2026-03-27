@@ -3,7 +3,7 @@ Purpose:  Extract illustrative false-positive (and false-negative) examples from
           heuristic validation sample CSV, grouped by category, for paste into a
           markdown note.
 Usage:    python scripts/extract_fp_examples.py
-Inputs:   data/processed/heuristic_validation_sample.csv
+Inputs:   data/processed/sr03_heuristic_validation_sample.csv
 Outputs:  stdout (structured text)
 Dependencies: pandas
 Assumptions:  CSV schema matches sr03_validate_heuristic_fields.py output.
@@ -12,7 +12,7 @@ Assumptions:  CSV schema matches sr03_validate_heuristic_fields.py output.
 import pandas as pd
 import textwrap
 
-CSV_PATH = "data/processed/heuristic_validation_sample.csv"
+CSV_PATH = "data/processed/sr03_heuristic_validation_sample.csv"
 
 FLAG_COLS = [
     "f_other_title", "f_person", "f_person_compound",

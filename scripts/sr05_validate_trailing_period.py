@@ -12,7 +12,7 @@
 #               computes precision/recall against the manual true_class column.
 # Usage:        python3 scripts/validate_trailing_period.py [--data PATH] [--n N] [--seed N]
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl
-# Outputs:      data/processed/trailing_period_sample.csv
+# Outputs:      data/processed/sr05_trailing_period_sample.csv
 # Dependencies: pandas, re
 # Assumptions:  DataFrame has 'title' and 'obj_id' columns.
 
@@ -25,7 +25,7 @@ import pandas as pd
 
 ROOT   = Path(__file__).parent.parent
 DATA   = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-OUTPUT = ROOT / "data" / "processed" / "trailing_period_sample.csv"
+OUTPUT = ROOT / "data" / "processed" / "sr05_trailing_period_sample.csv"
 
 DDB_URL = "https://ddb.de/item/{}"
 
