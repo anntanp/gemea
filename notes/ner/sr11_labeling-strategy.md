@@ -51,7 +51,34 @@ The 47 tier-2 records are the validation set — ISBD-derived ground truth exist
 
 ---
 
-## 0.2 Open decisions
+## 0.2 Task register
+
+**Phase 1 — prompt validation**
+- [ ] **T11.1** Run `sr09_eval_nuner_tier2.py` with LLM annotation prompt on tier-2 records (47)
+- [ ] **T11.2** Agreement ≥ 85% on TITLE, OTHER_TITLE, PERSON — if not, revise system prompt and re-run
+- [ ] **T11.3** Prompt hash logged for reproducibility
+
+**Phase 2 — training batch annotation**
+- [ ] **T11.4** Sample 4–5K pre-1750 tier-0 records (`sr11_training_sample.csv`)
+- [ ] **T11.5** Stratum balance confirmed: Leichenpredigt, Monografie, Einblattdruck represented
+- [ ] **T11.6** Claude batch annotation run (batches of 20–50, temperature 0)
+- [ ] **T11.7** Post-processing: hallucinated spans discarded, malformed brackets flagged
+- [ ] **T11.8** Manual spot-check of ~200 records (~5%) — agreement rate recorded
+- [ ] **T11.9** `sr11_llm_labeled_clean.jsonl` written
+
+**Phase 3 — fine-tuning**
+- [ ] **T11.10** Training set assembled: silver tier-1/2 + LLM-labeled tier-0
+- [ ] **T11.11** Character spans converted to IOB2 token labels
+- [ ] **T11.12** `xlm-roberta-base` fine-tuned (token classification head)
+- [ ] **T11.13** Evaluated on gold set — point-estimate F1 per label per era recorded
+
+**Parallel (SR-08 — human)**
+- [ ] **T11.14** Gold manual queue (~212 records) annotated
+- [ ] **T11.15** Merged with pre-filled (47) + partial tier-1 records → 395-record gold set complete
+
+---
+
+## 0.3 Open decisions
 
 - **Gold set in training?** Current plan: hold out entirely. Alternative: leave-one-era-out CV. Decision deferred to Phase 3.
 - **Era mix for training sample:** uniform across pre-1700 / 1700–1800, or weighted by corpus distribution? Leichenpredigt and Einblattdruck oversampled as in SR-08.
@@ -264,14 +291,14 @@ Annotate each of the following Early Modern German bibliographic titles. Return 
 | Unknown label | Label not in `{TITLE, OTHER_TITLE, PERSON}` | Flag for review |
 | Span text not found in input | Substring match fails | Discard (hallucinated span) |
 
-### 4.6 Prompt iteration checklist
+### 4.6 Prompt iteration task register
 
-Before running the full 4k–5k batch:
+Before running the full 4k–5k batch (these feed into T11.1–T11.2):
 
-- [ ] Annotate 50 records manually (drawn from the dc_type distribution of the target batch)
-- [ ] Run prompt on same 50 records; compute span-level exact-match F1 per label type
-- [ ] PERSON recall ≥ 80% on pre-1750 records? (author-before-title is the main failure mode)
-- [ ] TITLE boundary correct on "Das ist:" records?
-- [ ] Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
-- [ ] If agreement < 85% on any label type: revise system prompt, add targeted few-shot example, re-run on 50 records
-- [ ] Once ≥ 85% on all three label types: proceed with full batch
+- [ ] **T11.1a** Annotate 50 records manually (drawn from the dc_type distribution of the target batch)
+- [ ] **T11.1b** Run prompt on same 50 records; compute span-level exact-match F1 per label type
+- [ ] **T11.1c** PERSON recall ≥ 80% on pre-1750 records? (author-before-title is the main failure mode)
+- [ ] **T11.1d** TITLE boundary correct on "Das ist:" records?
+- [ ] **T11.1e** Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
+- [ ] **T11.2a** If agreement < 85% on any label type: revise system prompt, add targeted few-shot example, re-run on 50 records
+- [ ] **T11.2b** Once ≥ 85% on all three label types: proceed with full batch
