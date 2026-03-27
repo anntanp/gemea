@@ -13,6 +13,8 @@ Covers: ISBD/RDF, FRBR/LRM, EDM, cultural heritage KGs, linked library data, bib
 | [artkb-eswc2026.md](artkb-eswc2026.md) | Blanco et al. 2026 — ArtKB (ESWC 2026) | Closest comparable CH KG; differentiation anchor |
 | [willer2010-isbd-semantic.md](willer2010-isbd-semantic.md) | Willer, Dunsire & Bosančić 2010 — ISBD and the Semantic Web | ISBD RDF namespace; ISBD-AP; foundational for mocho alignment |
 
+| [wittmann1999-geschichte-buchhandels.md](wittmann1999-geschichte-buchhandels.md) | Wittmann 1999 — Geschichte des deutschen Buchhandels | 18th-c publishing commercialization; context for token-length shift in DF_DE_TITLES; **not** citable for title-length claim directly |
+
 **To add:**
 - Europeana Data Model (EDM) spec / Doerr et al.
 - FRBRoo / LRM (IFLA 2017)

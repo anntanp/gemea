@@ -171,6 +171,8 @@ The cluster pattern fires on internal occurrences like "Heilige" (`ch`), "höffl
 
 SR-08 gold set design does not need a dedicated Latin stratum. Early Modern German is the primary historical challenge. The gold set should include a **pre-1700** stratum (long-form Leichenpredigt and legal/administrative Monografie) as a proxy for the full historical register.
 
+**External validation:** Wittmann (1999, p. 122) reports that Latin's share of Leipzig fair new titles (*Meßnovitäten*) fell from 27.7% in 1740 to 14.25% in 1770 to 3.97% in 1800. A DDB corpus of predominantly 19th–20th century holdings would inherit near-zero Latin prevalence from this trajectory. The ~0.5% finding in `DF_DE_TITLES` is consistent with this historical baseline. See [wittmann1999-geschichte-buchhandels.md](../literature/wittmann1999-geschichte-buchhandels.md).
+
 ---
 
 ## 7. Impact on model selection

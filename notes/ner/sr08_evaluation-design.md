@@ -199,18 +199,7 @@ Script: `sr08_ci_sample_size.py`; data: `data/processed/sr08_ci_sample_size.csv`
 
 ---
 
-## 7. Pending items
-
-- [x] Fix the TITLE F1 usability threshold — resolved: see §3
-- [x] Pull actual corpus cell sizes — resolved: see §5
-- [x] Compute minimum per-stratum record counts — resolved: see §6
-- [x] Decide whether to expand the gold set — resolved: ±10 pp CI adopted due to time constraints; current 395-record set is sufficient
-- [ ] Cap at corpus availability and redistribute — see §8
-- [ ] Update the allocation table in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
-
----
-
-## 8. Revised allocation strategy
+## 7. Revised allocation strategy
 
 **Principle: oversample problematic strata, not corpus proportions.**
 
@@ -253,3 +242,15 @@ Key changes from current:
 - Unknown reduced from 45 → 25
 
 All proposed counts are well within corpus availability (see §5).
+
+---
+
+## 8. Pending items
+
+- [x] Fix the TITLE F1 usability threshold — resolved: see §3
+- [x] Pull actual corpus cell sizes — resolved: see §5
+- [x] Compute minimum per-stratum record counts — resolved: see §6
+- [x] Decide whether to expand the gold set — resolved: ±10 pp CI adopted due to time constraints; current 395-record set is sufficient
+- [ ] Cap at corpus availability and redistribute — see §7
+- [ ] Update the allocation table in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
+- [ ] **Resolve unknown-era records** — original target was 0; 45 records entered the gold set as an artifact of Leichenpredigt/Einblattdruck genre oversampling pulling in records whose year could not be resolved. These cannot be evaluated per-era. Decision needed: remove, keep as unstrataified spot-check, or reduce to 25 as proposed in §7.
