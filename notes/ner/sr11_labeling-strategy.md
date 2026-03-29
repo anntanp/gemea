@@ -18,13 +18,47 @@ SR-08 is complete: 395-record gold sample drawn, tier-2 records pre-filled (47),
 
 Three phases in order. Phase 1 unblocks evaluation; phases 2–3 build the training set.
 
+```mermaid
+flowchart TD
+    subgraph SR08["SR-08 — human (parallel)"]
+        h1["Annotate manual queue (~212 records)"]
+        h2["Merge → 395-record gold set"]
+        h1 --> h2
+    end
+
+    subgraph P1["Phase 1 — Prompt validation"]
+        1a["1a: Run prompt on 47 tier-2 records\n(SR-08 draw)"]
+        1b["1b: Revise if agreement < 85%"]
+        1a --> 1b
+    end
+
+    subgraph P2["Phase 2 — Training batch annotation"]
+        2a["2a: Sample 4–5K pre-1750 tier-0 records"]
+        2b["2b: Stratify by dc_type"]
+        2c["2c: Claude batch annotation"]
+        2d["2d: Post-process → sr11_llm_labeled_clean.jsonl"]
+        2a --> 2b --> 2c --> 2d
+    end
+
+    subgraph P3["Phase 3 — Fine-tune xlm-roberta-base"]
+        3a["3a: Assemble training set\n(silver tier-1/2 + LLM-labeled tier-0)"]
+        3b["3b: Char spans → IOB2"]
+        3c["3c: Fine-tune xlm-roberta-base"]
+        3d["3d: Evaluate on gold set"]
+        3a --> 3b --> 3c --> 3d
+    end
+
+    P1 --> P2 --> P3
+    h2 -->|held-out eval only| 3d
+```
+
 ### Phase 1 — Validate LLM annotation prompt (independent of gold annotation)
 
 Gold set annotation is done by human in parallel (SR-08, fully independent). Phase 1 only validates the prompt before Phase 2.
 
 | Step | What | Records | Output |
 |---|---|---|---|
-| 1a | Run prompt on tier-2 pre-filled records | 47 | Agreement rate vs. ISBD silver spans |
+| 1a | Run prompt on tier-2 pre-filled records | 47 (SR-08 stratified draw) | Agreement rate vs. ISBD silver spans |
 | 1b | Revise prompt if agreement < 85% on any label | — | Updated system prompt |
 
 The 47 tier-2 records are the validation set — ISBD-derived ground truth exists. These records are part of the gold sample and are not used as few-shot examples; they are only used to measure prompt accuracy before Phase 2.
@@ -54,7 +88,7 @@ The 47 tier-2 records are the validation set — ISBD-derived ground truth exist
 ## 0.2 Task register
 
 **Phase 1 — prompt validation**
-- [ ] **T11.1** Run `sr09_eval_nuner_tier2.py` with LLM annotation prompt on tier-2 records (47)
+- [ ] **T11.1** Run `sr11_eval_prompt_tier2.py` on tier-2 records (47)
 - [ ] **T11.2** Agreement ≥ 85% on TITLE, OTHER_TITLE, PERSON — if not, revise system prompt and re-run
 - [ ] **T11.3** Prompt hash logged for reproducibility
 
@@ -112,7 +146,7 @@ Using Claude (or another capable LLM) to generate the pre-1750 labeled dataset i
 ### 2.1 Why it works
 
 - Claude handles Early Modern German well — Fraktur-adjacent orthography (`vnd`, `deß`, `seyn`) is within its training distribution from historical corpora
-- Bibliographic structure is well-represented in Claude's pretraining (library catalogs, digitized text)
+- Bibliographic structure handling confirmed empirically via few-shot examples (§4.3); see T11.1 validation results
 - Label definitions (TITLE, PERSON, TRANSLATOR) are semantically clear — low ambiguity for an LLM
 - Inline Bracketed output format works reliably for Claude (see Zhan et al. 2026 — same format family tops generative NER benchmarks)
 - Cost is negligible: 4k records × ~300 tokens average ≈ 1.2M tokens, a small fraction of API budget
@@ -296,7 +330,7 @@ Annotate each of the following Early Modern German bibliographic titles. Return 
 Before running the full 4k–5k batch (these feed into T11.1–T11.2):
 
 - [ ] **T11.1a** Annotate 50 records manually (drawn from the dc_type distribution of the target batch)
-- [ ] **T11.1b** Run prompt on same 50 records; compute span-level exact-match F1 per label type
+- [ ] **T11.1b** Run `sr11_eval_prompt_tier2.py` on same 50 records; compute span-level exact-match F1 per label type
 - [ ] **T11.1c** PERSON recall ≥ 80% on pre-1750 records? (author-before-title is the main failure mode)
 - [ ] **T11.1d** TITLE boundary correct on "Das ist:" records?
 - [ ] **T11.1e** Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
