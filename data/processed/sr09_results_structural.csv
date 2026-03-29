@@ -1,0 +1,4 @@
+label,tp,fp,fn,precision,recall,f1,prompts,threshold,model,n_records
+TITLE,0,0,47,0.0,0.0,0.0,structural,0.5,numind/NuNer_Zero,47
+OTHER_TITLE,0,0,15,0.0,0.0,0.0,structural,0.5,numind/NuNer_Zero,47
+PERSON,0,1,45,0.0,0.0,0.0,structural,0.5,numind/NuNer_Zero,47
