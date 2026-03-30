@@ -58,10 +58,11 @@ Gold set annotation is done by human in parallel (SR-08, fully independent). Pha
 
 | Step | What | Records | Output |
 |---|---|---|---|
-| 1a | Run prompt on tier-2 pre-filled records | 47 (SR-08 stratified draw) | Agreement rate vs. ISBD silver spans |
-| 1b | Revise prompt if agreement < 85% on any label | — | Updated system prompt |
+| 1a | Manually annotate 50 pre-1750 tier-0 records (drawn from dc_type distribution of Phase 2 batch) | 50 | `sr11_prompt_validation_manual.jsonl` |
+| 1b | Run §4.2 prompt on same 50 records; compute exact-match F1 per label | 50 | Agreement rate vs. manual gold |
+| 1c | Revise prompt if agreement < 85% on any label | — | Updated system prompt |
 
-The 47 tier-2 records are the validation set — ISBD-derived ground truth exists. These records are part of the gold sample and are not used as few-shot examples; they are only used to measure prompt accuracy before Phase 2.
+The validation set is 50 manually annotated pre-1750 tier-0 records — the same domain, era, and dc_type distribution as Phase 2. This directly tests the §4.2 prompt (author-before-title rules, Early Modern German conventions) on actual target data. The tier-2 ISBD pre-filled records are modern and do not exercise the pre-1750 annotation rules.
 
 ### Phase 2 — Annotate training batch (pre-1750 tier-0)
 
@@ -88,7 +89,7 @@ The 47 tier-2 records are the validation set — ISBD-derived ground truth exist
 ## 0.2 Task register
 
 **Phase 1 — prompt validation**
-- [ ] **T11.1** Run `sr11_eval_prompt_tier2.py` on tier-2 records (47)
+- [ ] **T11.1** Manually annotate 50 pre-1750 tier-0 records; run `sr11_eval_prompt.py`; compute F1 per label
 - [ ] **T11.2** Agreement ≥ 85% on TITLE, OTHER_TITLE, PERSON — if not, revise system prompt and re-run
 - [ ] **T11.3** Prompt hash logged for reproducibility
 
@@ -123,7 +124,7 @@ The 47 tier-2 records are the validation set — ISBD-derived ground truth exist
 
 ## 1. Fine-tuning dataset size by FRBR scope
 
-Rule of thumb for domain-specific NER fine-tuning from a strong multilingual checkpoint (xlm-roberta-large): **200–500 annotated spans per entity type** is the practical minimum for reliable boundary learning. Below ~200 per type, type confusion and boundary errors dominate; above ~500, returns diminish rapidly for a focused label set.
+Working assumption: **200–500 annotated spans per entity type** is the practical minimum for reliable boundary learning from a strong multilingual checkpoint (xlm-roberta-large). Below ~200 per type, type confusion and boundary errors dominate; above ~500, returns diminish rapidly for a focused label set. This assumption will be validated against T11.13 evaluation results.
 
 Translating to record counts (each bibliographic title typically yields 1–3 labeled spans):
 
@@ -327,12 +328,13 @@ Annotate each of the following Early Modern German bibliographic titles. Return 
 
 ### 4.6 Prompt iteration task register
 
-Before running the full 4k–5k batch (these feed into T11.1–T11.2):
+Before running the full 4k–5k batch. These are the sub-steps of T11.1–T11.2:
 
-- [ ] **T11.1a** Annotate 50 records manually (drawn from the dc_type distribution of the target batch)
-- [ ] **T11.1b** Run `sr11_eval_prompt_tier2.py` on same 50 records; compute span-level exact-match F1 per label type
-- [ ] **T11.1c** PERSON recall ≥ 80% on pre-1750 records? (author-before-title is the main failure mode)
-- [ ] **T11.1d** TITLE boundary correct on "Das ist:" records?
-- [ ] **T11.1e** Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
+- [ ] **T11.1a** Sample 50 pre-1750 tier-0 records from `sr01_isbd_field_ratings.csv` excluding SR-08 gold `obj_id`s; stratify by dc_type
+- [ ] **T11.1b** Annotate the 50 records manually → `sr11_prompt_validation_manual.jsonl`
+- [ ] **T11.1c** Run `sr11_eval_prompt.py` on same 50 records; compute span-level exact-match F1 per label type
+- [ ] **T11.1d** PERSON recall ≥ 80% on pre-1750 records? (author-before-title is the main failure mode)
+- [ ] **T11.1e** TITLE boundary correct on "Das ist:" records?
+- [ ] **T11.1f** Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
 - [ ] **T11.2a** If agreement < 85% on any label type: revise system prompt, add targeted few-shot example, re-run on 50 records
 - [ ] **T11.2b** Once ≥ 85% on all three label types: proceed with full batch

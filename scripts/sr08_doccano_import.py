@@ -14,7 +14,8 @@ OUTPUT = Path(__file__).parent.parent / "data/annotation/sr08-doccano-import.jso
 with INPUT.open() as fin, OUTPUT.open("w") as fout:
     for line in fin:
         record = json.loads(line)
-        out = {"text": record["title"], "label": record["spans"]}
+        labels = [[s["start"], s["end"], s["label"]] for s in record["spans"]]
+        out = {"text": record["title"], "label": labels}
         fout.write(json.dumps(out, ensure_ascii=False) + "\n")
 
 print(f"Written to {OUTPUT}")

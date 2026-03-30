@@ -251,6 +251,18 @@ All proposed counts are well within corpus availability (see §5).
 - [x] Pull actual corpus cell sizes — resolved: see §5
 - [x] Compute minimum per-stratum record counts — resolved: see §6
 - [x] Decide whether to expand the gold set — resolved: ±10 pp CI adopted due to time constraints; current 395-record set is sufficient
-- [ ] Cap at corpus availability and redistribute — see §7
-- [ ] Update the allocation table in sr08_gold-set-composition.md §2.2 with derived numbers and documented rationale
-- [ ] **Resolve unknown-era records** — original target was 0; 45 records entered the gold set as an artifact of Leichenpredigt/Einblattdruck genre oversampling pulling in records whose year could not be resolved. These cannot be evaluated per-era. Decision needed: remove, keep as unstrataified spot-check, or reduce to 25 as proposed in §7.
+- [x] Cap at corpus availability and redistribute — **deferred**; see decision below
+- [x] Update the allocation table in sr08_gold-set-composition.md §2.2 — **deferred**; see decision below
+- [x] **Resolve unknown-era records** — **resolved: keep as unstratified spot-check** (45 records retained); see decision below
+
+### Decision: proceed with current 395-record set (Option A)
+
+**Decided 2026-03-30.**
+
+The §7 revised allocation (boosting tier-0 to 78.5%, reducing unknown to 25) was evaluated and **deferred**. Rationale:
+
+- Option B (resample first) increases annotation effort by ~25–40% — it replaces 132 verify/spot-check records (tier-1/2) with 132 annotate-from-scratch records (tier-0), adding an estimated 8–15 hours of annotation work.
+- The current 395-record set already meets the ±10 pp CI target for TITLE F1 across all strata. The tier composition issue is a reporting concern, not a blocking one.
+- Unknown-era records (45): retained as an unstratified spot-check. They cannot contribute to per-era F1 but are valid annotation targets and add coverage.
+
+**Paper implication:** report the tier distribution (45.1% tier-0) alongside F1 results and note it as a limitation. Do not claim tier-balanced evaluation. PERSON F1 on pre-1700 must be reported with explicit CI (±8–10 pp) rather than as a hard number.

@@ -35,6 +35,8 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | `sr04_evaluate_translator_heuristic.py` | SR-04: evaluate keyword heuristic against manual `true_class` annotations; prints precision/recall/F1, confusion matrix, and false-negative detail |
 | `sr10_explore_token_distribution.py` | SR-10: plot raw token-count distribution with percentile markers; outputs `notes/images/fig_token_distribution.png` |
 | `sr10_analyse_title_lengths.py` | SR-10: plot title-length distribution per year bucket; outputs `notes/images/fig_title_lengths.png` |
+| `sr11_sample_validation.py` | SR-11 T11.1a: sample 50 pre-1750 tier-0 records for manual prompt validation; stratified by dc_type; excludes SR-08 gold; outputs `data/annotation/sr11_prompt_validation_manual.jsonl` |
+| `sr11_annotate.py` | SR-11 T11.1b: interactive span annotation helper; loads `sr11_prompt_validation_manual.jsonl`, prompts for Inline Bracketed input, resolves character offsets, writes back in place |
 | `sr05_validate_trailing_period.py` | SR-05: sample 200 titles ending with `.` from DF_DE_TITLES; applies a heuristic classifier (ISBD_CLOSE / ABBREV / ORDINAL / NATURAL / NOISE) and writes `data/processed/sr05_trailing_period_sample.csv` |
 | `sr05_trailing_period_review.py` | SR-05: annotate `sr05_trailing_period_sample.csv` with refined `true_class` and `notes`; prints FP rate summary |
 | `sr08_sample_gold.py` | SR-08: draw ~500-record stratified NER gold sample by era × silver_tier × dc_type; oversample Leichenpredigt and Einblattdruck; writes `data/annotation/sr08_gold_sample.csv` |

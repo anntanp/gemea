@@ -65,7 +65,9 @@ gemea/
 | `notes/ner/sr05_trailing-period-noise.md` | Trailing `.` as standalone silver signal — excluded (93% FP) |
 | `notes/ner/sr05_abbreviations.md` | Abbreviation handling in ISBD parsing |
 | `notes/ner/sr06_historical-scope.md` | Language scope: Early Modern German primary; Latin stratum not needed |
-| `notes/ner/sr09_gold-set-composition.md` | Gold set stratification plan (~500 records) |
+| `notes/ner/sr08_gold-set-composition.md` | Gold set stratification plan (~500 records) |
+| `notes/ner/sr08_annotation-guide.md` | NER annotation guide for human and LLM annotators |
+| `notes/ner/sr08_label-design-rationale.md` | Rationale for label name choices (PERSON, OTHER_TITLE, PARALLEL_TITLE) with ISBD citations |
 | `notes/ner/sr10_de-titles-distribution.md` | `DF_DE_TITLES` provenance and token-length distribution |
 | `notes/ner/sr10_title-length-thresholds.md` | Title length thresholds for stratification |
 | `notes/ner/sr10_tracing-df-de-titles.md` | Tracing `DF_DE_TITLES` back to DDB source fields |
