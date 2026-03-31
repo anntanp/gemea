@@ -154,7 +154,7 @@ The pre-1750 stratum is the binding constraint: it is entirely tier-0, so no sil
 
 ## 2. LLM as annotator — using Claude
 
-Using Claude to generate the pre-1750 labeled dataset is the most practical path. This is architecturally identical to the approach used to build NuNER's training corpus (GPT-3.5 annotating 1M C4 sentences; Bogdanov et al., EMNLP 2024) and is consistent with the §8.2 recommendation in ner-bibliographic.md.
+Using Claude to generate the pre-1750 labeled dataset is the most practical path. This is architecturally identical to the approach used to build NuNER's training corpus (GPT-3.5 annotating 1M sentences from C4 — the Colossal Clean Crawled Corpus, a filtered Common Crawl web corpus; Bogdanov et al., EMNLP 2024) and is consistent with the §8.2 recommendation in ner-bibliographic.md.
 
 ### 2.1 Why it works
 
