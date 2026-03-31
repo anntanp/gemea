@@ -6,32 +6,24 @@ Related: [ner-bibliographic.md §8](../ner-bibliographic.md), [SR-08](../ner-bib
 
 ---
 
-## 0. Do we need to fine-tune XLM-R at all?
+## 0. Context
 
-The minimum viable path is **silver-only fine-tuning** — take the existing tier-1/2 silver labels (~340K records), fine-tune XLM-R on those, and evaluate on the gold set. No LLM annotation needed. If that passes the viability thresholds, the SR-11 annotation plan is unnecessary.
+SR-09 (2026-03-27) confirmed NuNER zero-shot is not viable (F1 = 0.000 on all labels). Root cause: token-level classifier with no concept of bibliographic field segmentation. The LLM one-time labeler → fine-tune `xlm-roberta-base` path is confirmed.
 
-The reason SR-11 exists is the **pre-1750 gap**: tier-1/2 silver covers modern/19th-c but pre-1700 has zero silver records. If silver-only fine-tuning fails specifically on pre-1700 — which is likely, since it has no training signal — then LLM-annotated pre-1750 data is required.
+SR-08 is complete: 395-record gold sample drawn, tier-2 records pre-filled (47), manual queue exported (`sr08_manual_queue.csv`). SR-11 is now unblocked.
 
-**Open question:** run silver-only fine-tuning first, or assume pre-1700 failure and go straight to SR-11?
+**Open question — silver-only baseline:** The minimum viable path is silver-only fine-tuning (~340K tier-1/2 records, no LLM annotation). SR-11 exists because pre-1700 has zero silver records and silver-only will almost certainly fail there. Options:
 
-- **Run silver-only first:** saves the SR-11 annotation effort if it works; provides a baseline for the paper regardless; modern/19th-c will almost certainly pass, pre-1700 is where it breaks.
-- **Skip to LLM annotation:** pre-1700 failure on silver-only is predictable (zero training signal); the paper needs LLM annotation to make a novel contribution anyway (mirrors NuNER's method).
+- **Run silver-only first:** provides a baseline for the paper; modern/19th-c will pass, pre-1700 is where it breaks.
+- **Skip to LLM annotation:** pre-1700 failure is predictable; the paper needs LLM annotation for a novel contribution regardless (mirrors NuNER's method).
 
 **Decision (2026-03-30):** open — flag in paper as experiment design choice.
 
 ---
 
-## 0. Why this is now the active path
-
-SR-09 (2026-03-27) confirmed NuNER zero-shot is not viable: F1 = 0.000 on all labels and all prompt variants on tier-2 records. Root cause: token-level classifier with no concept of bibliographic field segmentation. The LLM one-time labeler → fine-tune `xlm-roberta-base` path is confirmed.
-
-SR-08 is complete: 395-record gold sample drawn, tier-2 records pre-filled (47), tier-1 partially filled, manual queue exported (`sr08_manual_queue.csv`). SR-11 is now unblocked.
-
----
-
 ## 0.1 Execution plan
 
-Three phases in order. Phase 1 unblocks evaluation; phases 2–3 build the training set.
+Three phases in order. Phase 1 validates the prompt; phases 2–3 build the training set. SR-08 human annotation runs in parallel.
 
 ```mermaid
 flowchart TD
@@ -42,9 +34,10 @@ flowchart TD
     end
 
     subgraph P1["Phase 1 — Prompt validation"]
-        1a["1a: Run prompt on 47 tier-2 records\n(SR-08 draw)"]
-        1b["1b: Revise if agreement < 85%"]
-        1a --> 1b
+        1a["1a: Manually annotate 50 pre-1750 tier-0 records"]
+        1b["1b: Run §4.2 prompt; compute F1 vs manual gold"]
+        1c["1c: Revise if agreement < 85%"]
+        1a --> 1b --> 1c
     end
 
     subgraph P2["Phase 2 — Training batch annotation"]
@@ -67,28 +60,26 @@ flowchart TD
     h2 -->|held-out eval only| 3d
 ```
 
-### Phase 1 — Validate LLM annotation prompt (independent of gold annotation)
+**Phase 1 — Validate LLM annotation prompt**
 
-Gold set annotation is done by human in parallel (SR-08, fully independent). Phase 1 only validates the prompt before Phase 2.
+Validation uses 50 manually annotated pre-1750 tier-0 records — same domain, era, and dc_type distribution as Phase 2. This directly tests the §4.2 prompt on actual target data. Tier-2 ISBD pre-filled records are modern and do not exercise pre-1750 annotation rules.
 
 | Step | What | Records | Output |
 |---|---|---|---|
-| 1a | Manually annotate 50 pre-1750 tier-0 records (drawn from dc_type distribution of Phase 2 batch) | 50 | `sr11_prompt_validation_manual.jsonl` |
+| 1a | Manually annotate 50 pre-1750 tier-0 records stratified by dc_type | 50 | `sr11_prompt_validation_manual.jsonl` |
 | 1b | Run §4.2 prompt on same 50 records; compute exact-match F1 per label | 50 | Agreement rate vs. manual gold |
-| 1c | Revise prompt if agreement < 85% on any label | — | Updated system prompt |
+| 1c | Revise prompt if agreement < 85% on any label; re-run | — | Updated system prompt |
 
-The validation set is 50 manually annotated pre-1750 tier-0 records — the same domain, era, and dc_type distribution as Phase 2. This directly tests the §4.2 prompt (author-before-title rules, Early Modern German conventions) on actual target data. The tier-2 ISBD pre-filled records are modern and do not exercise the pre-1750 annotation rules.
-
-### Phase 2 — Annotate training batch (pre-1750 tier-0)
+**Phase 2 — Annotate training batch (pre-1750 tier-0)**
 
 | Step | What | Records | Output |
 |---|---|---|---|
 | 2a | Sample 4–5K pre-1750 tier-0 records | 4–5K | `sr11_training_sample.csv` |
 | 2b | Stratify by dc_type: Leichenpredigt, Monografie, Einblattdruck | — | Stratum-balanced sample |
-| 2c | Run Claude batch annotation (batches of 20–50) | 4–5K | `sr11_llm_labeled.jsonl` |
+| 2c | Run Claude batch annotation (batches of 20–50, temperature 0) | 4–5K | `sr11_llm_labeled.jsonl` |
 | 2d | Post-process: detect and discard hallucinated/malformed spans | — | `sr11_llm_labeled_clean.jsonl` |
 
-### Phase 3 — Fine-tune xlm-roberta-base
+**Phase 3 — Fine-tune xlm-roberta-base**
 
 | Step | What | Notes |
 |---|---|---|
@@ -104,9 +95,15 @@ The validation set is 50 manually annotated pre-1750 tier-0 records — the same
 ## 0.2 Task register
 
 **Phase 1 — prompt validation**
-- [ ] **T11.1** Manually annotate 50 pre-1750 tier-0 records; run `sr11_eval_prompt.py`; compute F1 per label
-- [ ] **T11.2** Agreement ≥ 85% on TITLE, OTHER_TITLE, PERSON — if not, revise system prompt and re-run
-- [ ] **T11.3** Prompt hash logged for reproducibility
+- [ ] **T11.1a** Sample 50 pre-1750 tier-0 records; stratify by dc_type; exclude SR-08 gold `obj_id`s (`sr11_sample_validation.py`)
+- [ ] **T11.1b** Annotate the 50 records manually (`sr11_annotate.py`) → `sr11_prompt_validation_manual.jsonl`
+- [ ] **T11.1c** Run `sr11_eval_prompt.py`; compute span-level exact-match F1 per label
+- [ ] **T11.1d** PERSON recall ≥ 80%? (author-before-title is the main failure mode)
+- [ ] **T11.1e** TITLE boundary correct on "Das ist:" records?
+- [ ] **T11.1f** Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
+- [ ] **T11.2a** If agreement < 85% on any label: revise system prompt, add targeted few-shot example, re-run
+- [ ] **T11.2b** Once ≥ 85% on all three label types: proceed with Phase 2
+- [ ] **T11.3** Prompt hash (SHA-256) and model ID logged for reproducibility
 
 **Phase 2 — training batch annotation**
 - [ ] **T11.4** Sample 4–5K pre-1750 tier-0 records (`sr11_training_sample.csv`)
@@ -149,22 +146,21 @@ Translating to record counts (each bibliographic title typically yields 1–3 la
 | Work + Expression | + `TRANSLATOR`, `PARALLEL_TITLE`, `MEDIUM` | ~1,800–3,000 spans | **3k–5k records** | Expression types are sparse per record — need more records to reach span count |
 | Full (incl. Manifestation) | + `PUBLISHER`, `PLACE`, `YEAR`, `EDITION`, `SERIES`, `VOLUME` | ~3,000–6,000 spans | **5k–10k records** | Manifestation fields extractable from ISBD silver; less urgent to label manually |
 
-**Practical implication:** Work-only scope (Phase 1, per SR-07) is achievable with 1k–2k LLM-labeled records for the pre-1750 stratum. Extending to Expression adds 2k–3k more. Manifestation labels can be deferred — the ISBD silver set already covers these for the modern stratum.
+**Practical implication:** Work-only scope is achievable with 1k–2k LLM-labeled records for the pre-1750 stratum. The 4–5K Phase 2 target covers Work + Expression scope. Manifestation labels can be deferred — the ISBD silver set already covers these for the modern stratum.
 
-The pre-1750 stratum is the binding constraint in all cases: it is entirely tier-0, so no silver labels exist regardless of scope. Modern records have 335k silver tier-1 and 4,613 tier-2 records — fine-tuning on the modern stratum is not the bottleneck.
+The pre-1750 stratum is the binding constraint: it is entirely tier-0, so no silver labels exist regardless of scope. Modern records have 335k silver tier-1 and 4,613 tier-2 records — fine-tuning on the modern stratum is not the bottleneck.
 
 ---
 
 ## 2. LLM as annotator — using Claude
 
-Using Claude (or another capable LLM) to generate the pre-1750 labeled dataset is the most practical path. This is architecturally identical to the approach used to build NuNER's training corpus (GPT-3.5 annotating 1M C4 sentences; Bogdanov et al., EMNLP 2024) and is consistent with the §8.2 recommendation in ner-bibliographic.md.
+Using Claude to generate the pre-1750 labeled dataset is the most practical path. This is architecturally identical to the approach used to build NuNER's training corpus (GPT-3.5 annotating 1M C4 sentences; Bogdanov et al., EMNLP 2024) and is consistent with the §8.2 recommendation in ner-bibliographic.md.
 
 ### 2.1 Why it works
 
-- Claude handles Early Modern German well — Fraktur-adjacent orthography (`vnd`, `deß`, `seyn`) is within its training distribution from historical corpora
-- Bibliographic structure handling confirmed empirically via few-shot examples (§4.3); see T11.1 validation results
-- Label definitions (TITLE, PERSON, TRANSLATOR) are semantically clear — low ambiguity for an LLM
-- Inline Bracketed output format works reliably for Claude (see Zhan et al. 2026 — same format family tops generative NER benchmarks)
+- Early Modern German and bibliographic structure handling: confirmed empirically via few-shot examples (§4.3); see T11.1 validation results — no pre-existing citation
+- Label definitions (TITLE, OTHER_TITLE, PERSON) are semantically clear — low ambiguity for an LLM
+- Inline Bracketed is among the top-performing output formats for generative NER (Zhan et al. 2026: avg F1 90.69 vs 90.07 for Inline XML, both significantly above JSON formats; tested on LLaMA/Qwen — Claude extrapolated)
 - Cost is negligible: 4k records × ~300 tokens average ≈ 1.2M tokens, a small fraction of API budget
 
 ### 2.2 Risks and mitigations
@@ -176,25 +172,6 @@ Using Claude (or another capable LLM) to generate the pre-1750 labeled dataset i
 | Hallucinated spans (text not in input) | Low–Medium | Use Inline Bracketed format — spans are extracted inline from the input string, reducing hallucination compared to generative span prediction |
 | Systematic bias across similar records | Medium | Evaluate on the SR-08 gold set (human-annotated, independent); if LLM errors cluster on a dc_type or era, resample |
 | Early Modern abbreviations / title-page conventions | Medium | Include 3–5 annotated examples in the prompt (few-shot) covering the main patterns |
-
-### 2.3 Recommended workflow
-
-1. Sample 4k–5k pre-1750 tier-0 records stratified by `dc_type` (Leichenpredigt, Monografie, Einblattdruck) and decade
-2. Write annotation prompt with:
-   - Label definitions (FRBR Work scope: TITLE, OTHER_TITLE, PERSON)
-   - Inline Bracketed output format
-   - Pre-1750 author-before-title rule
-   - 5 few-shot examples drawn from outside the SR-08 gold set (see §4.3; gold set is held out for evaluation only)
-3. Run Claude API in batches; log model version and prompt hash for reproducibility
-4. Spot-check 200 records manually (~5%) — compute agreement rate; if below 85%, revise prompt and re-run
-5. Use as fine-tuning data; evaluate on SR-08 gold set (held out, human-annotated)
-
-### 2.4 Few-shot example source
-
-The SR-08 gold set is held out for evaluation and must not be used as few-shot examples — that would contaminate the evaluation. Examples come from two sources only:
-
-- **Manually curated examples** (§4.3) — 5 patterns covering the main pre-1750 structures; verified against real DDB records before use
-- **Additional examples from outside the gold sample** — if more coverage is needed, draw additional records from `sr01_isbd_field_ratings.csv` excluding the 395 gold sample `obj_id`s; annotate manually and add to §4.3
 
 ---
 
@@ -273,7 +250,7 @@ Do not treat early modern spelling variants as annotation errors. The following 
 
 ### 4.3 Few-shot examples
 
-Include 5 examples covering the main structural patterns. Examples must come from outside the SR-08 gold set (held out for evaluation). The following are manually curated — verify against real DDB records before the full batch run:
+Include 5 examples covering the main structural patterns. Examples must come from outside the SR-08 gold set (held out for evaluation) — draw from `sr01_isbd_field_ratings.csv` excluding the 395 gold `obj_id`s. The following are manually curated:
 
 **Pattern A — credential + name + role + title (most common pre-1750 pattern):**
 ```
@@ -298,9 +275,9 @@ Output: "[Geistlicher Seelen-Schatz | TITLE] [Außführliche Erklärung der für
 Input:  "Oratio de vita et obitu Doctoris Martini Lutheri Anno MDXLVI"
 Output: "[Oratio de vita et obitu Doctoris Martini Lutheri Anno MDXLVI | TITLE]"
 ```
-*(Full string is Latin — label as a single TITLE. Do not extract "Martini Lutheri" as PERSON from a Latin oration title without a clear authorship signal outside the title string.)*
+*(Full string is Latin — label as a single TITLE. Do not extract "Martini Lutheri" as PERSON without a clear authorship signal outside the title string.)*
 
-**Pattern E — author + dedicatee (label both as PERSON):**
+**Pattern E — author + named dedicatee:**
 ```
 Input:  "D. Caspar Calvör, Pastoris zu Clausthal, Geistliche Haußhaltung … Herrn Anton Ulrich, Hertzogen zu Braunschweig, gewidmet"
 Output: "[D. Caspar Calvör, Pastoris zu Clausthal | PERSON] [Geistliche Haußhaltung | TITLE] [Herrn Anton Ulrich, Hertzogen zu Braunschweig | PERSON]"
@@ -340,16 +317,3 @@ Annotate each of the following Early Modern German bibliographic titles. Return 
 | Unclosed bracket | Unmatched `[` or `\|` | Flag for manual review |
 | Unknown label | Label not in `{TITLE, OTHER_TITLE, PERSON}` | Flag for review |
 | Span text not found in input | Substring match fails | Discard (hallucinated span) |
-
-### 4.6 Prompt iteration task register
-
-Before running the full 4k–5k batch. These are the sub-steps of T11.1–T11.2:
-
-- [ ] **T11.1a** Sample 50 pre-1750 tier-0 records from `sr01_isbd_field_ratings.csv` excluding SR-08 gold `obj_id`s; stratify by dc_type
-- [ ] **T11.1b** Annotate the 50 records manually → `sr11_prompt_validation_manual.jsonl`
-- [ ] **T11.1c** Run `sr11_eval_prompt.py` on same 50 records; compute span-level exact-match F1 per label type
-- [ ] **T11.1d** PERSON recall ≥ 80% on pre-1750 records? (author-before-title is the main failure mode)
-- [ ] **T11.1e** TITLE boundary correct on "Das ist:" records?
-- [ ] **T11.1f** Embedded Latin tokens (`Anno`, `Christi`) not labelled as separate entities?
-- [ ] **T11.2a** If agreement < 85% on any label type: revise system prompt, add targeted few-shot example, re-run on 50 records
-- [ ] **T11.2b** Once ≥ 85% on all three label types: proceed with full batch
