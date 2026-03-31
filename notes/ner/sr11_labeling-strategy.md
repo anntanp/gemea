@@ -6,6 +6,21 @@ Related: [ner-bibliographic.md §8](../ner-bibliographic.md), [SR-08](../ner-bib
 
 ---
 
+## 0. Do we need to fine-tune XLM-R at all?
+
+The minimum viable path is **silver-only fine-tuning** — take the existing tier-1/2 silver labels (~340K records), fine-tune XLM-R on those, and evaluate on the gold set. No LLM annotation needed. If that passes the viability thresholds, the SR-11 annotation plan is unnecessary.
+
+The reason SR-11 exists is the **pre-1750 gap**: tier-1/2 silver covers modern/19th-c but pre-1700 has zero silver records. If silver-only fine-tuning fails specifically on pre-1700 — which is likely, since it has no training signal — then LLM-annotated pre-1750 data is required.
+
+**Open question:** run silver-only fine-tuning first, or assume pre-1700 failure and go straight to SR-11?
+
+- **Run silver-only first:** saves the SR-11 annotation effort if it works; provides a baseline for the paper regardless; modern/19th-c will almost certainly pass, pre-1700 is where it breaks.
+- **Skip to LLM annotation:** pre-1700 failure on silver-only is predictable (zero training signal); the paper needs LLM annotation to make a novel contribution anyway (mirrors NuNER's method).
+
+**Decision (2026-03-30):** open — flag in paper as experiment design choice.
+
+---
+
 ## 0. Why this is now the active path
 
 SR-09 (2026-03-27) confirmed NuNER zero-shot is not viable: F1 = 0.000 on all labels and all prompt variants on tier-2 records. Root cause: token-level classifier with no concept of bibliographic field segmentation. The LLM one-time labeler → fine-tune `xlm-roberta-base` path is confirmed.
