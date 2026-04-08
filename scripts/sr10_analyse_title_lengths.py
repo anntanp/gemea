@@ -231,20 +231,45 @@ def main(data_path: Path, output_dir: Path) -> None:
         "figure.dpi": 150,
     })
 
-    x          = list(range(len(non_empty)))
-    xlabels    = [lbl.split("–")[0] for lbl, _ in non_empty]
-    short_vals = [d["short"]  for _, d in non_empty]
-    med_vals   = [d["medium"] for _, d in non_empty]
-    long_vals  = [d["long"]   for _, d in non_empty]
-    totals     = [s + m + l for s, m, l in zip(short_vals, med_vals, long_vals)]
-    med_all    = [median(d["all_t"])  for _, d in non_empty]
-    med_con    = [median(d["con_t"])  for _, d in non_empty]
+    x       = list(range(len(non_empty)))
+    xlabels = [lbl.split("–")[0] for lbl, _ in non_empty]
+    totals  = [d["short"] + d["medium"] + d["long"] for _, d in non_empty]
+    med_all = [median(d["all_t"]) for _, d in non_empty]
+    med_con = [median(d["con_t"]) for _, d in non_empty]
+
+    # ── deviation-encoded colour bands ────────────────────────────────────────
+    # Base hues kept; brightness shifts ±25% toward black/white based on how
+    # much a period's proportion deviates from the corpus-wide average.
+    # Positive deviation (above average) → darker; negative → lighter.
+    import numpy as np
+    import matplotlib.colors as mcolors
+    from matplotlib.patches import Patch
 
     COLOR_SHORT  = "#4C72B0"
     COLOR_MEDIUM = "#DD8452"
     COLOR_LONG   = "#55A868"
     COLOR_ALL    = "#C44E52"
     COLOR_CON    = "#8172B3"
+
+    corpus_total   = sum(totals)
+    corpus_short_p = sum(d["short"]  for _, d in non_empty) / corpus_total
+    corpus_med_p   = sum(d["medium"] for _, d in non_empty) / corpus_total
+    corpus_long_p  = sum(d["long"]   for _, d in non_empty) / corpus_total
+
+    max_short_dev = max(abs(d["short"]  / (d["short"]+d["medium"]+d["long"]) - corpus_short_p) for _, d in non_empty)
+    max_med_dev   = max(abs(d["medium"] / (d["short"]+d["medium"]+d["long"]) - corpus_med_p)   for _, d in non_empty)
+    max_long_dev  = max(abs(d["long"]   / (d["short"]+d["medium"]+d["long"]) - corpus_long_p)  for _, d in non_empty)
+
+    SHIFT = 0.25  # max brightness shift fraction
+
+    def band_color(hex_color, dev, max_dev):
+        """Blend hex_color toward black (dev > 0) or white (dev < 0)."""
+        t   = dev / max_dev if max_dev > 0 else 0.0
+        rgb = np.array(mcolors.to_rgb(hex_color))
+        if t > 0:
+            return tuple(rgb * (1 - t * SHIFT))
+        else:
+            return tuple(rgb + (1 - rgb) * (-t * SHIFT))
 
     fig_w = max(12, len(x) * 0.65)
     fig, (ax1, ax2) = plt.subplots(
@@ -253,15 +278,28 @@ def main(data_path: Path, output_dir: Path) -> None:
         sharex=True,
     )
 
-    # Top: stacked bar by all_tokens length category
-    ax1.bar(x, short_vals, color=COLOR_SHORT,  width=0.78, linewidth=0,
-            label=f"Short (≤{SHORT_MAX} tokens)")
-    ax1.bar(x, med_vals,   color=COLOR_MEDIUM, width=0.78, linewidth=0,
-            bottom=short_vals,
-            label=f"Medium ({SHORT_MAX+1}–{MEDIUM_MAX} tokens)")
-    ax1.bar(x, long_vals,  color=COLOR_LONG,   width=0.78, linewidth=0,
-            bottom=[s + m for s, m in zip(short_vals, med_vals)],
-            label=f"Long (>{MEDIUM_MAX} tokens)")
+    # Top: stacked bars with per-bucket deviation shading
+    for i, (_, d) in enumerate(non_empty):
+        n  = d["short"] + d["medium"] + d["long"]
+        sp = d["short"]  / n
+        mp = d["medium"] / n
+        lp = d["long"]   / n
+        sc = band_color(COLOR_SHORT,  sp - corpus_short_p, max_short_dev)
+        mc = band_color(COLOR_MEDIUM, mp - corpus_med_p,   max_med_dev)
+        lc = band_color(COLOR_LONG,   lp - corpus_long_p,  max_long_dev)
+        ax1.bar(i, d["short"],  color=sc, width=0.78, linewidth=0)
+        ax1.bar(i, d["medium"], color=mc, width=0.78, linewidth=0, bottom=d["short"])
+        ax1.bar(i, d["long"],   color=lc, width=0.78, linewidth=0,
+                bottom=d["short"] + d["medium"])
+
+    legend_elements = [
+        Patch(facecolor=COLOR_SHORT,  label=f"Short (≤{SHORT_MAX} tokens)"),
+        Patch(facecolor=COLOR_MEDIUM, label=f"Medium ({SHORT_MAX+1}–{MEDIUM_MAX} tokens)"),
+        Patch(facecolor=COLOR_LONG,   label=f"Long (>{MEDIUM_MAX} tokens)"),
+    ]
+    ax1.legend(handles=legend_elements, frameon=False, fontsize=9, loc="upper left",
+               title="Shade = deviation from corpus avg\n(darker → above avg, lighter → below)",
+               title_fontsize=8)
 
     ax1.set_ylabel("Number of titles", fontsize=10)
     ax1.set_title(
@@ -271,10 +309,9 @@ def main(data_path: Path, output_dir: Path) -> None:
     )
     ax1.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
     ax1.grid(axis="y", alpha=0.3)
-    ax1.legend(frameon=False, fontsize=9, loc="upper left")
 
     vmax = max(totals) if totals else 1
-    ax1.set_ylim(0, vmax * 1.18)  # headroom for rotated annotations above tallest bar
+    ax1.set_ylim(0, vmax * 1.18)
     for i, tot in enumerate(totals):
         ax1.text(i, tot + vmax * 0.012, f"{tot:,}",
                  ha="center", va="bottom", fontsize=8, rotation=90, color="#333333")
@@ -284,7 +321,7 @@ def main(data_path: Path, output_dir: Path) -> None:
              label="median all_tokens (incl. stopwords + punct.)")
     ax2.plot(x, med_con, color=COLOR_CON, marker="s", linewidth=1.5, markersize=4,
              linestyle="--", label="median content_tokens (stopwords removed)")
-    ax2.fill_between(x, med_con, med_all, alpha=0.10, color="#888888",
+    ax2.fill_between(x, med_con, med_all, alpha=0.15, color="0.5",
                      label="stopword + punct. overhead")
     ax2.set_ylabel("Median\ntokens", fontsize=9)
     ax2.set_xticks(x)

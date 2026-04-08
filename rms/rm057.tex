@@ -8,6 +8,7 @@
 \usepackage{sansmath}
 \usepackage{svg}
 \usepackage{tikzsymbols}
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{colortbl}
 
@@ -59,9 +60,9 @@
     \item Problem \& Scale
     \item Label Set
     \item Model Selection
-    \item Dataset
-    \item Target Scores
+    \item Evaluation
     \item Gold Dataset
+    \item Training Dataset
     \item Summary
     \item Roadmap \& Next Steps
   \end{enumerate}
@@ -272,7 +273,7 @@
 \end{frame}
 
 % ===== NuNER PROMPT VARIANTS =====
-\begin{frame}{NuNER Zero: Three Prompt Sets, Same Outcome}
+\begin{frame}[shrink=1]{NuNER Zero: Three Prompt Sets, Same Outcome}
   \small
   \begin{tabular}{llp{5cm}}
     \toprule
@@ -307,7 +308,6 @@
       scores drop below threshold; nearly no predictions
     \end{column}
   \end{columns}
-  \smallskip
   \small\textbf{Conclusion:} prompt engineering cannot fix an architectural mismatch.
   NuNER Zero has no concept of bibliographic field segmentation regardless of wording.
 \end{frame}
@@ -315,7 +315,7 @@
 % ===== MODEL COMPARISON =====
 \begin{frame}{Model Comparison --- Why XLM-R Fine-Tuned}
   \footnotesize
-  \begin{tabular}{lccp{2cm}cp{2.8cm}}
+  \begin{tabular}{lcc>{\raggedright\arraybackslash}p{2cm}c>{\raggedright\arraybackslash}p{2.8cm}}
     \toprule
     Model & Zero-shot & Span cap & ISBD domain & Hist.\ DE & Decision \\
     \midrule
@@ -368,62 +368,58 @@
   \end{columns}
 \end{frame}
 
-% ===== 5+6. DATASET =====
-\section{Dataset}
+% ===== 4. EVALUATION =====
+\section{Evaluation}
 
-\begin{frame}{Silver Dataset --- Automatic ISBD Labeling}
+\begin{frame}{Stratification}
+  \small
+  Strata defined by \textbf{NER difficulty}, not corpus size.
+  Primary signal: title-length distribution --- longer titles mean harder TITLE boundary detection.
+  \smallskip
+  \footnotesize
+  \begin{tabular}{lrrl}
+    \toprule
+    Era & Records & Long ($>$14\,tok) & Key NER challenge \\
+    \midrule
+    Pre-1700   & 331K  & \textbf{46.9\%} & Author-before-title; early modern orthography; no ISBD \\
+    1700--1800 & 827K  & 32.0\%          & ISBD adoption begins $\sim$1750; author placement mixed \\
+    19th-c     & 1.38M & 24.3\%          & ISBD stabilizes; serials dominate; corporate SoRs \\
+    Modern     & 1.94M & 17.6\%          & Digital-born; subtitles in separate field; ISBD rare \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+  \small
+  \begin{block}{Why per-era reporting?}
+    Difficulty varies discontinuously across eras. A single pooled F1 hides failures in pre-1700 ---
+    the hardest and historically most significant stratum.
+    Per-era reporting is the minimum for a meaningful viability claim.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Evaluation Protocol}
   \small
   \begin{columns}
     \begin{column}{.50\textwidth}
-      \textbf{Signal coverage \& decisions:}
+      \begin{block}{Exact span match}
+        A prediction is correct only if \textbf{both character boundaries} and \textbf{label} match gold exactly.
+        Partial overlaps do not count.
+      \end{block}
       \smallskip
-      \begin{tabular}{llc}
-        \toprule
-        Signal & Coverage & Decision \\
-        \midrule
-        \texttt{ :} subtitle      & 20.2\% & \textcolor{green!60!black}{Accept} \\
-        Trailing \texttt{.}       & 17.5\% & \textcolor{red}{Exclude (93\% FP)} \\
-        4-digit year              & 14.6\% & \textcolor{green!60!black}{Accept} \\
-        Edition keyword           & 3.6\%  & \textcolor{red}{Exclude (83\% FP)} \\
-        \texttt{. -} separator    & 1.2\%  & \textcolor{green!60!black}{Accept} \\
-        \texttt{ /} SoR           & 0.8\%  & \textcolor{orange}{Sub-classify} \\
-        \texttt{ =} parallel      & 0.6\%  & \textcolor{red}{Exclude (80\% FP)} \\
-        \bottomrule
-      \end{tabular}
-      \smallskip
+      \textbf{Why exact, not partial?} \\
+      A partially extracted title is not a usable lookup key to GND Werk. The span is either right or wrong for that purpose.
 
-      \textit{\texttt{ /} content: person 35\%, corporate 19\%, editor 5\%, non-SoR FP 41\%}
     \end{column}
     \begin{column}{.48\textwidth}
-      \textbf{Three tiers} (categorical, not a spectrum):
-      \smallskip
-      \begin{tabular}{lp{4.5cm}}
-        \toprule
-        Tier & Criterion \\
-        \midrule
-        \textbf{2} Structural &
-          \texttt{has\_dot\_dash} AND \texttt{f\_person} AND $\geq$1 of \{place, pub, year, series\} \\[3pt]
-        \textbf{1} Heuristic &
-          \texttt{n\_fields}$\,\geq\,$3\ \ OR\ \ (\texttt{f\_person AND f\_year}) \\[3pt]
-        \textbf{0} Fallback &
-          All else \\
-        \bottomrule
-      \end{tabular}
-      \smallskip
-      \begin{block}{Corpus split (4.48M records)}
-        Tier 0: \textbf{92.4\%} (4.14M) --- primary NER target \\
-        Tier 1: 7.5\% (336K) \\
-        Tier 2: 0.1\% (4.6K) \\
-        \textit{Pre-1700: zero tier-2 (no \texttt{. -} before ISBD era)}
-      \end{block}
+      \textbf{Per label $\times$ per era. No pooled averages.}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{Micro excluded:} TITLE in $\sim$100\% of records dominates the pool; OTHER\_TITLE and PERSON disappear
+        \item \textbf{Macro excluded:} PERSON in 0.2--8.7\% of records; equal weight with TITLE misrepresents utility
+      \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
-% ===== 5. TARGET SCORES =====
-\section{Target Scores}
-
-\begin{frame}{Target Scores --- Viability Thresholds}
+\begin{frame}{Target Scores}
   \small
   \begin{columns}
     \begin{column}{.48\textwidth}
@@ -443,7 +439,7 @@
       \textit{PERSON targets only where person names appear:
         8.7\% pre-1700, 5.0\% 1700--1800; $<$1\% in later strata.}
       \smallskip
-
+      
       \textbf{Viability claim:} observed F1 $\geq$ target $\Rightarrow$ pipeline viable.
       Wide CIs convert the result to a binary --- no ambiguity under $\pm$10\,pp uncertainty.
     \end{column}
@@ -462,110 +458,251 @@
   \end{columns}
 \end{frame}
 
-% ===== 6. GOLD DATASET =====
+% ===== 5. GOLD DATASET =====
 \section{Gold Dataset}
 
-\begin{frame}{Gold Dataset --- Stratification \& Protocol}
+\begin{frame}{Tiers}
   \small
   \begin{columns}
     \begin{column}{.50\textwidth}
-      \textbf{Stratification:} era $\times$ silver tier $\times$ \texttt{dc\_type}
-      \begin{itemize}\setlength{\itemsep}{2pt}
-        \item 4 era strata (defined by NER difficulty, not corpus size)
-        \item All 3 silver tiers represented in each era
-        \item Oversampled: Leichenpredigt \& Einblattdruck ($\sim$40--50 each, within pre-1700 / 1700--1800)
-        \item Phase 2 labels annotated in same pass; excluded from Phase 1 claims
+      28.4\% of records have ISBD signals --- these are the \textbf{silver dataset}: automatic labels derived from punctuation, no human annotation needed.
+      \smallskip
+
+      Not all silver labels are equally reliable. ISBD conformance varies, so silver is split into \textbf{3 tiers of confidence}:
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{Tier 2 --- Structural} (0.1\%, 4.6K): has \texttt{. -} area separator; labels highly reliable
+        \item \textbf{Tier 1 --- Heuristic} (7.5\%, 336K): has \texttt{ :} / \texttt{ /} but no \texttt{. -}; reliable but not guaranteed
+        \item \textbf{Tier 0 --- Fallback} (92.4\%, 4.14M): no ISBD signal; \textbf{NER target}
       \end{itemize}
     \end{column}
     \begin{column}{.48\textwidth}
-      \textbf{Evaluation protocol:}
-      \begin{itemize}\setlength{\itemsep}{2pt}
-        \item \textbf{Exact span match} --- both boundaries \emph{and} label must match gold; partial overlaps do not count
-        \item Reported \textbf{per label $\times$ per era} --- no macro or micro averages
-        \item \textbf{Wilson CI}\textsuperscript{[5]} at $\pm$10\,pp (Wald excluded: breaks near $\hat{p}=0$ or $1$)
-        \item Point estimates P/R/F1, sample size alongside every figure
+      \textbf{Tiers matter for two reasons:}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{Training:} tier-1/2 silver ($\sim$340K) is used directly as fine-tuning data for modern and 19th-c strata --- no LLM annotation needed there
+        \item \textbf{Gold stratification:} all 3 tiers sampled in each era, so the gold set covers the full range of record difficulty
       \end{itemize}
+      \smallskip
+      \begin{alertblock}{Pre-1700 has zero tier-2}
+        No \texttt{. -} before the ISBD era.
+        Pre-1700 is 100\% tier-0 --- the silver gap that SR-11 fills with LLM annotation.
+      \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Gold Dataset --- Wilson CI vs Wald CI}
+\begin{frame}{Gold Dataset Sampling}
   \small
   \begin{columns}
     \begin{column}{.48\textwidth}
-      \textbf{Why Wilson, not Wald?}
+      \textbf{Why Wilson CI, not Wald?}
       \begin{center}\footnotesize
       \begin{tabular}{lcc}
         \toprule
          & Wald & Wilson \\
         \midrule
         Large $n$, $\hat{p}\approx0.5$ & \textcolor{green!60!black}{$\checkmark$} & \textcolor{green!60!black}{$\checkmark$} \\
-        Small $n$                       & \textcolor{red}{$\times$} unreliable & \textcolor{green!60!black}{$\checkmark$} \\
-        $\hat{p}$ near 0 or 1           & \textcolor{red}{$\times$} breaks     & \textcolor{green!60!black}{$\checkmark$} \\
+        Small $n$                       & \textcolor{red}{$\times$} unreliable    & \textcolor{green!60!black}{$\checkmark$} \\
+        $\hat{p}$ near 0 or 1           & \textcolor{red}{$\times$} breaks        & \textcolor{green!60!black}{$\checkmark$} \\
         \bottomrule
       \end{tabular}
       \end{center}
       \smallskip
       PERSON in pre-1700: $\hat{p}=8.7\%$, so $n_{\text{entity}}\approx11$ instances in 130 records
-      --- both failure conditions hold simultaneously.
-    \end{column}
-    \begin{column}{.50\textwidth}
+      --- both Wald failure conditions hold simultaneously.
+
       \textbf{Worked example} --- Pre-1700 TITLE ($p=0.70$):
       \[
         n \;=\; \frac{z^{2}\,p(1-p)}{e^{2}}, \quad z=1.96
       \]
-      \footnotesize($z=1.96$: 95\% of standard normal within $\pm z$; remaining 5\% split into two tails $\Rightarrow$ $P(Z\leq z)=0.975$); scipy.stats.norm.ppf(0.975)
-      \smallskip
+
+    \end{column}
+    \begin{column}{.50\textwidth}
       \begin{center}\footnotesize
+      \footnotesize($z=1.96$: 95\% of standard normal within $\pm z$; remaining 5\% split into two tails $\Rightarrow$ $P(Z\leq z)=0.975$)
       \begin{tabular}{lcc}
         \toprule
         Precision & $e$ & Min records \\
         \midrule
-        $\pm$5\,pp  & 0.05 & $\dfrac{3.84\times0.21}{0.0025}=\mathbf{323}$ \\[6pt]
+        $\pm$5\,pp  & 0.05 & $\dfrac{3.84\times\overbrace{0.70\times0.30}^{p(1-p)=0.21}}{0.0025}=\mathbf{323}$ \\[8pt]
         $\pm$10\,pp & 0.10 & $\dfrac{3.84\times0.21}{0.01\phantom{00}}=\mathbf{81}$ \\
         \bottomrule
       \end{tabular}
       \end{center}
-      \smallskip
       \begin{alertblock}{Decision}
         $\pm$5\,pp: 1,054 records total --- not feasible. \\
-        $\pm$10\,pp: 265 records total --- \textbf{feasible}; 350 gold collected.
+        $\pm$10\,pp: 265 records total --- \textbf{feasible}
       \end{alertblock}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Gold Dataset --- Where 395 Comes From}
+\begin{frame}{Gold Dataset --- \S5.3 Composition}
   \small
-  \begin{columns}
-    \begin{column}{.60\textwidth}
+  \begin{columns}[t]
+    \begin{column}{.55\textwidth}
       \footnotesize
-      \begin{tabular}{lcccc}
+      Stratified by \textbf{era $\times$ silver tier $\times$ \texttt{dc\_type}}.
+      Oversampled: Leichenpredigt \& Einblattdruck ($\sim$40--50 each).
+
+      \smallskip
+      \textbf{TITLE} \textnormal{(record-level CI)}
+      \begin{tabular}{lccc}
         \toprule
-        Stratum & Target F1 & $\pm$5\,pp & $\pm$10\,pp & Gold \\
+        Stratum & Target & $\pm$10\,pp & Gold \\
         \midrule
-        Pre-1700 TITLE    & $\geq$0.70 &  323 &  81 & 130 \textcolor{green!60!black}{$\checkmark$} \\
-        Pre-1700 PERSON   & $\geq$0.70 & 3713 & 932 & 130 \textcolor{red}{$\times$} \\
-        1700--1800 TITLE  & $\geq$0.75 &  289 &  73 &  80 \textcolor{green!60!black}{$\checkmark$} \\
-        1700--1800 PERSON & $\geq$0.70 & 6460 & 1620 &  80 \textcolor{red}{$\times$} \\
-        19th-c TITLE      & $\geq$0.80 &  246 &  62 &  60 \textcolor{green!60!black}{$\approx$} \\
-        Modern TITLE      & $\geq$0.85 &  196 &  49 &  80 \textcolor{green!60!black}{$\checkmark$} \\
+        Pre-1700    & $\geq$0.70 &  81 & 130 \textcolor{green!60!black}{$\checkmark$} \\
+        1700--1800  & $\geq$0.75 &  73 &  80 \textcolor{green!60!black}{$\checkmark$} \\
+        19th-c      & $\geq$0.80 &  62 &  60 \textcolor{green!60!black}{$\approx$} \\
+        Modern      & $\geq$0.85 &  49 &  80 \textcolor{green!60!black}{$\checkmark$} \\
         \midrule
-        \textbf{TITLE total} & & \textbf{1054} & \textbf{265} & \textbf{350} \\
+        \textbf{Total} & & \textbf{265} & \textbf{350} \\
+        \bottomrule
+      \end{tabular}
+
+      \medskip
+      \textbf{PERSON} \textnormal{(instance-level CI, sr08 §2.4)}
+      \begin{tabular}{lcc}
+        \toprule
+        Stratum & Instances & CI \\
+        \midrule
+        Pre-1700 & $\sim$70 & $\pm$8--10\,pp \\
+        All eras & $\sim$120 & $\pm$6--7\,pp \\
         \bottomrule
       \end{tabular}
     \end{column}
-    \begin{column}{.38\textwidth}
+    \begin{column}{.42\textwidth}
       \textbf{395 = 350 + 45}
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item \textbf{350} records cover TITLE $\pm$10\,pp CI (min 265)
-        \item \textbf{+45} for \texttt{dc\_type} \& silver-tier coverage:\\ Leichenpredigt, Einblattdruck (within pre-1700 / 1700--1800)
+        \item \textbf{350} cover TITLE $\pm$10\,pp CI (min 265)
+        \item \textbf{+45}: dc\_type draw (LP \& EB, tier-0/1, any era)
       \end{itemize}
       \smallskip
-      \begin{alertblock}{PERSON CI}
-        Requires 932--1,620 records/era at 5--9\% prevalence. \\
-        Reported as \textbf{indicative only}.
+
+      \footnotesize\textbf{LP \& EB in gold set} \textnormal{(contains-match)}
+      \begin{tabular}{lrrc}
+        \toprule
+        Era & LP & EB & \% era \\
+        \midrule
+        Pre-1700 (130)  & 30 &  9 & 30\% \\
+        1700--1800 (80) &  8 & 12 & 25\% \\
+        Unknown (45)    & 15 & 30 & 100\% \\
+        \bottomrule
+      \end{tabular}
+
+      \smallskip
+      \footnotesize\textit{Unknown = undated records; all from dc\_type draw.
+      Pre-1700 F1 is genre-weighted, not corpus-representative.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Gold Dataset --- dc\_type Oversampling}
+  \small
+  Random sampling within era strata would yield $\sim$5--10 records per rare dc\_type ---
+  too few to detect genre-specific failures.
+  LP \& EB are oversampled to $\sim$50 each from tier-0/1 records \textit{without era constraint};
+  after deduplication, the net-new +45 records are all undated (excluded from per-era F1).
+  \smallskip
+  \begin{columns}[t]
+    \begin{column}{.49\textwidth}
+      \textbf{Leichenpredigt} (funeral sermon)
+
+      \textit{Title-page structure:} opens with sermon type, then occasion text, then the deceased's name and role.
+      Author (the preacher) often absent from the title string entirely.
+      \smallskip
+
+      \footnotesize
+      \colorbox{green!25}{\texttt{Christliche Leichpredigt}}
+      \texttt{bey ansehnlicher Begräbnuß des Ehrnvesten}
+      \colorbox{blue!20}{\texttt{Herrn Johann Metzgers/ des Eussern Raths}}
+      \texttt{... 1673}
+
+      \smallskip\small
+      \textbf{Challenge:} TITLE is a 2-token genre descriptor; PERSON is the \textit{deceased} (not the author); occasion text is unlabeled.
+    \end{column}
+    \begin{column}{.49\textwidth}
+      \textbf{Einblattdruck} (single-sheet broadsheet)
+
+      \textit{Title-page structure:} no standardized format. May be a dedication, proclamation, occasional poem, or parish record. The opening phrase is often the dedicatee or occasion, not the title proper.
+      \smallskip
+
+      \footnotesize
+      \texttt{Demühtige Pflicht/ Welche Dem ...}
+      \colorbox{blue!20}{\texttt{Herrn Otto Wilhelm von Perbandt/}}
+      \colorbox{blue!20}{\texttt{Hochverordneten Preußischen Ober-Raht}}
+      \texttt{: Als Seine Chur-Fürstl. ...}
+
+      \smallskip\small
+      \textbf{Challenge:} PERSON is the \textit{recipient} of the dedication, not the author; TITLE is the opening phrase (\textit{Demühtige Pflicht}); structure varies by subtype.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== 6. TRAINING DATASET =====
+\section{Training Dataset}
+
+\begin{frame}{XLM-R Training Dataset}
+  \small
+  \begin{tabular}{llrr}
+    \toprule
+    Stratum & Source & $\approx$ Records & $\approx$ Spans \\
+    \midrule
+    Modern       & Silver tier-1/2 (ISBD) & 176K  & 265K    \\
+    19th-c       & Silver tier-1/2 (ISBD) & 126K  & 190K    \\
+    1700--1800\textsuperscript{*}
+                 & Silver tier-1/2 (ISBD) &  38K  &  57K    \\
+    Pre-1750     & LLM annotation (Claude) & 4--5K & 10--15K \\
+    \midrule
+    \textit{Gold (held out)} & \textit{Manual} & \textit{395} & \textit{---} \\
+    \bottomrule
+  \end{tabular}
+  \par\vspace{2pt}
+  \footnotesize\textsuperscript{*}1700--1800 silver drawn from 1750--1800 records (ISBD adoption $\sim$1750);
+  1700--1749 included in LLM batch.
+  \smallskip
+
+  \begin{block}{Why these numbers?}
+    \footnotesize
+    \textbf{Silver (340K):} ISBD-derived, zero annotation cost --- use all available records.\\
+    \textbf{LLM batch (4--5K):} pre-1750 has no silver; 4--5K records yield $\sim$3--5K spans/type,
+    above the $\sim$200--500/type minimum for reliable boundary learning in \texttt{xlm-roberta-base}.\\
+    \textbf{Open question:} is 340K silver actually necessary?
+    Planned learning curve experiment: train on subsets (1K, 5K, 10K, 25K, 50K, 100K, 340K),
+    evaluate F1 per era, identify the point of diminishing returns.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Tier Distribution by Stratum}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Stratum & Tier 2 & Tier 1 & Tier 0 & Total \\
+    \midrule
+    Pre-1700   & \textcolor{red}{\textbf{0}}   & \textcolor{red}{\textbf{0}} & 331K         & 331K   \\
+    1700--1800 & $<$1K                          & $\sim$37K                   & $\sim$789K   & 827K   \\
+    19th-c     & $\sim$2K                       & $\sim$124K                  & $\sim$1,254K & 1,380K \\
+    Modern     & $\sim$2K                       & $\sim$175K                  & $\sim$1,763K & 1,940K \\
+    \midrule
+    \textbf{Total} & \textbf{4.6K} & \textbf{336K} & \textbf{4,138K} & \textbf{4,478K} \\
+    \bottomrule
+  \end{tabular}
+  \par\vspace{2pt}
+  \footnotesize Totals and Pre-1700 zeros are exact;
+  per-stratum tier-1/2 are proportionally estimated (ISBD adoption $\sim$1750).
+  \smallskip
+
+  \begin{columns}[t]
+    \begin{column}{.50\textwidth}
+      \begin{alertblock}{Pre-1700: zero silver}
+        100\% tier-0 --- no ISBD signals before the ISBD era.
+        LLM annotation (4--5K records) is the \textbf{only} training path for this stratum.
       \end{alertblock}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{block}{Everything else: silver available}
+        Tier-1/2 ($\sim$340K) provides training data for 1700--1800,
+        19th-c, and Modern at near-zero annotation cost.
+      \end{block}
     \end{column}
   \end{columns}
 \end{frame}
@@ -605,7 +742,7 @@
   \smallskip
   \normalsize
   \begin{block}{}
-    \small NER pipeline is the critical path for Phase 1 --- its output unblocks Phase 1b and all downstream phases.
+    \small\raggedright NER pipeline is the critical path for Phase 1 --- its output unblocks Phase 1b and all downstream phases.
   \end{block}
 \end{frame}
 

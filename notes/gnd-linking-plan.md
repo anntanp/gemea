@@ -419,8 +419,19 @@ LIMIT 10
 | Dominant author predicate is `gndo:author`; `gndo:firstAuthor` is a subproperty but SPARQL does not infer it | Step 0.3 | Pattern A must use `VALUES ?authorPred { gndo:author gndo:firstAuthor gndo:poet gndo:composer }` |
 | `gndo:poet` appears for lyrical/musical works (Goethe as lyricist) | Step 0.3 | Include `gndo:poet` in `VALUES ?authorPred` |
 | `CollectiveManuscript` has zero entities in this dataset | Step 0.1 | Confirmed exclusion; no impact on queries |
+| Author name is **not** embedded in `preferredNameForTheWork` | Local QLever exploration (2026-04-06) | Title-only FILTER misses canonical works — see note below |
 
 Pattern C with author constraint (when author GND URI is available) becomes the effective Pattern A: same `VALUES ?authorPred` constraint, FILTER instead of `contains-word`.
+
+> **Entity linking note (2026-04-06):** GND encodes authorship as a linked entity (`gndo:firstAuthor`
+> → person IRI), not as a string in the work title. Example: *Faust, 1* (`gnd/4099197-0`) has
+> `preferredNameForTheWork "Faust, 1"` with no mention of "Goethe"; the author is linked via
+> `gndo:firstAuthor <gnd/118540238>`. Derivative works (adaptations, compositions, illustrations)
+> *do* embed the author's name in their title strings (e.g. *"Szenen aus Goethes Faust"*), so a
+> FILTER on "Goethe Faust" retrieves derivatives but silently misses the canonical work.
+> **Consequence:** Pattern C title-only matching will produce false negatives for any canonical work
+> where the DDB record contains the author name as part of the title string. The author-constrained
+> variant (FILTER + `VALUES ?authorPred`) is necessary to reliably retrieve the canonical entry.
 
 ---
 

@@ -51,7 +51,9 @@ Gold set records must be stratified across four dimensions simultaneously:
 
 > Note: tier-0 is over-represented in the pre-1700 strata because that is where the LLM annotation (SR-11) applies — the gold set must evaluate model behaviour on the primary inference path.
 
-Leichenpredigt and Einblattdruck records are oversampled to 40–50 each (drawn from pre-1700/1700–1800 strata) because these genres have the most structurally distinctive title-page conventions and are the highest-risk failure modes for the NER model.
+Leichenpredigt and Einblattdruck are oversampled to ~50 each. The draw is era-unconstrained: `sr08_sample_gold.py` samples up to 50 LP and 50 EB from all tier-0/1 records regardless of year, then deduplicates against the era strata. Actual counts in the gold set (from `sr08_gold_dctype_breakdown.py`, 2026-03-31): LP = 53 total, EB = 51 total. The **net-new** records after deduplication are 45, and **all 45 are undated** (no reliable year → 'unknown' era); they do not contribute to per-era F1 reporting. LP+EB share within the dated era strata: 30% of pre-1700 (39/130) and 25% of 1700–1800 (20/80). This is lower than a naive allocation estimate would suggest (and not the 50–60% that would concern per-era representativeness). See §2.5 for the full dc_type breakdown.
+
+These genres are oversampled because they have the most structurally distinctive title-page conventions and are the highest-risk failure modes for the NER model.
 
 ### 2.3 No Latin stratum
 
@@ -81,6 +83,27 @@ CI half-widths are approximate 95% Wilson intervals on a proportion; actual F1 C
 - **Phase 2 labels (TRANSLATOR, PARALLEL_TITLE):** not interpretable at 395 records. CIs of ±15–20 pp make any F1 number uninformative. These labels should be annotated in the same pass (§3.2) to avoid re-annotation, but excluded from Phase 1 evaluation claims.
 
 **Implication for the paper:** limit evaluation claims to Phase 1 labels. Report CIs alongside F1 (bootstrap, 1000 samples). Mention Phase 2 annotation as future evaluation work. If PERSON F1 on the pre-1700 stratum is a primary contribution claim, consider expanding that stratum by 50–100 records (annotating more pre-1700 tier-0 from `sr08_manual_queue.csv`) to bring CI half-width below ±7 pp.
+
+### 2.5 dc_type composition of the gold set
+
+Computed by `scripts/sr08_gold_dctype_breakdown.py` on 2026-03-31; output at `data/processed/sr08_gold_dctype_breakdown.csv`.
+
+**Leichenpredigt (LP) and Einblattdruck (EB) per era** (contains-match on raw `dc_type`):
+
+| Era | n (gold) | LP | EB | LP+EB | LP+EB % |
+|---|---|---|---|---|---|
+| Pre-1700 | 130 | 30 | 9 | 39 | 30% |
+| 1700–1800 | 80 | 8 | 12 | 20 | 25% |
+| Unknown (undated) | 45 | 15 | 30 | 45 | 100% |
+| 19th-c | 60 | 0 | 0 | 0 | 0% |
+| Modern | 80 | 0 | 0 | 0 | 0% |
+
+**Key findings:**
+
+- The 45 unknown-era records are entirely LP+EB — these are the net-new records from the dc_type draw that had no reliable year. They are excluded from per-era F1 reporting (see §8).
+- LP+EB represents 30% of pre-1700 and 25% of 1700–1800 in the dated strata. This is significant but not overwhelming; it was lower than naive estimates because many LP/EB records are also undated.
+- **Genre-weighting implication:** pre-1700 F1 is not corpus-representative — it overweights LP and EB relative to their natural corpus share (~20–25% combined in pre-1700). Report pre-1700 F1 as genre-weighted; do not interpret as the expected pipeline performance on a random pre-1700 record.
+- The dominant category in pre-1700 and 1700–1800 is "(component-only)" — records whose `dc_type` is exclusively structural tags (Kapitel, Abschnitt, etc.) with no genre signal. These are effectively unlabeled for genre purposes.
 
 ---
 

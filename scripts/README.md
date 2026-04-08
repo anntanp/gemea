@@ -44,3 +44,4 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | `sr08_verify_spans.py` | SR-08: verify character offset integrity of pre-filled spans; prints sample records for manual spot-check |
 | `sr11_dctype_by_era.py` | SR-11: count and rank dc_type values per era stratum (pre-1700 / 1700-1800 / 19th-c / modern / unknown); writes `data/processed/sr11_dctype_by_era.csv` |
 | `sr09_eval_nuner_tier2.py` | SR-09: NuNER tier-2 sanity check — run NuNER on tier-2 pre-filled records, compare to ISBD-derived silver spans, report exact-span-match P/R/F1 per label; writes `data/processed/sr09_nuner_tier2_results.csv` |
+| `sr08_gold_dctype_breakdown.py` | SR-08: dc\_type × era breakdown of the gold sample (`sr08_gold_sample.csv`); counts LP and EB (contains-match) per era; writes `data/processed/sr08_gold_dctype_breakdown.csv` |
