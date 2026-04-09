@@ -18,11 +18,11 @@ Phase order: **0a → 0 → 1 → 1b → 3 → 4 → 2**
 1. Rule-based ISBD parser (covers ~28% of records where ISBD punctuation is present)
 2. NER fallback for the remaining ~72% (the majority path)
 
-Phase 0a produces the data and model needed for Step 2. It is a distinct NLP subtask from GND linking, documented in `notes/ner-bibliographic.md` (model and label spec) and `notes/ner/silver-dataset-pipeline.md` (pipeline framework and status).
+Phase 0a produces the data and model needed for Step 2. It is a distinct NLP subtask from GND linking, documented in `notes/ner/ner-bibliographic.md` (model and label spec) and `notes/ner/silver-dataset-pipeline.md` (pipeline framework and status).
 
 ### Label set
 
-Labels organised by FRBR level; see `notes/ner-bibliographic.md` §3 for full definitions.
+Labels organised by FRBR level; see `notes/ner/ner-bibliographic.md` §3 for full definitions.
 
 **Work:** `TITLE`, `OTHER_TITLE`, `PERSON`
 **Expression:** `TRANSLATOR`, `TRANSLATION`, `PARALLEL_TITLE`, `LANGUAGE`, `MEDIUM`
@@ -53,7 +53,7 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 - [ ] SR-07 — FRBR metric scope for paper: confirm which FRBR levels (Work only, or also Expression/Manifestation) the evaluation section covers; determines gold set label scope. Blocks SR-08.
 - [ ] SR-08 — Gold set composition: ~500 manually annotated records stratified by era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), `dc_type`, and title length; annotation guidelines must address pre-1750 author-before-title placement (systematic `f_person` false negative); no dedicated Latin stratum (SR-06). Blocked on SR-07. Blocks SR-09.
 - [ ] SR-09 — NuNER Zero evaluation: run `numind/NuNerZero` zero-shot on 500 stratified fallback records; assess F1 per label and per era stratum on gold set. Blocked on SR-08.
-- [ ] **Decision gate** (SR-09 output): NuNER Zero F1 ≥ threshold → use zero-shot; else LLM-label silver candidates and fine-tune `xlm-roberta-large` (primary) and `mdeberta-v3-base` (benchmark). See `notes/ner-bibliographic.md` §10 for recommended fine-tuning path.
+- [ ] **Decision gate** (SR-09 output): NuNER Zero F1 ≥ threshold → use zero-shot; else LLM-label silver candidates and fine-tune `xlm-roberta-large` (primary) and `mdeberta-v3-base` (benchmark). See `notes/ner/ner-bibliographic.md` §10 for recommended fine-tuning path.
 
 ### Pipeline position
 
@@ -112,7 +112,7 @@ GeMeA does not own rdf2jsonld or mocho. Phase 0 is about **driving** them correc
 - [ ] `scripts/run_rdf2jsonld.sh` — invoke rdf2jsonld in parallel over all provider batches; output to `data/raw/rdf-json/`
 - [ ] `scripts/link_gnd_works.py` — link `dc:title` strings → GND Werk URIs; feeds mocho
   - Step 1: rule-based ISBD parser (split on ` / ` and `. - `) to extract clean title from messy `dc:title` strings
-  - Step 2: NER fallback for records without ISBD punctuation (~72% — majority path); uses model validated in Phase 0a; full label set: `TITLE, OTHER_TITLE, PERSON, TRANSLATOR, TRANSLATION, PARALLEL_TITLE, LANGUAGE, MEDIUM, EDITION, PUBLISHER, PLACE, YEAR, SERIES, VOLUME` — see `notes/ner-bibliographic.md`
+  - Step 2: NER fallback for records without ISBD punctuation (~72% — majority path); uses model validated in Phase 0a; full label set: `TITLE, OTHER_TITLE, PERSON, TRANSLATOR, TRANSLATION, PARALLEL_TITLE, LANGUAGE, MEDIUM, EDITION, PUBLISHER, PLACE, YEAR, SERIES, VOLUME` — see `notes/ner/ner-bibliographic.md`
   - Step 3: normalize extracted title (Unicode NFC → lowercase → strip diacritics*) → tokenize → remove stopwords → select 2–3 distinctive tokens; *OQ-01: confirm diacritic stripping does not hurt FILTER recall before enabling
   - Step 4: deduplicate `(extracted_title, author_gnd_uri)` pairs (~65M records → ~5–10M unique)
   - Step 5: SPARQL query against DNB endpoint (`https://sparql.dnb.de/api/dnbgnd`, SPARQL 1.1 only — `contains-word` not available); concurrency: `asyncio.Semaphore(10)`
@@ -121,7 +121,7 @@ GeMeA does not own rdf2jsonld or mocho. Phase 0 is about **driving** them correc
     - Target classes: `gndo:Work gndo:MusicalWork gndo:Manuscript` (IFLA LRM-E2 Work; Expression/Manifestation subclasses excluded)
   - Step 6: post-retrieval scoring — `skos:exactMatch` for exact + normalized matches; `skos:closeMatch` for fuzzy (Levenshtein ≤ 2); `owl:sameAs` not used (a DDB ProvidedCHO and GND Werk URI are not the same OWL individual)
   - Output: per-CHO JSON with `raw_title`, `extracted_title`, `extraction_method`, `author_gnd_uri`, `gnd_werk_uri`, `match_type`, `match_confidence` → `data/raw/gnd-works/`
-  - Spec: `notes/gnd-linking-spec.md`; implementation plan: `notes/gnd-linking-plan.md`; ADR: `notes/gnd-linking-adr.md`
+  - Spec: `notes/gnd/gnd-linking-spec.md`; implementation plan: `notes/gnd/gnd-linking-plan.md`; ADR: `notes/adr/gnd-linking-adr.md`
   - **Open questions**: OQ-01 (does `sparql.dnb.de` normalize Umlauts in FILTER? — test before enabling diacritic stripping); OQ-02 (actual rate limits — profile at concurrency=10); OQ-03 (add `gndo:variantNameForTheWork` UNION branch for higher recall?); OQ-04 (`gndo:composer`/`gndo:firstComposer` analogous to author predicates for MusicalWork?)
 - [ ] `scripts/run_mocho.sh` — invoke mocho over rdf2jsonld + GND Werk triples; output N-Triples per provider to `data/raw/ntriples/`
 - [ ] `ingest/validate_rdf.py` — sanity checks on mocho output: triple count per provider, `mocho:Work` nodes present, required predicates (`edm:ProvidedCHO`, `dc:title`, `edm:isShownAt`), URI well-formedness

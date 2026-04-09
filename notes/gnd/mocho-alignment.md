@@ -99,4 +99,4 @@ SELECT ?w ?cho ?title WHERE {
 - If mocho creates distinct `mocho:Work` URI resources → `/work/{id}` queries QLever directly for the Work entity and its linked ProvidedCHOs
 - If mocho only annotates → Work pages must be reconstructed at query time by grouping ProvidedCHOs sharing a GND Werk URI
 
-Verify before building the API endpoint. See `notes/priorities.md` for the gate condition.
+Verify before building the API endpoint. See `notes/project/priorities.md` for the gate condition.

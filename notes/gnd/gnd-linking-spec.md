@@ -3,7 +3,7 @@
 **Document type:** Software Requirements Specification
 **Framework:** IREB CPRE (Certified Professional for Requirements Engineering)
 **Subject:** `scripts/link_gnd_works.py` — offline GND Werk entity linking
-**Source:** `notes/gnd-linking-plan.md`
+**Source:** `notes/gnd/gnd-linking-plan.md`
 **Status:** Draft
 
 ---

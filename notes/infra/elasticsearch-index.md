@@ -63,4 +63,4 @@ The two backends are complementary: QLever for "everything about this entity", E
 - **Geo**: `place` field mapped as `geo_point` for map clustering and bounding-box filters
 - **Facets**: `type`, `provider.id`, `agent.uri`, `place.uri` mapped as `keyword` (not analyzed) for terms aggregations
 - **Timespan**: `timespan.earliest` and `timespan.latest` as `integer` for range filters and histogram aggregation
-- **Compound splitting**: consider adding `decompounder` token filter with a domain dictionary from DDB type/genre vocabulary (see `notes/nlp-tasks.md`)
+- **Compound splitting**: consider adding `decompounder` token filter with a domain dictionary from DDB type/genre vocabulary (see `notes/ner/nlp-tasks.md`)

@@ -148,7 +148,7 @@ The `extraction_method` field enables paper §4 quality reporting: how many reco
 
 mocho reads both the rdf2jsonld output and the GND Werk triples produced by `link_gnd_works.py`. The GND Werk URI is the key mocho uses to group `edm:ProvidedCHO` instances into `mocho:Work` entities. ProvidedCHOs with `gnd_werk_uri = null` (unresolved) remain as standalone Manifestations without a parent Work.
 
-See `notes/mocho-alignment.md` for mocho internals.
+See `notes/gnd/mocho-alignment.md` for mocho internals.
 
 ---
 

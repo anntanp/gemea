@@ -27,14 +27,27 @@ const MIN_BOOK_H = 28;
 const SHELF_Y    = 430;
 const SHELF_H    = 22;
 const START_X    = 60;
-const SVG_H      = 560;
+const SVG_H      = 490;
+
+// Latin share of Leipzig Meßnovitäten (new titles at the fair)
+// Source: quantitative data from Wittmann / Goldfriedrich
+const LATIN_SHARE = [
+  { year: 1740, pct: '27.7%' },
+  { year: 1770, pct: '14.3%' },
+  { year: 1800, pct:  '4.0%' },
+];
 
 const ERA_MARKERS = [
-  { label: 'Gutenberg',         year: 1450 },
-  { label: 'Reformation',       year: 1517 },
-  { label: 'French Rev.',       year: 1789 },
-  { label: 'Industrialisation', year: 1840 },
-  { label: 'WWI',               year: 1914 },
+  { label: 'Gutenberg',                          year: 1450 },  // pre-1500, won't display
+  { label: 'Luthers 95 Thesen',                  year: 1517 },  // pamphlet explosion
+  { label: 'Frankfurter',  line2: 'Messkatalog', year: 1564 },  // first FBM catalogue
+  { label: '30Y War',      line2: 'begins',       year: 1618 },  // Thirty Years' War start
+  { label: '30Y War',      line2: 'ends',         year: 1648 },  // Peace of Westphalia
+  { label: 'Leipzig',      line2: 'Messe',        year: 1700 },  // Leipzig overtakes Frankfurt
+  { label: 'Aufklärung',                          year: 1765 },  // commercial shift
+  { label: 'Weimarer',     line2: 'Klassik',      year: 1786 },  // Weimarer Klassik begins
+  { label: 'WWI',                                 year: 1914 },
+  { label: 'WWII',                                year: 1939 },
 ];
 
 // ── themes ─────────────────────────────────────────────────────────────────────
@@ -166,6 +179,47 @@ const THEMES = {
     ttFooter:     '#8c959f',
     ttRadius:     '6px',
   },
+  vscode_dark: {
+    bg:           '#1f1f1f',
+    wallGradient: null,
+    grainDark:    'rgba(0,0,0,0.15)',
+    grainLight:   'rgba(255,255,255,0.03)',
+    gridStroke:   'rgba(255,255,255,0.07)',
+    gridDash:     '4,4',
+    scanlines:    false,
+    eraMarkers:   true,
+    bands:        { short: '#4EC9B0', medium: '#C586C0', long: '#DCDCAA' },
+    bandShift:    0.4,
+    spineHl:      'rgba(255,255,255,0.25)',
+    spineSh:      'rgba(0,0,0,0.45)',
+    dropShadow:   'rgba(0,0,0,0.5)',
+    grainOpacity: 0.35,
+    topCap:       'rgba(255,255,255,0.2)',
+    bottomFoot:   'rgba(0,0,0,0.3)',
+    shelfGrad:    ['#2d2d2d', '#252525', '#1a1a1a'],
+    shelfEdge:    'rgba(78,201,176,0.3)',
+    shelfShadow:  'rgba(0,0,0,0.5)',
+    shelfLabel:   '#C8C8C8',
+    eraStroke:    'rgba(78,201,176,0.22)',
+    eraLabel:     'rgba(156,220,254,0.7)',
+    eraYear:      'rgba(156,220,254,0.4)',
+    scaleStroke:  null, scaleFill: null,
+    titleFill:    '#DCDCAA',
+    titleWeight:  '400',
+    subtitleFill: '#C8C8C8',
+    font:         "'Consolas','Courier New',monospace",
+    lgTitle:      '#9CDCFE',
+    lgStroke:     'rgba(255,255,255,0.12)',
+    lgText:       '#C8C8C8',
+    lgAnnotation: 'rgba(200,200,200,0.4)',
+    ttBg:         'rgba(30,30,30,0.98)',
+    ttBorder:     'rgba(78,201,176,0.35)',
+    ttColor:      '#C8C8C8',
+    ttHeading:    '#DCDCAA',
+    ttMuted:      'rgba(200,200,200,0.65)',
+    ttFooter:     'rgba(156,220,254,0.55)',
+    ttRadius:     '3px',
+  },
 };
 
 // ── colour helpers ─────────────────────────────────────────────────────────────
@@ -234,10 +288,6 @@ export default function TitleLengthLibrary({ theme: themeProp } = {}) {
     setTooltip({ book, x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 10 });
   }
 
-  const tallest    = buckets.reduce((a, b) => b.total > a.total ? b : a);
-  const tallestIdx = buckets.indexOf(tallest);
-  const tallestX   = START_X + tallestIdx * (BOOK_W + BOOK_GAP);
-  const tallestH   = bookH(tallest.total);
 
   return (
     <div ref={containerRef} style={{ position: 'relative', display: 'inline-block', background: T.bg }}>
@@ -278,20 +328,40 @@ export default function TitleLengthLibrary({ theme: themeProp } = {}) {
         ))}
 
         {/* ── era markers ─────────────────────────────────────────────── */}
-        {T.eraMarkers && ERA_MARKERS.map(({ label, year }) => {
+        {T.eraMarkers && ERA_MARKERS.map(({ label, line2, year }) => {
           const mx = yearToX(year);
           if (mx < START_X || mx > SVG_W - START_X) return null;
           return (
-            <g key={label}>
-              <line x1={mx} y1={80} x2={mx} y2={SHELF_Y}
+            <g key={year}>
+              <line x1={mx} y1={line2 ? 121 : 112} x2={mx} y2={SHELF_Y}
                     stroke={T.eraStroke} strokeWidth="0.8" strokeDasharray="3,3"/>
-              <text x={mx} y={74} fill={T.eraLabel} fontSize="7.5"
+              <text x={mx} y={100} fill={T.eraLabel} fontSize="7.5"
                     fontFamily={T.font} textAnchor="middle" letterSpacing="0.3">
                 {label}
               </text>
-              <text x={mx} y={83} fill={T.eraYear} fontSize="7"
+              {line2 && (
+                <text x={mx} y={109} fill={T.eraLabel} fontSize="7.5"
+                      fontFamily={T.font} textAnchor="middle" letterSpacing="0.3">
+                  {line2}
+                </text>
+              )}
+              <text x={mx} y={line2 ? 118 : 109} fill={T.eraYear} fontSize="7"
                     fontFamily={T.font} textAnchor="middle">
                 {year}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* ── Latin share annotations ─────────────────────────────────── */}
+        {T.eraMarkers && LATIN_SHARE.map(({ year, pct }) => {
+          const lx = yearToX(year);
+          return (
+            <g key={`lat-${year}`}>
+              <circle cx={lx} cy={128} r={1.5} fill={T.eraLabel} opacity="0.55"/>
+              <text x={lx} y={138} fill={T.eraLabel} fontSize="6.5"
+                    fontFamily={T.font} textAnchor="middle" opacity="0.7">
+                Lat. {pct}
               </text>
             </g>
           );
@@ -348,18 +418,6 @@ export default function TitleLengthLibrary({ theme: themeProp } = {}) {
           );
         })}
 
-        {/* ── scale callout ───────────────────────────────────────────── */}
-        {T.scaleCallout && <>
-          <line x1={tallestX + BOOK_W / 2} y1={SHELF_Y - tallestH - 6}
-                x2={tallestX + BOOK_W / 2} y2={SHELF_Y - tallestH - 18}
-                stroke={T.scaleStroke} strokeWidth="0.8"/>
-          <text x={tallestX + BOOK_W / 2} y={SHELF_Y - tallestH - 22}
-                fill={T.scaleFill} fontSize="8.5" fontFamily={T.font}
-                fontWeight={T.titleWeight} textAnchor="middle">
-            {fmt(tallest.total)}
-          </text>
-        </>}
-
         {/* ── shelf ───────────────────────────────────────────────────── */}
         <rect x={18} y={SHELF_Y}         width={SVG_W-36} height={SHELF_H} fill="url(#shelf)" rx="2"/>
         <rect x={18} y={SHELF_Y}         width={SVG_W-36} height={2}       fill={T.shelfEdge} rx="1"/>
@@ -383,54 +441,62 @@ export default function TitleLengthLibrary({ theme: themeProp } = {}) {
         <text x={SVG_W / 2} y={36} fill={T.titleFill} fontSize="14"
               fontFamily={T.font} fontWeight={T.titleWeight}
               textAnchor="middle" letterSpacing="3">
-          DDB's German Bibliographic Title Length by 25-Year Periods
+          DDB as a Mirror of the German Book Trade: Bibliographic Title Length, 1500–2024
         </text>
         <text x={SVG_W / 2} y={54} fill={T.subtitleFill} fontSize="9"
               fontFamily={T.font} textAnchor="middle" letterSpacing="1">
-          <tspan fontWeight="bold">Height</tspan>
+          <tspan fontWeight="bold" fill={T.titleFill}>Height</tspan>
           {' · objects per period  |  '}
-          <tspan fontWeight="bold">Band shade</tspan>
-          {' · deviation from corpus-wide average token-length proportion'}
+          <tspan fontWeight="bold" fill={T.titleFill}>Band shade</tspan>
+          {' · per-band share vs. corpus average'}
         </text>
 
-        {/* ── band legend ──────────────────────────────────────────────── */}
-        <text x={30} y={SVG_H - 86} fill={T.lgTitle} fontSize="7.5"
-              fontFamily={T.font} fontWeight={T.titleWeight} letterSpacing="1.2">
-          BANDS (bottom → top)
-        </text>
+        {/* ── header legend ────────────────────────────────────────────── */}
         {[
-          { label: 'Short  ≤ 4 tok',  color: T.bands.short  },
-          { label: 'Medium 5–14 tok', color: T.bands.medium },
-          { label: 'Long   ≥ 15 tok', color: T.bands.long   },
+          { label: 'Short ≤ 4',    color: T.bands.short  },
+          { label: 'Medium 5–14',  color: T.bands.medium },
+          { label: 'Long ≥ 15',    color: T.bands.long   },
         ].map(({ label, color }, i) => {
           const [r, g, b_] = hexToRgb(color);
           const lighter = rgbToHex(r + (1-r)*0.35, g + (1-g)*0.35, b_ + (1-b_)*0.35);
           const darker  = rgbToHex(r * 0.6,        g * 0.6,        b_ * 0.6);
+          const gx = SVG_W / 2 + (i - 1) * 115;
           return (
             <g key={label}>
               <defs>
-                <linearGradient id={`lg${i}`} x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id={`hdr${i}`} x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%"   stopColor={lighter}/>
                   <stop offset="50%"  stopColor={color}/>
                   <stop offset="100%" stopColor={darker}/>
                 </linearGradient>
               </defs>
-              <rect x={30} y={SVG_H - 76 + i * 18} width={32} height={11}
-                    fill={`url(#lg${i})`} rx="1"
-                    stroke={T.lgStroke} strokeWidth="0.5"/>
-              <text x={67} y={SVG_H - 67 + i * 18} fill={T.lgText}
-                    fontSize="8" fontFamily={T.font}>{label}</text>
+              <rect x={gx - 12} y={63} width={24} height={10}
+                    fill={`url(#hdr${i})`} rx="1" stroke={T.lgStroke} strokeWidth="0.5"/>
+              <text x={gx + 15} y={72} fill={T.lgText} fontSize="7.5"
+                    fontFamily={T.font}>{label}</text>
             </g>
           );
         })}
-        <text x={30} y={SVG_H - 18} fill={T.lgAnnotation} fontSize="7" fontFamily={T.font}>
-          ← below avg
-        </text>
-        <text x={62} y={SVG_H - 18} fill={T.lgAnnotation} fontSize="7"
+        <text x={SVG_W / 2} y={83} fill={T.lgAnnotation} fontSize="6.5"
               fontFamily={T.font} textAnchor="middle">
-          above avg →
+          lighter ← below avg · above avg → darker
         </text>
       </svg>
+
+      {/* ── footnote ──────────────────────────────────────────────────── */}
+      <div style={{
+        marginTop: 6, textAlign: 'center',
+        fontFamily: T.font, fontSize: '9px', color: T.ttFooter,
+        lineHeight: '1.6',
+      }}>
+        * Max 921 tokens: <em>Allgemeine Literatur-Zeitung</em> 1831 collective review — 33 pamphlet descriptions
+        concatenated into one title string (cataloging artifact).{' '}
+        <a href="https://www.deutsche-digitale-bibliothek.de/item/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB"
+           target="_blank" rel="noopener noreferrer"
+           style={{ color: T.ttMuted, textDecoration: 'none', borderBottom: `1px dotted ${T.ttMuted}` }}>
+          deutsche-digitale-bibliothek.de/…/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB
+        </a>
+      </div>
 
       {/* ── tooltip ───────────────────────────────────────────────────── */}
       {tooltip && (

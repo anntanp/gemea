@@ -2,32 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>DDB Title Lengths — Lighter</title>
+  <title>DDB Title Lengths — Leather</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap">
   <style>
-    body { margin: 0; background: #f6f8fa; display: flex; flex-direction: column; align-items: center; padding: 40px 0; }
+    body { margin: 0; background: #0f0804; display: flex; flex-direction: column; align-items: center; padding: 40px 0; }
     details.writeup-section { width: 1144px; margin-top: 24px; }
-    details.writeup-section summary { cursor: pointer; color: #0969da; font-size: 13px; padding: 6px 0; list-style: none; }
+    details.writeup-section summary { cursor: pointer; color: #c8a860; font-size: 13px; padding: 6px 0; list-style: none; }
     details.writeup-section summary::-webkit-details-marker { display:none; }
     details.writeup-section summary::before { content: '▶  '; font-size: 10px; }
     details.writeup-section[open] summary::before { content: '▼  '; }
-    .writeup { background: #ffffff; color: #24292f; padding: 28px 36px; margin-top: 8px; border: 1px solid #d0d7de; border-radius: 4px; font-size: 14px; line-height: 1.75; }
-    .writeup h1 { color: #1f2328; font-size: 20px; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; margin-top: 0; }
-    .writeup h2 { color: #1f2328; font-size: 16px; border-bottom: 1px solid #d0d7de; padding-bottom: 4px; margin-top: 32px; }
-    .writeup h3 { color: #1f2328; font-size: 14px; margin-top: 24px; }
-    .writeup h4 { color: #57606a; font-size: 13px; margin-top: 16px; }
-    .writeup a { color: #0969da; text-decoration: none; border-bottom: 1px dotted #0969da; }
+    .writeup { background: #1a1008; color: #c8a860; padding: 28px 36px; margin-top: 8px; border: 1px solid #3d2810; border-radius: 4px; font-size: 14px; line-height: 1.75; }
+    .writeup h1 { color: #e0c880; font-size: 20px; border-bottom: 1px solid #3d2810; padding-bottom: 8px; margin-top: 0; }
+    .writeup h2 { color: #e0c880; font-size: 16px; border-bottom: 1px solid #3d2810; padding-bottom: 4px; margin-top: 32px; }
+    .writeup h3 { color: #e0c880; font-size: 14px; margin-top: 24px; }
+    .writeup h4 { color: #8a6840; font-size: 13px; margin-top: 16px; }
+    .writeup a { color: #e0b060; text-decoration: none; border-bottom: 1px dotted #e0b060; }
     .writeup a:hover { border-bottom-style: solid; }
-    .writeup code { background: #f0f2f4; color: #24292f; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
-    .writeup hr { border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }
+    .writeup code { background: #2a1a08; color: #c8a860; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    .writeup hr { border: none; border-top: 1px solid #3d2810; margin: 24px 0; }
     .writeup table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 16px 0; }
-    .writeup th { background: #f0f2f4; color: #1f2328; text-align: left; padding: 6px 12px; border: 1px solid #d0d7de; }
-    .writeup td { padding: 5px 12px; border: 1px solid #d0d7de; color: #24292f; }
-    .writeup em { color: #57606a; }
-    .writeup strong { color: #1f2328; }
+    .writeup th { background: #2a1a08; color: #e0c880; text-align: left; padding: 6px 12px; border: 1px solid #3d2810; }
+    .writeup td { padding: 5px 12px; border: 1px solid #3d2810; color: #c8a860; }
+    .writeup em { color: #8a6840; }
+    .writeup strong { color: #e0c880; }
     .writeup ul, .writeup ol { padding-left: 22px; }
     .writeup li { margin-bottom: 4px; }
     .writeup p { margin: 10px 0; }
@@ -39,7 +38,7 @@
 
   <script>
     window.TITLE_DATA  = {"total_titles":4477780,"year_source":{"dates_column":4002222,"title_fallback":46461,"no_year":429097},"year_range":[1400,2029],"bucket_size":25,"length_thresholds":{"short_max":4,"medium_max":14},"overall":{"short":1269034,"medium":2110610,"long":1098136,"median_all_tokens":8,"median_content_tokens":5},"bucketed":{"1500\u20131524":{"short":1824,"medium":4854,"long":5531,"total":12209,"median_all_tokens":13,"median_content_tokens":7},"1525\u20131549":{"short":3233,"medium":10034,"long":10634,"total":23901,"median_all_tokens":13,"median_content_tokens":7},"1550\u20131574":{"short":5163,"medium":14251,"long":14388,"total":33802,"median_all_tokens":12,"median_content_tokens":6},"1575\u20131599":{"short":5443,"medium":15921,"long":15943,"total":37307,"median_all_tokens":12,"median_content_tokens":6},"1600\u20131624":{"short":8514,"medium":21223,"long":28150,"total":57887,"median_all_tokens":14,"median_content_tokens":7},"1625\u20131649":{"short":6478,"medium":11794,"long":18523,"total":36795,"median_all_tokens":15,"median_content_tokens":8},"1650\u20131674":{"short":9230,"medium":19485,"long":27602,"total":56317,"median_all_tokens":14,"median_content_tokens":7},"1675\u20131699":{"short":10298,"medium":22560,"long":32865,"total":65723,"median_all_tokens":15,"median_content_tokens":7},"1700\u20131724":{"short":19155,"medium":42472,"long":50960,"total":112587,"median_all_tokens":13,"median_content_tokens":6},"1725\u20131749":{"short":23232,"medium":49450,"long":53120,"total":125802,"median_all_tokens":12,"median_content_tokens":6},"1750\u20131774":{"short":40415,"medium":81176,"long":61460,"total":183051,"median_all_tokens":10,"median_content_tokens":5},"1775\u20131799":{"short":144136,"medium":162820,"long":99060,"total":406016,"median_all_tokens":7,"median_content_tokens":4},"1800\u20131824":{"short":49965,"medium":81966,"long":63655,"total":195586,"median_all_tokens":9,"median_content_tokens":5},"1825\u20131849":{"short":72563,"medium":162407,"long":83959,"total":318929,"median_all_tokens":7,"median_content_tokens":5},"1850\u20131874":{"short":88852,"medium":178563,"long":97249,"total":364664,"median_all_tokens":9,"median_content_tokens":5},"1875\u20131899":{"short":179839,"medium":232233,"long":91742,"total":503814,"median_all_tokens":6,"median_content_tokens":4},"1900\u20131924":{"short":239540,"medium":308312,"long":76453,"total":624305,"median_all_tokens":6,"median_content_tokens":4},"1925\u20131949":{"short":96259,"medium":121474,"long":49952,"total":267685,"median_all_tokens":7,"median_content_tokens":4},"1950\u20131974":{"short":39353,"medium":46464,"long":22033,"total":107850,"median_all_tokens":7,"median_content_tokens":4},"1975\u20131999":{"short":33380,"medium":54271,"long":18806,"total":106457,"median_all_tokens":8,"median_content_tokens":5},"2000\u20132024":{"short":35531,"medium":249255,"long":115783,"total":400569,"median_all_tokens":11,"median_content_tokens":6},"2025\u20132049":{"short":7,"medium":7,"long":5,"total":19,"median_all_tokens":8,"median_content_tokens":5}}};
-    window.CHART_THEME = 'lighter';
+    window.CHART_THEME = 'leather';
   </script>
 
   <script type="text/babel">

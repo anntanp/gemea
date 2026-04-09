@@ -2,7 +2,7 @@
 
 **Format:** MADR (Markdown Architecture Decision Record)
 **Subject:** Design decisions for `scripts/link_gnd_works.py`
-**Source:** `notes/gnd-linking-plan.md`
+**Source:** `notes/gnd/gnd-linking-plan.md`
 **Status:** Accepted
 
 ---
