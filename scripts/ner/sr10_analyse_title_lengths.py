@@ -245,9 +245,9 @@ def main(data_path: Path, output_dir: Path) -> None:
     import matplotlib.colors as mcolors
     from matplotlib.patches import Patch
 
-    COLOR_SHORT  = "#4C72B0"
-    COLOR_MEDIUM = "#DD8452"
-    COLOR_LONG   = "#55A868"
+    COLOR_SHORT  = "#9596C9"  # periwinkle
+    COLOR_MEDIUM = "#F5E642"  # lemon yellow
+    COLOR_LONG   = "#2A9D8F"  # teal
     COLOR_ALL    = "#C44E52"
     COLOR_CON    = "#8172B3"
 
@@ -260,7 +260,21 @@ def main(data_path: Path, output_dir: Path) -> None:
     max_med_dev   = max(abs(d["medium"] / (d["short"]+d["medium"]+d["long"]) - corpus_med_p)   for _, d in non_empty)
     max_long_dev  = max(abs(d["long"]   / (d["short"]+d["medium"]+d["long"]) - corpus_long_p)  for _, d in non_empty)
 
-    SHIFT = 0.25  # max brightness shift fraction
+    SHIFT = 0.60  # max brightness shift fraction
+
+    # Era markers — mirrored from fig_title_lengths.jsx ERA_MARKERS.
+    # Gutenberg (1450) is pre-1500 and falls outside the chart range; skipped.
+    ERA_MARKERS = [
+        {"label": "Luthers\n95 Thesen",       "year": 1517},
+        {"label": "Frankfurter\nMesskatalog", "year": 1564},
+        {"label": "30Y War\nbegins",           "year": 1618},
+        {"label": "30Y War\nends",             "year": 1648},
+        {"label": "Leipzig\nMesse",            "year": 1700},
+        {"label": "Aufklärung",               "year": 1765},
+        {"label": "Weimarer\nKlassik",        "year": 1786},
+        {"label": "WWI",                       "year": 1914},
+        {"label": "WWII",                      "year": 1939},
+    ]
 
     def band_color(hex_color, dev, max_dev):
         """Blend hex_color toward black (dev > 0) or white (dev < 0)."""
@@ -297,24 +311,38 @@ def main(data_path: Path, output_dir: Path) -> None:
         Patch(facecolor=COLOR_MEDIUM, label=f"Medium ({SHORT_MAX+1}–{MEDIUM_MAX} tokens)"),
         Patch(facecolor=COLOR_LONG,   label=f"Long (>{MEDIUM_MAX} tokens)"),
     ]
-    ax1.legend(handles=legend_elements, frameon=False, fontsize=9, loc="upper left",
+    ax1.legend(handles=legend_elements, frameon=False, fontsize=9, loc="upper right",
                title="Shade = deviation from corpus avg\n(darker → above avg, lighter → below)",
                title_fontsize=8)
 
     ax1.set_ylabel("Number of titles", fontsize=10)
     ax1.set_title(
-        f"DDB's German Bibliographic Title Length by Year  ·  {size}-year buckets  ·  "
-        f"N={sum(totals):,} with year  ·  {100*no_year/total:.1f}% no year",
+        f"Title Length Trends in the DDB Corpus, 1500–2024\n"
+        f"{size}-year buckets  ·  N={sum(totals):,} with year  ·  {100*no_year/total:.1f}% undated",
         fontsize=11, fontweight="bold", pad=10,
     )
     ax1.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
     ax1.grid(axis="y", alpha=0.3)
 
     vmax = max(totals) if totals else 1
-    ax1.set_ylim(0, vmax * 1.18)
+    ax1.set_ylim(0, vmax * 1.52)  # increased top margin for era labels + count annotations
     for i, tot in enumerate(totals):
         ax1.text(i, tot + vmax * 0.012, f"{tot:,}",
                  ha="center", va="bottom", fontsize=8, rotation=90, color="#333333")
+
+    # Era markers: dashed vertical lines + rotated labels above the bars.
+    # x position = fractional bucket index: (year - 1500) / size
+    for marker in ERA_MARKERS:
+        year  = marker["year"]
+        label = f"{marker['label']}\n{year}"
+        xpos  = int((year - 1500) / size)  # bucket index — centres on bar
+        if xpos < 0 or xpos > len(non_empty) - 1:
+            continue  # outside chart range
+        ax1.axvline(xpos, color="#888888", linewidth=0.8, linestyle="--", alpha=0.7,
+                    zorder=1)
+        ax1.text(xpos + 0.08, vmax * 1.48, label,
+                 ha="left", va="top", fontsize=9, color="#444444",
+                 rotation=90, linespacing=1.3)
 
     # Bottom: median all_tokens vs median content_tokens
     ax2.plot(x, med_all, color=COLOR_ALL, marker="o", linewidth=1.5, markersize=4,
