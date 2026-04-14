@@ -260,24 +260,24 @@ Some entities have bare 32-character DDB IDs instead of HTTP URIs in their `abou
 
 These cross-reference each other within the same record (e.g. `ProvidedCHO.hasMet` → `Event.about`). `px.NamedNode()` rejects bare strings with no scheme — it will raise at construction time.
 
-**Minting rule**: if a value used as a subject or resource reference does not start with `http`, mint a URI under the GeMeA namespace using the EDM class name as path segment:
+**Minting rule**: if a value used as a subject or resource reference does not start with `http` or `urn`, mint a URN using the EDM class name as a path segment:
 
 ```
-https://gemea.fiz-karlsruhe.de/edm/<ClassName>/<bare-id>
+urn:edm:<ClassName>:<bare-id>
 ```
 
 Examples:
-- `YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG` (Aggregation) → `https://gemea.fiz-karlsruhe.de/edm/Aggregation/YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG`
-- `O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN` (Agent) → `https://gemea.fiz-karlsruhe.de/edm/Agent/O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN`
-- `UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z` (Event) → `https://gemea.fiz-karlsruhe.de/edm/Event/UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z`
+- `YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG` (Aggregation) → `urn:edm:Aggregation:YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG`
+- `O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN` (Agent) → `urn:edm:Agent:O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN`
+- `UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z` (Event) → `urn:edm:Event:UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z`
 
 ```python
-GEMEA_EDM_BASE = "https://gemea.fiz-karlsruhe.de/edm/"
+DDBEDM = "urn:edm:"
 
 def to_named_node(val: str, entity_type: str) -> px.NamedNode:
-    if val.startswith("http"):
+    if val.startswith("http") or val.startswith("urn"):
         return px.NamedNode(val)
-    return px.NamedNode(GEMEA_EDM_BASE + entity_type + "/" + val)
+    return px.NamedNode(DDBEDM + entity_type + ":" + val)
 ```
 
 For `.resource` cross-references (e.g. `ProvidedCHO.hasMet[].resource` → `Event.about`), the target entity type must be resolved by building a lookup of all `about` values to entity types within the same record before minting.
@@ -302,7 +302,7 @@ Each entity gets an `rdf:type` triple, e.g.:
 | `obj_id` | — | `properties.item-id` | ✓ |
 | `lang` | `dc:language` | `edm.RDF.ProvidedCHO.language` (scalar string, e.g. `"eng"`) | ✓ |
 | `title` | `dc:title` | `edm.RDF.ProvidedCHO.title.$` | ✓ |
-| `dc_type` | `edm:type` | `edm.RDF.ProvidedCHO.edmType` (e.g. `"TEXT"`) — note: `dc:type` from notebook maps to `edmType` here | ✓ |
+| `dc_type` | `dc:type` | `edm.RDF.ProvidedCHO.dcType` (e.g. `"TEXT"`) | ✓ |
 | `dc_creator` | `dc:creator` | `edm.RDF.ProvidedCHO.creator[*]` — list of `{label, uri}` structs; label and URI paired when both present in same dict entry (~21% of creator entries have a GND URI) | ✓ |
 | `dc_publisher` | `dc:publisher` + `edm:dataProvider` | `edm.RDF.ProvidedCHO.publisher[*]` + `edm.RDF.Aggregation.dataProvider[*]` — list of `{label, uri}` structs; dataProvider label and URI are separate list entries (unpaired) | ✓ |
 | `agents` | `edm:hasMet` → `P11_had_participant` | `ProvidedCHO.hasMet[*].resource` → `Event.P11_had_participant[*].resource` → Agent URIs | ✓ |

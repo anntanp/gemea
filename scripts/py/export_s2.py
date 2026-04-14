@@ -60,7 +60,7 @@ DDB     = "https://www.deutsche-digitale-bibliothek.de/ontology#"
 CRM     = "http://www.cidoc-crm.org/cidoc-crm/"
 OWL     = "http://www.w3.org/2002/07/owl#"
 FOAF    = "http://xmlns.com/foaf/0.1/"
-GEMEA   = "https://gemea.fiz-karlsruhe.de/edm/"
+DDBEDM  = "urn:edm:"
 
 RDF_TYPE_URI = RDF_NS + "type"
 
@@ -126,7 +126,7 @@ PRED: dict[str, dict[str, str]] = {
         "hasMet":               EDM + "hasMet",
         "hasType":              EDM + "hasType",
         "isNextInSequence":     EDM + "isNextInSequence",
-        "edmType":              EDM + "type",
+        "dcType":               DC + "type",
     },
     "Aggregation": {
         "aggregatedCHO":  EDM + "aggregatedCHO",
@@ -277,7 +277,7 @@ def to_named_node(val: str, entity_type: str) -> px.NamedNode | None:
         except Exception:
             return None
     try:
-        return px.NamedNode(GEMEA + entity_type + "/" + val)
+        return px.NamedNode(DDBEDM + entity_type + ":" + val)
     except Exception:
         return None
 
@@ -588,7 +588,7 @@ def extract_meta(data: dict) -> dict:
         "obj_id":        props.get("item-id", ""),
         "lang":          cho.get("language") or "",
         "title":         (_scalar_values(cho.get("title")) or [""])[0],
-        "dc_type":       cho.get("edmType") or "",
+        "dc_type":       cho.get("dcType") or "",
         "dc_creator":    _agent_structs(cho.get("creator"), "Agent"),
         "dc_contributor": _agent_structs(cho.get("contributor"), "Agent"),
         "dc_publisher":  publisher_structs,
@@ -608,17 +608,43 @@ def extract_meta(data: dict) -> dict:
 # Worker process
 # ---------------------------------------------------------------------------
 
-def worker(worker_id: int, work_q: multiprocessing.Queue, meta_q: multiprocessing.Queue) -> None:
+def _iter_json(path: str):
+    """Yield (uid, json_bytes) for each record in a JSON array or JSON Lines file."""
+    with open(path, encoding="utf-8") as f:
+        first = f.read(1)
+        f.seek(0)
+        if first == "[":
+            records = json.load(f)
+            for rec in records:
+                uid = (rec.get("properties") or {}).get("item-id", "")
+                yield uid, json.dumps(rec, ensure_ascii=False).encode()
+        else:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                rec = json.loads(line)
+                uid = (rec.get("properties") or {}).get("item-id", "")
+                yield uid, json.dumps(rec, ensure_ascii=False).encode()
+
+
+def worker(
+    worker_id: int,
+    work_q: multiprocessing.Queue,
+    meta_q: multiprocessing.Queue,
+    compressed: bool = True,
+    stem: str = "out",
+) -> None:
     batch_triples: list[bytes] = []
     batch_meta:    list[dict]  = []
-    batch_num = _next_batch_num(worker_id)
+    batch_num = _next_batch_num(worker_id, stem)
     processed = 0
 
     def flush_nt():
         nonlocal batch_num
         if not batch_triples:
             return
-        path = Path(OUTPUT_DIR) / f"edm_{worker_id:02d}_{batch_num:04d}.nt"
+        path = Path(OUTPUT_DIR) / f"ddbedm-{stem}_{worker_id:02d}_{batch_num:04d}.nt"
         with open(path, "wb") as f:
             for chunk in batch_triples:
                 f.write(chunk)
@@ -639,7 +665,7 @@ def worker(worker_id: int, work_q: multiprocessing.Queue, meta_q: multiprocessin
             break
         uid, blob = item
         try:
-            data = json.loads(gzip.decompress(blob))
+            data = json.loads(gzip.decompress(blob) if compressed else blob)
             nt_bytes = record_to_triples(data)
             meta_row = extract_meta(data)
             batch_triples.append(nt_bytes)
@@ -722,9 +748,9 @@ def _save_checkpoint(last_rowid: int) -> None:
     _checkpoint_path().write_text(json.dumps({"last_rowid": last_rowid}))
 
 
-def _next_batch_num(worker_id: int) -> int:
+def _next_batch_num(worker_id: int, stem: str) -> int:
     """Scan OUTPUT_DIR to find the next unused batch number for this worker."""
-    existing = sorted(Path(OUTPUT_DIR).glob(f"edm_{worker_id:02d}_*.nt"))
+    existing = sorted(Path(OUTPUT_DIR).glob(f"ddbedm-{stem}_{worker_id:02d}_*.nt"))
     if not existing:
         return 0
     return int(existing[-1].stem.split("_")[-1]) + 1
@@ -736,13 +762,17 @@ def _next_batch_num(worker_id: int) -> int:
 
 def main() -> None:
     if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <s2.sqlite>", file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} <input.sqlite|input.json>", file=sys.stderr)
         sys.exit(1)
 
-    db_path = sys.argv[1]
+    input_path = sys.argv[1]
+    suffix     = Path(input_path).suffix.lower()
+    is_json    = suffix == ".json"
+    compressed = not is_json
+
     Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
-    db_stem = Path(db_path).stem          # e.g. "s2" from "s2.sqlite"
-    parquet_path = str(Path(OUTPUT_DIR) / f"{db_stem}_meta.parquet")
+    stem         = Path(input_path).stem
+    parquet_path = str(Path(OUTPUT_DIR) / f"{stem}_meta.parquet")
 
     logging.info(f"Workers: {MAX_WORKERS}, batch size: {BATCH_SIZE:,}")
     logging.info(f"Output dir: {OUTPUT_DIR}")
@@ -751,7 +781,7 @@ def main() -> None:
     meta_q = multiprocessing.Queue(1000)
 
     workers = [
-        multiprocessing.Process(target=worker, args=(i, work_q, meta_q), daemon=True)
+        multiprocessing.Process(target=worker, args=(i, work_q, meta_q, compressed, stem), daemon=True)
         for i in range(MAX_WORKERS)
     ]
     for w in workers:
@@ -762,38 +792,51 @@ def main() -> None:
     )
     writer_proc.start()
 
-    last_rowid = _load_checkpoint()
-    if last_rowid:
-        logging.info(f"Resuming from rowid {last_rowid:,}")
-        if Path(parquet_path).exists():
-            logging.warning(
-                f"Existing {parquet_path} found — this run will write a new file "
-                f"covering only rows after rowid {last_rowid:,}. "
-                f"Concatenate both files afterwards."
-            )
-            parquet_path = str(Path(OUTPUT_DIR) / f"s2_meta_resume_{last_rowid}.parquet")
-
-    db = sqlite3.connect(db_path)
-    cur = db.cursor()
-    cur.execute("SELECT max(rowid) FROM objs")
-    total = (cur.fetchone()[0] or 0) - last_rowid
-    logging.info(f"Processing ~{total:,} records from {db_path}")
-
-    cur.execute(
-        "SELECT rowid, uid, bufgz FROM objs WHERE bufgz IS NOT NULL AND rowid > ? ORDER BY rowid",
-        (last_rowid,),
-    )
     count = 0
-    last_seen_rowid = last_rowid
-    for rowid, uid, blob in cur:
-        work_q.put((uid, blob))
-        count += 1
-        last_seen_rowid = rowid
-        if count % REPORT_INTERVAL == 0:
-            _save_checkpoint(last_seen_rowid)
-            logging.info(f"Queued {count:,} / ~{total:,} (rowid {last_seen_rowid:,})")
 
-    # one poison pill per worker
+    if is_json:
+        records = list(_iter_json(input_path))
+        total   = len(records)
+        logging.info(f"Processing {total:,} records from {input_path}")
+        for uid, blob in records:
+            work_q.put((uid, blob))
+            count += 1
+            if count % REPORT_INTERVAL == 0:
+                logging.info(f"Queued {count:,} / {total:,}")
+
+    else:
+        last_rowid = _load_checkpoint()
+        if last_rowid:
+            logging.info(f"Resuming from rowid {last_rowid:,}")
+            if Path(parquet_path).exists():
+                logging.warning(
+                    f"Existing {parquet_path} found — this run will write a new file "
+                    f"covering only rows after rowid {last_rowid:,}. "
+                    f"Concatenate both files afterwards."
+                )
+                parquet_path = str(Path(OUTPUT_DIR) / f"{stem}_meta_resume_{last_rowid}.parquet")
+
+        db  = sqlite3.connect(input_path)
+        cur = db.cursor()
+        cur.execute("SELECT max(rowid) FROM objs")
+        total = (cur.fetchone()[0] or 0) - last_rowid
+        logging.info(f"Processing ~{total:,} records from {input_path}")
+
+        cur.execute(
+            "SELECT rowid, uid, bufgz FROM objs WHERE bufgz IS NOT NULL AND rowid > ? ORDER BY rowid",
+            (last_rowid,),
+        )
+        last_seen_rowid = last_rowid
+        for rowid, uid, blob in cur:
+            work_q.put((uid, blob))
+            count += 1
+            last_seen_rowid = rowid
+            if count % REPORT_INTERVAL == 0:
+                _save_checkpoint(last_seen_rowid)
+                logging.info(f"Queued {count:,} / ~{total:,} (rowid {last_seen_rowid:,})")
+
+        _checkpoint_path().unlink(missing_ok=True)
+
     for _ in range(MAX_WORKERS):
         work_q.put(None)
 
@@ -803,7 +846,6 @@ def main() -> None:
     meta_q.put(None)
     writer_proc.join()
 
-    _checkpoint_path().unlink(missing_ok=True)
     logging.info(f"Done. {count:,} records processed.")
 
 

@@ -38,6 +38,7 @@ from export_s2 import (
     _scalar_values,
     _agent_structs,
     _resource_values,
+    _iter_json,
 )
 
 
@@ -148,7 +149,7 @@ def extract_meta(data: dict) -> dict:
         "obj_id":            props.get("item-id", ""),
         "lang":              cho.get("language") or "",
         "title":             (_scalar_values(cho.get("title")) or [""])[0],
-        "dc_type":           cho.get("edmType") or "",
+        "dc_type":           cho.get("dcType") or "",
         "dc_creator":        _agent_structs(cho.get("creator"), "Agent"),
         "dc_contributor":    _agent_structs(cho.get("contributor"), "Agent"),
         "dc_publisher":      publisher_structs,
@@ -178,7 +179,12 @@ logging.basicConfig(
 # Worker
 # ---------------------------------------------------------------------------
 
-def worker(worker_id: int, work_q: multiprocessing.Queue, meta_q: multiprocessing.Queue) -> None:
+def worker(
+    worker_id: int,
+    work_q: multiprocessing.Queue,
+    meta_q: multiprocessing.Queue,
+    compressed: bool = True,
+) -> None:
     processed = 0
     batch: list[dict] = []
 
@@ -195,7 +201,7 @@ def worker(worker_id: int, work_q: multiprocessing.Queue, meta_q: multiprocessin
             break
         uid, blob = item
         try:
-            data = json.loads(gzip.decompress(blob))
+            data = json.loads(gzip.decompress(blob) if compressed else blob)
             batch.append(extract_meta(data))
             processed += 1
         except Exception:
@@ -257,13 +263,16 @@ def meta_writer(meta_q: multiprocessing.Queue, output_path: str) -> None:
 
 def main() -> None:
     if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <s2.sqlite>", file=sys.stderr)
+        print(f"Usage: {sys.argv[0]} <input.sqlite|input.json>", file=sys.stderr)
         sys.exit(1)
 
-    db_path = sys.argv[1]
+    input_path = sys.argv[1]
+    is_json    = Path(input_path).suffix.lower() == ".json"
+    compressed = not is_json
+
     Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
-    db_stem = Path(db_path).stem
-    parquet_path = str(Path(OUTPUT_DIR) / f"{db_stem}_meta.parquet")
+    stem         = Path(input_path).stem
+    parquet_path = str(Path(OUTPUT_DIR) / f"{stem}_meta.parquet")
 
     logging.info(f"Workers: {MAX_WORKERS}")
     logging.info(f"Output: {parquet_path}")
@@ -272,7 +281,7 @@ def main() -> None:
     meta_q = multiprocessing.Queue(1000)
 
     workers = [
-        multiprocessing.Process(target=worker, args=(i, work_q, meta_q), daemon=True)
+        multiprocessing.Process(target=worker, args=(i, work_q, meta_q, compressed), daemon=True)
         for i in range(MAX_WORKERS)
     ]
     for w in workers:
@@ -283,19 +292,30 @@ def main() -> None:
     )
     writer_proc.start()
 
-    db = sqlite3.connect(db_path)
-    cur = db.cursor()
-    cur.execute("SELECT max(rowid) FROM objs")
-    total = cur.fetchone()[0] or 0
-    logging.info(f"Processing ~{total:,} records from {db_path}")
-
-    cur.execute("SELECT uid, bufgz FROM objs WHERE bufgz IS NOT NULL ORDER BY rowid")
     count = 0
-    for uid, blob in cur:
-        work_q.put((uid, blob))
-        count += 1
-        if count % REPORT_INTERVAL == 0:
-            logging.info(f"Queued {count:,} / ~{total:,}")
+
+    if is_json:
+        records = list(_iter_json(input_path))
+        total   = len(records)
+        logging.info(f"Processing {total:,} records from {input_path}")
+        for uid, blob in records:
+            work_q.put((uid, blob))
+            count += 1
+            if count % REPORT_INTERVAL == 0:
+                logging.info(f"Queued {count:,} / {total:,}")
+    else:
+        db = sqlite3.connect(input_path)
+        cur = db.cursor()
+        cur.execute("SELECT max(rowid) FROM objs")
+        total = cur.fetchone()[0] or 0
+        logging.info(f"Processing ~{total:,} records from {input_path}")
+
+        cur.execute("SELECT uid, bufgz FROM objs WHERE bufgz IS NOT NULL ORDER BY rowid")
+        for uid, blob in cur:
+            work_q.put((uid, blob))
+            count += 1
+            if count % REPORT_INTERVAL == 0:
+                logging.info(f"Queued {count:,} / ~{total:,}")
 
     for _ in range(MAX_WORKERS):
         work_q.put(None)
