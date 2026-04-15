@@ -198,11 +198,11 @@ Output: `data/annotation/sr11_prompt_validation_manual.jsonl` — 50 records, em
 
 ## 7. Related notes
 
-- `notes/adr/reprocessing-adr.md` — ADR-03 (corpus migration rationale)
-- `notes/adr/corpus-source-adr.md` — ADR-02 (pkl → parquet)
-- `notes/project/reprocessing-workflow.md` — end-to-end pipeline diagram
-- `notes/reprocess-adr.md` — impact on GND linking and NER subsystems
-- `notes/ner/ner-bibliographic.md` §2.1 — SR-01 v2 numbers
-- `data/processed/ner/sr01_isbd_field_ratings.csv` — 9.2M row ratings
-- `data/processed/ner/sr08_corpus_cell_sizes.csv` — era × tier cell counts
-- `data/annotation/sr11_prompt_validation_manual.jsonl` — SR-11 50-record sample
+- [notes/adr/reprocessing-adr.md](https://github.com/anntanp/gemea/blob/main/notes/adr/reprocessing-adr.md) — ADR-03 (corpus migration rationale)
+- [notes/adr/corpus-source-adr.md](https://github.com/anntanp/gemea/blob/main/notes/adr/corpus-source-adr.md) — ADR-02 (pkl → parquet)
+- [notes/project/reprocessing-workflow.md](https://github.com/anntanp/gemea/blob/main/notes/project/reprocessing-workflow.md) — end-to-end pipeline diagram
+- [notes/reprocess-adr.md](https://github.com/anntanp/gemea/blob/main/notes/reprocess-adr.md) — impact on GND linking and NER subsystems
+- [notes/ner/ner-bibliographic.md](https://github.com/anntanp/gemea/blob/main/notes/ner/ner-bibliographic.md) §2.1 — SR-01 v2 numbers
+- [data/processed/ner/sr01_isbd_field_ratings.csv](https://github.com/anntanp/gemea/blob/main/data/processed/ner/sr01_isbd_field_ratings.csv) — 9.2M row ratings
+- [data/processed/ner/sr08_corpus_cell_sizes.csv](https://github.com/anntanp/gemea/blob/main/data/processed/ner/sr08_corpus_cell_sizes.csv) — era × tier cell counts
+- [data/annotation/sr11_prompt_validation_manual.jsonl](https://github.com/anntanp/gemea/blob/main/data/annotation/sr11_prompt_validation_manual.jsonl) — SR-11 50-record sample
