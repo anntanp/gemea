@@ -73,11 +73,11 @@ Source: `data/before-parquet/processed/ner/sr01_isbd_field_ratings.csv` (old) ·
 
 ### 2.2 Silver tier counts
 
-| Tier | Old (pkl) | % | New (parquet) | % | Change |
-|------|-----------|---|---------------|---|--------|
-| Tier 2 (structural) | 4,613 | 0.1% | 7,105 | 0.1% | +2,492 |
-| Tier 1 (heuristic) | 335,569 | 7.5% | 689,453 | 7.5% | +353,884 |
-| Tier 0 (no labels) | 4,137,876 | 92.4% | 8,516,781 | 92.4% | +4,378,905 |
+| Tier | Old (pkl, 4.48M) | % | New (parquet, 9.21M) | % | Change |
+|------|-----------------|---|----------------------|---|--------|
+| Tier 2 (structural) | 4,613 | 0.10% | 7,105 | 0.08% | +2,492 |
+| Tier 1 (heuristic) | 335,569 | 7.49% | 689,453 | 7.48% | +353,884 |
+| Tier 0 (no labels) | 4,137,876 | 92.40% | 8,516,781 | 92.44% | +4,378,905 |
 
 Source: `data/before-parquet/processed/ner/sr01_isbd_field_ratings.csv` (old) · `data/processed/ner/sr01_isbd_field_ratings.csv` (new)
 
