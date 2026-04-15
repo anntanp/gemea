@@ -69,13 +69,17 @@ The ~1.1M records recovered by removing the langid filter are entirely within `g
 | `f_series` | — | 865 (0.0%) | — |
 | `f_volume` | — | 238,907 (2.6%) | — |
 
+Source: `data/before-parquet/processed/ner/sr01_isbd_field_ratings.csv` (old) · `data/processed/ner/sr01_isbd_field_ratings.csv` (new)
+
 ### 2.2 Silver tier counts
 
 | Tier | Old (pkl) | % | New (parquet) | % | Change |
 |------|-----------|---|---------------|---|--------|
 | Tier 2 (structural) | 4,613 | 0.1% | 7,105 | 0.1% | +2,492 |
-| Tier 1 (heuristic) | 335,524 | 7.5% | 689,453 | 7.5% | +353,929 |
-| Tier 0 (no labels) | 4,137,643 | 92.4% | 8,516,781 | 92.4% | +4,379,138 |
+| Tier 1 (heuristic) | 335,569 | 7.5% | 689,453 | 7.5% | +353,884 |
+| Tier 0 (no labels) | 4,137,876 | 92.4% | 8,516,781 | 92.4% | +4,378,905 |
+
+Source: `data/before-parquet/processed/ner/sr01_isbd_field_ratings.csv` (old) · `data/processed/ner/sr01_isbd_field_ratings.csv` (new)
 
 **Key finding:** Tier percentages are stable at 0.1% / 7.5% / 92.4% — the ISBD heuristics scale uniformly. Absolute tier-1 silver candidates doubled: 335K → 689K.
 
@@ -93,6 +97,8 @@ The ~1.1M records recovered by removing the langid filter are entirely within `g
 
 BPE fragments compound German words; the higher token counts do not indicate longer titles — they reflect a finer tokenization granularity. The era-stratified length pattern is preserved (pre-1700 titles are longer than modern ones) but absolute values are not comparable across tokenizers.
 
+Source: `data/before-parquet/processed/ner/sr10_era_length_summary.csv` (old) · `notes/images/token-distribution.json` (new)
+
 **Threshold recalibration:** old short/medium/long boundaries (≤4 / 5–14 / >14, spaCy) → new (≤8 / 9–27 / >27, BPE, p25/p75).
 
 ---
@@ -102,13 +108,15 @@ BPE fragments compound German words; the higher token counts do not indicate lon
 ### 4.1 v1 — pkl (4.47M)
 
 | Era | tier-0 | tier-1 | tier-2 | Total | % |
-|-----|-------:|-------:|-------:|------:|---|
-| pre-1700 | — | — | — | ~180K | ~4% |
-| 1700–1800 | — | — | — | ~310K | ~7% |
-| 19th-c | — | — | — | ~1.8M | ~40% |
-| modern | — | — | — | ~2.2M | ~49% |
+|-----|-------:|-------:|-------:|------:|---:|
+| pre-1700 | 259,434 | 19,102 | 0 | 278,536 | 6.2% |
+| 1700–1800 | 530,576 | 36,088 | 1,274 | 567,938 | 12.7% |
+| 19th-c | 830,570 | 91,610 | 3,265 | 925,445 | 20.7% |
+| modern | 1,123,728 | 75,185 | 70 | 1,198,983 | 26.8% |
+| unknown | 1,393,568 | 113,584 | 4 | 1,507,156 | 33.7% |
+| **Total** | **4,137,876** | **335,569** | **4,613** | **4,478,058** | 100% |
 
-*(Cell-level v1 breakdown not computed; era totals estimated from gold set design documents.)*
+Source: `data/before-parquet/processed/ner/sr08_corpus_cell_sizes.csv`
 
 ### 4.2 v2 — parquet (9.21M)
 
@@ -120,6 +128,8 @@ BPE fragments compound German words; the higher token counts do not indicate lon
 | modern | 3,513,832 | 313,405 | 497 | 3,827,734 | 41.5% |
 | unknown | 548,470 | 33,768 | 2 | 582,240 | 6.3% |
 | **Total** | **8,516,781** | **689,453** | **7,105** | **9,213,339** | 100% |
+
+Source (v2): `data/processed/ner/sr08_corpus_cell_sizes.csv`
 
 **Note on tier-2:** pre-1700 has only 7 tier-2 records (vs. 1,731 in 1700–1800). This is consistent with pre-1800 printing conventions that rarely use the full ISBD `. -` area separator. The structural tier in pre-1700 is essentially empty — heuristic and manual annotation are the only viable paths.
 
@@ -180,7 +190,7 @@ The tier percentages (0.1% / 7.5% / 92.4%) are identical between pkl and parquet
 | pre-1700 | 32 |
 | 1700–1800 | 18 |
 
-Output: `data/annotation/sr11_prompt_validation_manual.jsonl` — 50 records, empty spans.
+Source: `data/annotation/sr11_prompt_validation_manual.jsonl` — 50 records, empty spans.
 
 ---
 
