@@ -1,0 +1,532 @@
+/**
+ * fig_title_lengths.jsx
+ *
+ * Library of books visualizing DDB title token lengths by 25-year period.
+ *
+ *   Height of each book  →  number of objects in the period
+ *   Band proportions     →  short / medium / long title distribution
+ *   Band shade           →  deviation from corpus-wide average proportion
+ *
+ * Themes: leather (default) · retro · lighter
+ *   Standalone HTML: set window.CHART_THEME before rendering.
+ *   React app:       pass theme="retro" prop to <TitleLengthLibrary />.
+ *
+ * Data source:   title-length-analysis.json  (scripts/sr10_analyse_title_lengths.py)
+ * HTML generator: python scripts/sr10_render_title_viz.py [--theme leather|retro|lighter|all]
+ */
+
+import React, { useRef, useState } from 'react';
+import rawData from './title-length-analysis.json';
+
+// ── layout constants ───────────────────────────────────────────────────────────
+
+const BOOK_W     = 44;
+const BOOK_GAP   = 5;
+const MAX_BOOK_H = 300;
+const MIN_BOOK_H = 28;
+const SHELF_Y    = 430;
+const SHELF_H    = 22;
+const START_X    = 60;
+const SVG_H      = 490;
+
+// Latin share of Leipzig Meßnovitäten (new titles at the fair)
+// Source: quantitative data from Wittmann / Goldfriedrich
+const LATIN_SHARE = [
+  { year: 1740, pct: '27.7%' },
+  { year: 1770, pct: '14.3%' },
+  { year: 1800, pct:  '4.0%' },
+];
+
+const ERA_MARKERS = [
+  { label: 'Gutenberg',                          year: 1450 },  // pre-1500, won't display
+  { label: 'Luthers 95 Thesen',                  year: 1517 },  // pamphlet explosion
+  { label: 'Frankfurter',  line2: 'Messkatalog', year: 1564 },  // first FBM catalogue
+  { label: '30Y War',      line2: 'begins',       year: 1618 },  // Thirty Years' War start
+  { label: '30Y War',      line2: 'ends',         year: 1648 },  // Peace of Westphalia
+  { label: 'Leipzig',      line2: 'Messe',        year: 1700 },  // Leipzig overtakes Frankfurt
+  { label: 'Aufklärung',                          year: 1765 },  // commercial shift
+  { label: 'Weimarer',     line2: 'Klassik',      year: 1786 },  // Weimarer Klassik begins
+  { label: 'WWI',                                 year: 1914 },
+  { label: 'WWII',                                year: 1939 },
+];
+
+// ── themes ─────────────────────────────────────────────────────────────────────
+
+const THEMES = {
+  leather: {
+    bg:           '#0f0804',
+    wallGradient: ['#1c0d06', '#0f0804'],
+    grainDark:    'rgba(0,0,0,0.09)',
+    grainLight:   'rgba(255,255,255,0.04)',
+    gridStroke:   'rgba(255,255,255,0.012)',
+    gridDash:     null,
+    scanlines:    false,
+    eraMarkers:   false,
+    scaleCallout: false,
+    bands:        { short: '#c4985e', medium: '#8c5628', long: '#4a2010' },
+    bandShift:    0.35,
+    spineHl:      'hsl(27,30%,68%)',
+    spineSh:      'rgba(0,0,0,0.35)',
+    dropShadow:   'rgba(0,0,0,0.5)',
+    grainOpacity: 0.75,
+    topCap:       'hsl(27,30%,68%)',
+    bottomFoot:   'rgba(0,0,0,0.25)',
+    shelfGrad:    ['#7a4e22', '#5c3510', '#2a1508'],
+    shelfEdge:    'rgba(255,185,70,0.22)',
+    shelfShadow:  'rgba(0,0,0,0.65)',
+    shelfLabel:   '#ffffff',
+    eraStroke:    null, eraLabel: null, eraYear: null,
+    scaleStroke:  null, scaleFill: null,
+    titleFill:    'rgba(235,205,140,0.75)',
+    titleWeight:  'normal',
+    subtitleFill: 'rgba(175,140,85,0.55)',
+    font:         "Georgia,'Times New Roman',serif",
+    lgTitle:      'rgba(185,148,82,0.6)',
+    lgStroke:     'rgba(0,0,0,0.2)',
+    lgText:       'rgba(185,148,82,0.65)',
+    lgAnnotation: 'rgba(160,125,65,0.4)',
+    ttBg:         'rgba(10,6,2,0.97)',
+    ttBorder:     'rgba(210,165,70,0.32)',
+    ttColor:      '#e0c880',
+    ttHeading:    '#e0c880',
+    ttMuted:      'rgba(200,160,85,0.75)',
+    ttFooter:     'rgba(185,148,75,0.6)',
+    ttRadius:     '3px',
+  },
+  retro: {
+    bg:           '#000033',
+    wallGradient: null,
+    grainDark:    'rgba(0,0,0,0.2)',
+    grainLight:   'rgba(255,255,255,0.04)',
+    gridStroke:   null,
+    gridDash:     null,
+    scanlines:    true,
+    eraMarkers:   true,
+    scaleCallout: true,
+    bands:        { short: '#FF69B4', medium: '#00FFFF', long: '#FFD700' },
+    bandShift:    0.45,
+    spineHl:      'rgba(255,255,255,0.5)',
+    spineSh:      'rgba(0,0,20,0.85)',
+    dropShadow:   'rgba(0,0,40,0.8)',
+    grainOpacity: 0.45,
+    topCap:       'rgba(255,255,255,0.45)',
+    bottomFoot:   'rgba(0,0,0,0.4)',
+    shelfGrad:    ['#002266', '#001144', '#000022'],
+    shelfEdge:    'rgba(0,255,255,0.35)',
+    shelfShadow:  'rgba(0,0,0,0.6)',
+    shelfLabel:   '#00FFFF',
+    eraStroke:    'rgba(0,255,255,0.2)',
+    eraLabel:     'rgba(0,255,255,0.5)',
+    eraYear:      'rgba(0,255,255,0.35)',
+    scaleStroke:  'rgba(255,215,0,0.65)',
+    scaleFill:    'rgba(255,215,0,0.85)',
+    titleFill:    '#FFD700',
+    titleWeight:  'normal',
+    subtitleFill: 'rgba(255,255,255,0.45)',
+    font:         "'VT323', monospace",
+    lgTitle:      'rgba(255,215,0,0.7)',
+    lgStroke:     'rgba(255,255,255,0.2)',
+    lgText:       'rgba(255,255,255,0.65)',
+    lgAnnotation: 'rgba(255,255,255,0.3)',
+    ttBg:         'rgba(0,0,40,0.97)',
+    ttBorder:     'rgba(0,255,255,0.45)',
+    ttColor:      '#ffffff',
+    ttHeading:    '#FFD700',
+    ttMuted:      'rgba(255,255,255,0.65)',
+    ttFooter:     'rgba(255,215,0,0.65)',
+    ttRadius:     '3px',
+  },
+  lighter: {
+    bg:           '#f6f8fa',
+    wallGradient: null,
+    grainDark:    'rgba(0,0,0,0.04)',
+    grainLight:   'rgba(255,255,255,0.25)',
+    gridStroke:   'rgba(136,136,136,0.15)',
+    gridDash:     '4,4',
+    scanlines:    false,
+    eraMarkers:   true,
+    scaleCallout: true,
+    bands:        { short: '#72b7b2', medium: '#f58518', long: '#a05195' },
+    bandShift:    0.4,
+    spineHl:      'rgba(255,255,255,0.85)',
+    spineSh:      'rgba(0,0,0,0.12)',
+    dropShadow:   'rgba(0,0,0,0.08)',
+    grainOpacity: 0.3,
+    topCap:       'rgba(255,255,255,0.9)',
+    bottomFoot:   'rgba(0,0,0,0.08)',
+    shelfGrad:    ['#d0d7de', '#b8c2cc', '#9aa5b0'],
+    shelfEdge:    'rgba(255,255,255,0.6)',
+    shelfShadow:  'rgba(0,0,0,0.1)',
+    shelfLabel:   '#24292f',
+    eraStroke:    'rgba(136,136,136,0.3)',
+    eraLabel:     '#57606a',
+    eraYear:      '#8c959f',
+    scaleStroke:  'rgba(87,96,106,0.6)',
+    scaleFill:    '#24292f',
+    titleFill:    '#24292f',
+    titleWeight:  '600',
+    subtitleFill: '#57606a',
+    font:         "'Outfit', sans-serif",
+    lgTitle:      '#57606a',
+    lgStroke:     '#d0d7de',
+    lgText:       '#57606a',
+    lgAnnotation: '#8c959f',
+    ttBg:         '#ffffff',
+    ttBorder:     '#d0d7de',
+    ttColor:      '#24292f',
+    ttHeading:    '#24292f',
+    ttMuted:      '#57606a',
+    ttFooter:     '#8c959f',
+    ttRadius:     '6px',
+  },
+  vscode_dark: {
+    bg:           '#1f1f1f',
+    wallGradient: null,
+    grainDark:    'rgba(0,0,0,0.15)',
+    grainLight:   'rgba(255,255,255,0.03)',
+    gridStroke:   'rgba(255,255,255,0.07)',
+    gridDash:     '4,4',
+    scanlines:    false,
+    eraMarkers:   true,
+    bands:        { short: '#4EC9B0', medium: '#C586C0', long: '#DCDCAA' },
+    bandShift:    0.4,
+    spineHl:      'rgba(255,255,255,0.25)',
+    spineSh:      'rgba(0,0,0,0.45)',
+    dropShadow:   'rgba(0,0,0,0.5)',
+    grainOpacity: 0.35,
+    topCap:       'rgba(255,255,255,0.2)',
+    bottomFoot:   'rgba(0,0,0,0.3)',
+    shelfGrad:    ['#2d2d2d', '#252525', '#1a1a1a'],
+    shelfEdge:    'rgba(78,201,176,0.3)',
+    shelfShadow:  'rgba(0,0,0,0.5)',
+    shelfLabel:   '#C8C8C8',
+    eraStroke:    'rgba(78,201,176,0.22)',
+    eraLabel:     'rgba(156,220,254,0.7)',
+    eraYear:      'rgba(156,220,254,0.4)',
+    scaleStroke:  null, scaleFill: null,
+    titleFill:    '#DCDCAA',
+    titleWeight:  '400',
+    subtitleFill: '#C8C8C8',
+    font:         "'Consolas','Courier New',monospace",
+    lgTitle:      '#9CDCFE',
+    lgStroke:     'rgba(255,255,255,0.12)',
+    lgText:       '#C8C8C8',
+    lgAnnotation: 'rgba(200,200,200,0.4)',
+    ttBg:         'rgba(30,30,30,0.98)',
+    ttBorder:     'rgba(78,201,176,0.35)',
+    ttColor:      '#C8C8C8',
+    ttHeading:    '#DCDCAA',
+    ttMuted:      'rgba(200,200,200,0.65)',
+    ttFooter:     'rgba(156,220,254,0.55)',
+    ttRadius:     '3px',
+  },
+};
+
+// ── colour helpers ─────────────────────────────────────────────────────────────
+
+function hexToRgb(hex) {
+  return [
+    parseInt(hex.slice(1, 3), 16) / 255,
+    parseInt(hex.slice(3, 5), 16) / 255,
+    parseInt(hex.slice(5, 7), 16) / 255,
+  ];
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(x =>
+    Math.round(Math.min(1, Math.max(0, x)) * 255).toString(16).padStart(2, '0')
+  ).join('');
+}
+// Positive deviation (above corpus avg) → darker; negative → lighter.
+function bandColor(baseHex, dev, maxDev, shift) {
+  const t = maxDev > 0 ? dev / maxDev : 0;
+  const [r, g, b] = hexToRgb(baseHex);
+  if (t > 0) {
+    return rgbToHex(r * (1 - t * shift), g * (1 - t * shift), b * (1 - t * shift));
+  } else {
+    return rgbToHex(r + (1-r)*(-t*shift), g + (1-g)*(-t*shift), b + (1-b)*(-t*shift));
+  }
+}
+
+function fmt(n) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
+}
+
+// ── component ──────────────────────────────────────────────────────────────────
+
+export default function TitleLengthLibrary({ theme: themeProp } = {}) {
+  const containerRef = useRef(null);
+  const [tooltip, setTooltip] = useState(null);
+
+  const T = THEMES[themeProp ?? (typeof window !== 'undefined' ? window.CHART_THEME : null) ?? 'leather'] ?? THEMES.leather;
+
+  const buckets = Object.entries(rawData.bucketed)
+    .filter(([, v]) => v.total > 100)
+    .map(([label, v]) => ({ label, ...v }));
+
+  const maxTotal = Math.max(...buckets.map(b => b.total));
+  const SVG_W = START_X * 2 + buckets.length * (BOOK_W + BOOK_GAP) - BOOK_GAP;
+
+  const bookH = (total) => Math.max(MIN_BOOK_H, (total / maxTotal) * MAX_BOOK_H);
+
+  const corpusTotal    = buckets.reduce((s, b) => s + b.total,  0);
+  const corpusShortPct = buckets.reduce((s, b) => s + b.short,  0) / corpusTotal;
+  const corpusMedPct   = buckets.reduce((s, b) => s + b.medium, 0) / corpusTotal;
+  const corpusLongPct  = buckets.reduce((s, b) => s + b.long,   0) / corpusTotal;
+  const maxShortDev = Math.max(...buckets.map(b => Math.abs(b.short/b.total  - corpusShortPct)));
+  const maxMedDev   = Math.max(...buckets.map(b => Math.abs(b.medium/b.total - corpusMedPct)));
+  const maxLongDev  = Math.max(...buckets.map(b => Math.abs(b.long/b.total   - corpusLongPct)));
+
+  function yearToX(year) {
+    return START_X + Math.floor((year - 1500) / 25) * (BOOK_W + BOOK_GAP) + BOOK_W / 2;
+  }
+
+  function handleMouseMove(e, book) {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setTooltip({ book, x: e.clientX - rect.left + 14, y: e.clientY - rect.top - 10 });
+  }
+
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block', background: T.bg }}>
+      <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+           style={{ display: 'block' }}>
+        <defs>
+          {T.wallGradient && (
+            <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor={T.wallGradient[0]}/>
+              <stop offset="100%" stopColor={T.wallGradient[1]}/>
+            </linearGradient>
+          )}
+          <pattern id="grain" width="4" height="60" patternUnits="userSpaceOnUse">
+            <line x1="1"   y1="0" x2="0.5" y2="60" stroke={T.grainDark}  strokeWidth="0.6"/>
+            <line x1="3.2" y1="0" x2="2.8" y2="60" stroke={T.grainLight} strokeWidth="0.4"/>
+          </pattern>
+          {T.scanlines && (
+            <pattern id="scanlines" width="2" height="4" patternUnits="userSpaceOnUse">
+              <rect width="2" height="1" y="0" fill="rgba(0,0,0,0.1)"/>
+            </pattern>
+          )}
+          <linearGradient id="shelf" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor={T.shelfGrad[0]}/>
+            <stop offset="20%"  stopColor={T.shelfGrad[1]}/>
+            <stop offset="100%" stopColor={T.shelfGrad[2]}/>
+          </linearGradient>
+        </defs>
+
+        {/* ── background ──────────────────────────────────────────────── */}
+        <rect width={SVG_W} height={SVG_H} fill={T.wallGradient ? 'url(#wall)' : T.bg}/>
+        {T.scanlines && <rect width={SVG_W} height={SVG_H} fill="url(#scanlines)"/>}
+
+        {/* ── grid / panel lines ──────────────────────────────────────── */}
+        {T.gridStroke && Array.from({ length: 7 }, (_, i) => (
+          <line key={i} x1={START_X} y1={i * 50 + 80} x2={SVG_W - START_X} y2={i * 50 + 80}
+                stroke={T.gridStroke} strokeWidth="0.5"
+                strokeDasharray={T.gridDash ?? undefined}/>
+        ))}
+
+        {/* ── era markers ─────────────────────────────────────────────── */}
+        {T.eraMarkers && ERA_MARKERS.map(({ label, line2, year }) => {
+          const mx = yearToX(year);
+          if (mx < START_X || mx > SVG_W - START_X) return null;
+          return (
+            <g key={year}>
+              <line x1={mx} y1={line2 ? 121 : 112} x2={mx} y2={SHELF_Y}
+                    stroke={T.eraStroke} strokeWidth="0.8" strokeDasharray="3,3"/>
+              <text x={mx} y={100} fill={T.eraLabel} fontSize="7.5"
+                    fontFamily={T.font} textAnchor="middle" letterSpacing="0.3">
+                {label}
+              </text>
+              {line2 && (
+                <text x={mx} y={109} fill={T.eraLabel} fontSize="7.5"
+                      fontFamily={T.font} textAnchor="middle" letterSpacing="0.3">
+                  {line2}
+                </text>
+              )}
+              <text x={mx} y={line2 ? 118 : 109} fill={T.eraYear} fontSize="7"
+                    fontFamily={T.font} textAnchor="middle">
+                {year}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* ── Latin share annotations ─────────────────────────────────── */}
+        {T.eraMarkers && LATIN_SHARE.map(({ year, pct }) => {
+          const lx = yearToX(year);
+          return (
+            <g key={`lat-${year}`}>
+              <circle cx={lx} cy={128} r={1.5} fill={T.eraLabel} opacity="0.55"/>
+              <text x={lx} y={138} fill={T.eraLabel} fontSize="6.5"
+                    fontFamily={T.font} textAnchor="middle" opacity="0.7">
+                Lat. {pct}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* ── books ───────────────────────────────────────────────────── */}
+        {buckets.map((b, i) => {
+          const bh = bookH(b.total);
+          const bx = START_X + i * (BOOK_W + BOOK_GAP);
+          const by = SHELF_Y - bh;
+
+          const shortPct = b.short  / b.total;
+          const medPct   = b.medium / b.total;
+          const longPct  = b.long   / b.total;
+
+          const longH  = Math.max(0, longPct  * bh);
+          const medH   = Math.max(0, medPct   * bh);
+          const shortH = Math.max(0, bh - longH - medH);
+
+          const shortColor = bandColor(T.bands.short,  shortPct - corpusShortPct, maxShortDev, T.bandShift);
+          const medColor   = bandColor(T.bands.medium, medPct   - corpusMedPct,   maxMedDev,   T.bandShift);
+          const longColor  = bandColor(T.bands.long,   longPct  - corpusLongPct,  maxLongDev,  T.bandShift);
+
+          return (
+            <g key={b.label}
+               onMouseMove={(e) => handleMouseMove(e, b)}
+               onMouseLeave={() => setTooltip(null)}
+               style={{ cursor: 'crosshair' }}>
+
+              {/* Drop shadow */}
+              <rect x={bx+2} y={by+2} width={BOOK_W} height={bh}
+                    fill={T.dropShadow} rx="2"/>
+
+              {/* Stacked bands: bottom=short, mid=medium, top=long */}
+              <rect x={bx} y={by + longH + medH} width={BOOK_W} height={shortH}
+                    fill={shortColor} rx="1"/>
+              <rect x={bx} y={by + longH}        width={BOOK_W} height={medH}
+                    fill={medColor}/>
+              <rect x={bx} y={by}                width={BOOK_W} height={longH}
+                    fill={longColor} rx="1" ry="1"/>
+
+              {/* Grain, spine details */}
+              <rect x={bx} y={by} width={BOOK_W} height={bh}
+                    fill="url(#grain)" rx="2" opacity={T.grainOpacity}/>
+              <rect x={bx} y={by} width={5} height={bh}
+                    fill={T.spineHl} rx="2" opacity="0.55"/>
+              <rect x={bx+BOOK_W-4} y={by} width={4} height={bh}
+                    fill={T.spineSh} rx="2"/>
+              <rect x={bx} y={by} width={BOOK_W} height={4}
+                    fill={T.topCap} rx="2" opacity="0.65"/>
+              <rect x={bx+1} y={by+bh-5} width={BOOK_W-2} height={5}
+                    fill={T.bottomFoot} rx="1"/>
+            </g>
+          );
+        })}
+
+        {/* ── shelf ───────────────────────────────────────────────────── */}
+        <rect x={18} y={SHELF_Y}         width={SVG_W-36} height={SHELF_H} fill="url(#shelf)" rx="2"/>
+        <rect x={18} y={SHELF_Y}         width={SVG_W-36} height={2}       fill={T.shelfEdge} rx="1"/>
+        <rect x={18} y={SHELF_Y+SHELF_H} width={SVG_W-36} height={7}       fill={T.shelfShadow} rx="2"/>
+
+        {/* ── shelf period labels ──────────────────────────────────────── */}
+        {buckets.map((b, i) => {
+          const cx = START_X + i * (BOOK_W + BOOK_GAP) + BOOK_W / 2;
+          const [start, end] = b.label.split('\u2013');
+          return (
+            <g key={`lbl-${b.label}`}>
+              <text x={cx} y={SHELF_Y + 9}  fill={T.shelfLabel} fontSize="6.5"
+                    fontFamily={T.font} textAnchor="middle">{start} –</text>
+              <text x={cx} y={SHELF_Y + 19} fill={T.shelfLabel} fontSize="6.5"
+                    fontFamily={T.font} textAnchor="middle">{end}</text>
+            </g>
+          );
+        })}
+
+        {/* ── title ───────────────────────────────────────────────────── */}
+        <text x={SVG_W / 2} y={36} fill={T.titleFill} fontSize="14"
+              fontFamily={T.font} fontWeight={T.titleWeight}
+              textAnchor="middle" letterSpacing="3">
+          DDB as a Mirror of the German Book Trade: Bibliographic Title Length, 1500–2024
+        </text>
+        <text x={SVG_W / 2} y={54} fill={T.subtitleFill} fontSize="9"
+              fontFamily={T.font} textAnchor="middle" letterSpacing="1">
+          <tspan fontWeight="bold" fill={T.titleFill}>Height</tspan>
+          {' · objects per period  |  '}
+          <tspan fontWeight="bold" fill={T.titleFill}>Band shade</tspan>
+          {' · per-band share vs. corpus average'}
+        </text>
+
+        {/* ── header legend ────────────────────────────────────────────── */}
+        {[
+          { label: 'Short ≤ 4',    color: T.bands.short  },
+          { label: 'Medium 5–14',  color: T.bands.medium },
+          { label: 'Long ≥ 15',    color: T.bands.long   },
+        ].map(({ label, color }, i) => {
+          const [r, g, b_] = hexToRgb(color);
+          const lighter = rgbToHex(r + (1-r)*0.35, g + (1-g)*0.35, b_ + (1-b_)*0.35);
+          const darker  = rgbToHex(r * 0.6,        g * 0.6,        b_ * 0.6);
+          const gx = SVG_W / 2 + (i - 1) * 115;
+          return (
+            <g key={label}>
+              <defs>
+                <linearGradient id={`hdr${i}`} x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%"   stopColor={lighter}/>
+                  <stop offset="50%"  stopColor={color}/>
+                  <stop offset="100%" stopColor={darker}/>
+                </linearGradient>
+              </defs>
+              <rect x={gx - 12} y={63} width={24} height={10}
+                    fill={`url(#hdr${i})`} rx="1" stroke={T.lgStroke} strokeWidth="0.5"/>
+              <text x={gx + 15} y={72} fill={T.lgText} fontSize="7.5"
+                    fontFamily={T.font}>{label}</text>
+            </g>
+          );
+        })}
+        <text x={SVG_W / 2} y={83} fill={T.lgAnnotation} fontSize="6.5"
+              fontFamily={T.font} textAnchor="middle">
+          lighter ← below avg · above avg → darker
+        </text>
+      </svg>
+
+      {/* ── footnote ──────────────────────────────────────────────────── */}
+      <div style={{
+        marginTop: 6, textAlign: 'center',
+        fontFamily: T.font, fontSize: '9px', color: T.ttFooter,
+        lineHeight: '1.6',
+      }}>
+        * Max 921 tokens: <em>Allgemeine Literatur-Zeitung</em> 1831 collective review — 33 pamphlet descriptions
+        concatenated into one title string (cataloging artifact).{' '}
+        <a href="https://www.deutsche-digitale-bibliothek.de/item/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB"
+           target="_blank" rel="noopener noreferrer"
+           style={{ color: T.ttMuted, textDecoration: 'none', borderBottom: `1px dotted ${T.ttMuted}` }}>
+          deutsche-digitale-bibliothek.de/…/52Q5EDQ44JLQS4WFJL2UNTHBQ4TZPAPB
+        </a>
+      </div>
+
+      {/* ── tooltip ───────────────────────────────────────────────────── */}
+      {tooltip && (
+        <div style={{
+          position: 'absolute', left: tooltip.x, top: tooltip.y,
+          background: T.ttBg, border: `1px solid ${T.ttBorder}`,
+          borderRadius: T.ttRadius, padding: '9px 13px',
+          color: T.ttColor, fontFamily: T.font,
+          fontSize: '11px', lineHeight: '1.75',
+          pointerEvents: 'none', whiteSpace: 'nowrap',
+          zIndex: 20, boxShadow: '0 3px 16px rgba(0,0,0,0.2)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 3, color: T.ttHeading, letterSpacing: '0.5px' }}>
+            {tooltip.book.label}
+          </div>
+          <div>{fmt(tooltip.book.total)} objects</div>
+          <div style={{ marginTop: 5, color: T.ttMuted, fontSize: '10px' }}>
+            Short  (≤ 4):  {fmt(tooltip.book.short)}  ({((tooltip.book.short  / tooltip.book.total) * 100).toFixed(0)}%)
+          </div>
+          <div style={{ color: T.ttMuted, fontSize: '10px' }}>
+            Medium (5–14): {fmt(tooltip.book.medium)} ({((tooltip.book.medium / tooltip.book.total) * 100).toFixed(0)}%)
+          </div>
+          <div style={{ color: T.ttMuted, fontSize: '10px' }}>
+            Long   (≥ 15): {fmt(tooltip.book.long)}   ({((tooltip.book.long   / tooltip.book.total) * 100).toFixed(0)}%)
+          </div>
+          <div style={{ marginTop: 5, color: T.ttFooter, fontSize: '10px' }}>
+            Median tokens: {tooltip.book.median_all_tokens}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

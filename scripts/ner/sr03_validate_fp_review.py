@@ -10,7 +10,7 @@ Assumptions: CSV has been processed by sr03_fp_review.py.
 
 import pandas as pd
 
-df = pd.read_csv("/Users/mta/Documents/claude/gemea/data/processed/sr03_heuristic_validation_sample.csv", dtype=str, keep_default_na=False)
+df = pd.read_csv("/Users/mta/Documents/claude/gemea/data/processed/ner/sr03_heuristic_validation_sample.csv", dtype=str, keep_default_na=False)
 
 total = len(df)
 fp_set = (df["fp_fields"] != "").sum()

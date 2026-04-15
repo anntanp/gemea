@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "text": "TITLE",
+    "prefixKey": null,
+    "suffixKey": "t",
+    "backgroundColor": "#653294",
+    "textColor": "#ffffff"
+  },
+  {
+    "id": 2,
+    "text": "OTHER_TITLE",
+    "prefixKey": null,
+    "suffixKey": "o",
+    "backgroundColor": "#7B64FF",
+    "textColor": "#ffffff"
+  },
+  {
+    "id": 3,
+    "text": "PERSON",
+    "prefixKey": null,
+    "suffixKey": "p",
+    "backgroundColor": "#68CCCA",
+    "textColor": "#ffffff"
+  },
+  {
+    "id": 4,
+    "text": "PARALLEL_TITLE",
+    "prefixKey": null,
+    "suffixKey": "l",
+    "backgroundColor": "#AEA1FF",
+    "textColor": "#ffffff"
+  },
+  {
+    "id": 5,
+    "text": "TRANSLATOR",
+    "prefixKey": null,
+    "suffixKey": "r",
+    "backgroundColor": "#73D8FF",
+    "textColor": "#ffffff"
+  },
+  {
+    "id": 6,
+    "text": "MEDIUM",
+    "prefixKey": null,
+    "suffixKey": "m",
+    "backgroundColor": "#FCDC00",
+    "textColor": "#ffffff"
+  }
+]

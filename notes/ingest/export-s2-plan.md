@@ -302,7 +302,7 @@ Each entity gets an `rdf:type` triple, e.g.:
 | `obj_id` | — | `properties.item-id` | ✓ |
 | `lang` | `dc:language` | `edm.RDF.ProvidedCHO.language` (scalar string, e.g. `"eng"`) | ✓ |
 | `title` | `dc:title` | `edm.RDF.ProvidedCHO.title.$` | ✓ |
-| `dc_type` | `dc:type` | `edm.RDF.ProvidedCHO.dcType` (e.g. `"TEXT"`) | ✓ |
+| `dc_type` | `dc:type` | `edm.RDF.ProvidedCHO.dcType.$` (e.g. `"TEXT"`) | ✓ |
 | `dc_creator` | `dc:creator` | `edm.RDF.ProvidedCHO.creator[*]` — list of `{label, uri}` structs; label and URI paired when both present in same dict entry (~21% of creator entries have a GND URI) | ✓ |
 | `dc_publisher` | `dc:publisher` + `edm:dataProvider` | `edm.RDF.ProvidedCHO.publisher[*]` + `edm.RDF.Aggregation.dataProvider[*]` — list of `{label, uri}` structs; dataProvider label and URI are separate list entries (unpaired) | ✓ |
 | `agents` | `edm:hasMet` → `P11_had_participant` | `ProvidedCHO.hasMet[*].resource` → `Event.P11_had_participant[*].resource` → Agent URIs | ✓ |

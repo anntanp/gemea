@@ -1,19 +1,19 @@
-# Purpose:      Load data/DF_DE_TITLES_20240125b.pkl and plot title-length
-#               distribution per year bucket. Length is taken from the
-#               pre-computed 'all_tokens' and 'content_tokens' columns;
-#               both are shown together on the median panel. Year is taken
-#               from the 'dates' column; titles with no 'dates' value fall
-#               back to a regex extraction from the title string.
-# Usage:        python scripts/sr10_analyse_title_lengths.py
-#               python scripts/sr10_analyse_title_lengths.py --data PATH --output-dir PATH
-# Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with obj_id, title,
-#                 all_tokens, content_tokens, dates columns
-# Outputs:      notes/images/fig_title_lengths.png — stacked bar + dual median chart
-#               output/title-length-analysis.json  — bucketed counts and medians
-# Dependencies: pandas, matplotlib
+# Purpose:      Load title data and plot title-length distribution per year bucket.
+#               Length is taken from the pre-computed 'all_tokens' and 'content_tokens'
+#               columns; both are shown together on the median panel. Year is taken
+#               from the 'dates' column; titles with no 'dates' value fall back to a
+#               regex extraction from the title string.
+# Usage:        python scripts/ner/sr10_analyse_title_lengths.py
+#               python scripts/ner/sr10_analyse_title_lengths.py \
+#                   --data data/processed/de_titles_tokenized.parquet \
+#                   --output-dir notes/images --suffix _v2
+# Inputs:       data/DF_DE_TITLES_20240125b.pkl  OR  data/processed/de_titles_tokenized.parquet
+# Outputs:      notes/images/fig_title_lengths{suffix}.png — stacked bar + dual median chart
+#               notes/images/title-length-analysis{suffix}.json — bucketed counts and medians
+# Dependencies: pandas, pyarrow, matplotlib
 # Assumptions:  'dates' column is a string year (e.g. '1931') or NaN.
-#               'all_tokens' is the spaCy token count incl. stopwords and punctuation.
-#               'content_tokens' is the count with stopwords removed (punct. retained).
+#               'all_tokens' is the xlm-roberta subword count incl. stopwords.
+#               'content_tokens' is the count with stopwords removed.
 
 import re
 import json
@@ -21,6 +21,8 @@ import argparse
 import pickle
 from collections import defaultdict
 from pathlib import Path
+
+import pandas as pd
 
 import matplotlib
 matplotlib.use("Agg")
@@ -93,14 +95,24 @@ def median(lst):
     return s[len(s) // 2] if s else 0
 
 
+# ── helpers ───────────────────────────────────────────────────────────────────
+
+def load_data(path: Path) -> pd.DataFrame:
+    if path.suffix == ".parquet":
+        return pd.read_parquet(
+            path, columns=["title", "all_tokens", "content_tokens", "dates"]
+        )
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+
 # ── main ──────────────────────────────────────────────────────────────────────
 
-def main(data_path: Path, output_dir: Path) -> None:
+def main(data_path: Path, output_dir: Path, suffix: str) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading {data_path} ...")
-    with open(data_path, "rb") as f:
-        df = pickle.load(f)
+    df = load_data(data_path)
     total = len(df)
     print(f"Shape: {df.shape}")
 
@@ -194,7 +206,7 @@ def main(data_path: Path, output_dir: Path) -> None:
               f"{median(d['all_t']):>9}  {median(d['con_t']):>9}")
 
     # ── save JSON ─────────────────────────────────────────────────────────────
-    out_json = output_dir / "title-length-analysis.json"
+    out_json = output_dir / f"title-length-analysis{suffix}.json"
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump({
             "total_titles": total,
@@ -359,7 +371,7 @@ def main(data_path: Path, output_dir: Path) -> None:
     ax2.legend(frameon=False, fontsize=8, loc="upper right")
 
     fig.tight_layout()
-    out_png = output_dir / "fig_title_lengths.png"
+    out_png = output_dir / f"fig_title_lengths{suffix}.png"
     fig.savefig(out_png, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved chart : {out_png}")
@@ -371,5 +383,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--data",       type=Path, default=DATA_PATH)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    parser.add_argument("--suffix",     type=str,  default="",
+                        help="Suffix appended to output filenames, e.g. '_v2'")
     args = parser.parse_args()
-    main(args.data, args.output_dir)
+    main(args.data, args.output_dir, args.suffix)

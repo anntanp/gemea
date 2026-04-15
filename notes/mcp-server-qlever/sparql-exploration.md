@@ -4,6 +4,32 @@ Run these via `sparql_query` (MCP tool) or `curl http://localhost:7020`.
 
 ---
 
+## Goethe-authored books — goethe-faust QLever
+
+Query ProvidedCHO records with `dc:creator` matching Goethe by GND URI or literal.
+UNION needed because `export_s2.py` emits only the URI when a `resource` field is present,
+or only the literal when not — never both.
+
+```sparql
+PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+PREFIX edm: <http://www.europeana.eu/schemas/edm/>
+
+SELECT ?item ?title ?creator WHERE {
+  ?item a edm:ProvidedCHO ;
+        dc:title ?title .
+  {
+    ?item dc:creator <http://d-nb.info/gnd/118540238> .
+    BIND(<http://d-nb.info/gnd/118540238> AS ?creator)
+  } UNION {
+    ?item dc:creator ?creator .
+    FILTER(ISLITERAL(?creator) && CONTAINS(LCASE(STR(?creator)), "goethe"))
+  }
+}
+ORDER BY ?title
+```
+
+---
+
 ## Named graphs
 
 ```sparql

@@ -629,10 +629,15 @@ def main() -> None:
         default=str(here / "notes" / "images"),
         help="Directory to write .jsx and .html into",
     )
+    parser.add_argument(
+        "--suffix", type=str, default="",
+        help="Suffix appended to output filenames, e.g. '_v2'",
+    )
     args = parser.parse_args()
 
     json_path = Path(args.json)
     out_dir   = Path(args.output_dir)
+    suffix    = args.suffix
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Load and re-serialise the JSON (compact, non-ASCII escaped for safe embedding)
@@ -640,13 +645,13 @@ def main() -> None:
     json_str = json.dumps(data, ensure_ascii=True, separators=(",", ":"))
 
     # Write JSX (static template — data loaded via ES import at runtime)
-    jsx_path = out_dir / "fig_title_lengths.jsx"
+    jsx_path = out_dir / f"fig_title_lengths{suffix}.jsx"
     jsx_path.write_text(JSX, encoding="utf-8")
     print(f"wrote {jsx_path}")
 
     # Write HTML (JSON inlined as window.TITLE_DATA)
     html_content = HTML.replace("__JSON_DATA__", json_str)
-    html_path = out_dir / "fig_title_lengths_bw.html"
+    html_path = out_dir / f"fig_title_lengths{suffix}_bw.html"
     html_path.write_text(html_content, encoding="utf-8")
     print(f"wrote {html_path}")
 

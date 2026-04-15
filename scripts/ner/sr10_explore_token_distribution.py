@@ -1,18 +1,22 @@
 # Purpose:      Plot the raw token-count distribution of all_tokens and
 #               content_tokens in DF_DE_TITLES to identify natural breakpoints
 #               for short/medium/long length categories.
-# Usage:        python scripts/sr10_explore_token_distribution.py
-#               python scripts/sr10_explore_token_distribution.py --data PATH --output-dir PATH
-# Inputs:       data/DF_DE_TITLES_20240125b.pkl — DataFrame with all_tokens, content_tokens
-# Outputs:      notes/images/fig_token_distribution.png — histogram + percentile markers
-#               output/token-distribution.json          — percentile table and value counts
-# Dependencies: pandas, matplotlib, numpy
+# Usage:        python scripts/ner/sr10_explore_token_distribution.py
+#               python scripts/ner/sr10_explore_token_distribution.py \
+#                   --data data/processed/de_titles_tokenized.parquet \
+#                   --output-dir notes/images --suffix _v2
+# Inputs:       data/DF_DE_TITLES_20240125b.pkl  OR  data/processed/de_titles_tokenized.parquet
+# Outputs:      notes/images/fig_token_distribution{suffix}.png — histogram + percentile markers
+#               notes/images/token-distribution{suffix}.json    — percentile table and value counts
+# Dependencies: pandas, pyarrow, matplotlib, numpy
 # Assumptions:  all_tokens and content_tokens are int64 columns.
 
 import json
 import argparse
 import pickle
 from pathlib import Path
+
+import pandas as pd
 
 import numpy as np
 import matplotlib
@@ -27,12 +31,18 @@ OUTPUT_DIR = ROOT / "notes" / "images"
 PERCENTILES = [10, 25, 33, 50, 66, 75, 90, 95, 99]
 
 
-def main(data_path: Path, output_dir: Path) -> None:
+def load_data(path: Path) -> "pd.DataFrame":
+    if path.suffix == ".parquet":
+        return pd.read_parquet(path, columns=["all_tokens", "content_tokens"])
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+
+def main(data_path: Path, output_dir: Path, suffix: str) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading {data_path} ...")
-    with open(data_path, "rb") as f:
-        df = pickle.load(f)
+    df = load_data(data_path)
 
     all_t = df["all_tokens"].values
     con_t = df["content_tokens"].values
@@ -64,7 +74,7 @@ def main(data_path: Path, output_dir: Path) -> None:
         print(f"  {v:>6}  {n:>8,}  {100*n/total:>5.1f}%  {bar}")
 
     # ── save JSON ─────────────────────────────────────────────────────────────
-    out_json = output_dir / "token-distribution.json"
+    out_json = output_dir / f"token-distribution{suffix}.json"
     with open(out_json, "w") as f:
         json.dump({
             "total_titles": total,
@@ -113,7 +123,7 @@ def main(data_path: Path, output_dir: Path) -> None:
     fig.suptitle("DF_DE_TITLES — Token count distribution", fontsize=12,
                  fontweight="bold", y=1.01)
     fig.tight_layout()
-    out_png = output_dir / "fig_token_distribution.png"
+    out_png = output_dir / f"fig_token_distribution{suffix}.png"
     fig.savefig(out_png, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved chart : {out_png}")
@@ -125,5 +135,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--data",       type=Path, default=DATA_PATH)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    parser.add_argument("--suffix",     type=str,  default="",
+                        help="Suffix appended to output filenames, e.g. '_v2'")
     args = parser.parse_args()
-    main(args.data, args.output_dir)
+    main(args.data, args.output_dir, args.suffix)

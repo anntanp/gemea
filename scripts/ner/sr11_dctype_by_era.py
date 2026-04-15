@@ -167,10 +167,18 @@ def plot(pct_df: pd.DataFrame, era_totals: dict, fig_path: Path) -> None:
     print(f"Figure saved: {fig_path}")
 
 
+def load_data(path: Path) -> pd.DataFrame:
+    if path.suffix == ".parquet":
+        return pd.read_parquet(
+            path, columns=["obj_id", "title", "dc_type", "dates"]
+        )
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+
 def main(data_path: Path, output_path: Path, fig_path: Path, top_n: int) -> None:
     print(f"Loading {data_path} ...")
-    with open(data_path, "rb") as f:
-        df = pickle.load(f)
+    df = load_data(data_path)
     print(f"Shape: {df.shape}")
 
     df["year"] = df.apply(resolve_year, axis=1)

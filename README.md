@@ -45,16 +45,16 @@ gemea/
 
 | File | Content |
 |------|---------|
-| `notes/spec.md` | Requirements, scope, success criteria |
-| `notes/architecture.md` | System architecture and component interactions |
-| `notes/roadmap.md` | Phase-by-phase plan (0a → 0 → 1 → 1b → 3 → 4 → 2) |
-| `notes/priorities.md` | Current priorities and blockers |
+| `notes/project/spec.md` | Requirements, scope, success criteria |
+| `notes/project/architecture.md` | System architecture and component interactions |
+| `notes/project/roadmap.md` | Phase-by-phase plan (0a → 0 → 1 → 1b → 3 → 4 → 2) |
+| `notes/project/priorities.md` | Current priorities and blockers |
 
 ### Phase 0a — NER for title parsing
 
 | File | Content |
 |------|---------|
-| `notes/ner-bibliographic.md` | NER model spec; FRBR-organized label definitions; fine-tuning path |
+| `notes/ner/ner-bibliographic.md` | NER model spec; FRBR-organized label definitions; fine-tuning path |
 | `notes/ner/silver-dataset-pipeline.md` | Silver-label pipeline framework and status |
 | `notes/ner/sr01_isbd-field-rating.md` | ISBD field detection spec and silver candidate stratification |
 | `notes/ner/sr01_isbd-field-rating-adr.md` | ADR: tier design and flag inclusion/exclusion decisions |
@@ -80,47 +80,47 @@ gemea/
 
 | File | Content |
 |------|---------|
-| `notes/gnd-linking-spec.md` | Full spec for `link_gnd_works.py` (title extraction → GND SPARQL → scoring) |
-| `notes/gnd-linking-plan.md` | Implementation plan and step-by-step design |
-| `notes/gnd-linking-adr.md` | ADRs: match predicate choice, query patterns, open questions |
-| `notes/gnd-title-extraction.md` | Title extraction design (ISBD rules + NER fallback) |
-| `notes/mocho-alignment.md` | mocho.owl alignment status and integration notes |
+| `notes/gnd/gnd-linking-spec.md` | Full spec for `link_gnd_works.py` (title extraction → GND SPARQL → scoring) |
+| `notes/gnd/gnd-linking-plan.md` | Implementation plan and step-by-step design |
+| `notes/adr/gnd-linking-adr.md` | ADRs: match predicate choice, query patterns, open questions |
+| `notes/gnd/gnd-title-extraction.md` | Title extraction design (ISBD rules + NER fallback) |
+| `notes/gnd/mocho-alignment.md` | mocho.owl alignment status and integration notes |
 
 ### Phase 1 — Ingest
 
 | File | Content |
 |------|---------|
-| `notes/elasticsearch-index.md` | ES index mapping: German analyzer, GeoPoint, type/sector facets |
-| `notes/triplestore-comparison.md` | QLever vs. Virtuoso vs. Jena — decision rationale |
-| `notes/gnd-qlever-setup.md` | QLever setup and index configuration notes |
+| `notes/infra/elasticsearch-index.md` | ES index mapping: German analyzer, GeoPoint, type/sector facets |
+| `notes/infra/triplestore-comparison.md` | QLever vs. Virtuoso vs. Jena — decision rationale |
+| `notes/gnd/gnd-qlever-setup.md` | QLever setup and index configuration notes |
 
 ### Phase 3 — Frontend
 
 | File | Content |
 |------|---------|
-| `notes/graphviz-dynamic-expansion.md` | Cytoscape.js dynamic graph expansion design |
+| `notes/infra/graphviz-dynamic-expansion.md` | Cytoscape.js dynamic graph expansion design |
 
 ### Phase 4 — DevOps
 
 | File | Content |
 |------|---------|
-| `notes/owasp-security.md` | OWASP checklist for SPARQL injection, input sanitization, headers |
+| `notes/infra/owasp-security.md` | OWASP checklist for SPARQL injection, input sanitization, headers |
 
 ### Paper (ISWC 2026)
 
 | File | Content |
 |------|---------|
-| `notes/paper-outline.md` | Section outline and argument structure |
+| `notes/paper/paper-outline.md` | Section outline and argument structure |
 | `notes/literature/` | Related work annotations |
 
 ### Reference and background
 
 | File | Content |
 |------|---------|
-| `notes/ddb-objects.md` | DDB EDM object structure and field inventory |
-| `notes/nlp-tasks.md` | NLP task inventory across the pipeline |
-| `notes/future-work.md` | Post-v1 ideas and v2 features |
-| `notes/review-checklist.md` | Pre-submission review checklist |
+| `notes/ddb/ddb-objects.md` | DDB EDM object structure and field inventory |
+| `notes/ner/nlp-tasks.md` | NLP task inventory across the pipeline |
+| `notes/project/future-work.md` | Post-v1 ideas and v2 features |
+| `notes/project/review-checklist.md` | Pre-submission review checklist |
 
 ---
 

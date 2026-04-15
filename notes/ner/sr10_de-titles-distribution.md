@@ -122,6 +122,100 @@ This is a pathological case: the full `title` field contains the enumerated bibl
 
 ---
 
+## 7. v2 — regenerated from `s2_meta_de_content.parquet` (2026-04-14)
+
+The analysis was re-run against the new canonical source (`data/out/s2/s2_meta_de_content.parquet`) following the corpus source migration (ADR-02). The old `DF_DE_TITLES` figures in §§2–5 are preserved for comparison; this section documents the differences.
+
+**Source:** `data/processed/de_titles_tokenized.parquet` — produced by `scripts/analysis/tokenize_de_titles.py` (xlm-roberta-large tokenizer; 9,213,339 rows).
+**Scripts:** `scripts/ner/sr10_explore_token_distribution.py`, `scripts/ner/sr10_analyse_title_lengths.py` (both adapted to accept parquet via `--suffix _v2`).
+**Outputs:** `notes/images/fig_token_distribution_v2.png`, `notes/images/token-distribution_v2.json`, `notes/images/fig_title_lengths_v2.png`, `notes/images/title-length-analysis_v2.json`, `notes/images/fig_title_lengths_v2.jsx`, `notes/images/fig_title_lengths_v2_bw.html`.
+
+### 7.1 Corpus differences
+
+| | DF_DE_TITLES (pkl) | s2_meta_de_content (parquet) |
+|--|--|--|
+| N rows | 4,477,780 | 9,213,339 |
+| Language filter | `dc:language=ger` AND `langid=ger` | `dc:language ∈ {ger, gmh, nds, lat}` |
+| htype filter | `hierarchy_type = content` (narrower) | ADR-01 BLANKET_EXCLUDE (8 types) |
+| Tokenizer | spaCy (model unspecified) | xlm-roberta-large (SentencePiece BPE) |
+| `all_tokens` definition | spaCy tokens incl. punctuation | xlm-roberta subword pieces excl. `<s>`/`</s>` |
+
+The doubled row count reflects: (a) broader htype retention, (b) removal of the `langid` secondary filter, and (c) addition of Latin (493,712 records, 5.4%).
+
+### 7.2 Token-count distribution (v2)
+
+![Token distribution v2](../images/fig_token_distribution_v2.png)
+
+| Percentile | all_tokens | content_tokens |
+|---|---|---|
+| p10 | 5 | 5 |
+| p25 | 8 | 8 |
+| p33 | 10 | 9 |
+| p50 | 15 | 14 |
+| p66 | 22 | 20 |
+| p75 | 27 | 24 |
+| p90 | 43 | 38 |
+| p95 | 63 | 59 |
+| p99 | 126 | 113 |
+
+Median shifts from 8 → 15 tokens. The xlm-roberta BPE tokenizer produces more pieces per word than spaCy (subword splitting of compound German words and historical orthography), which accounts for most of the increase. The threshold values (p25 ≤ 4 / p75 ≤ 14) from the old corpus do not transfer — new thresholds should be recalibrated against v2 percentiles (p25 = 8, p75 = 27).
+
+### 7.3 Title-length by era (v2)
+
+![Title lengths v2](../images/fig_title_lengths_v2.png)
+
+Year coverage: 93.5% from `dates` column, 0.8% from title regex fallback, 5.7% undated (521,091 titles). Bucket size: 25 years (22 non-empty bins from 1500+).
+
+Overall (9,213,339 titles, `all_tokens`):
+
+| Category | Threshold | Count | % |
+|---|---|---|---|
+| Short | ≤ 4 tokens | 853,046 | 9.3% |
+| Medium | 5–14 tokens | 3,519,499 | 38.2% |
+| Long | > 14 tokens | 4,840,794 | 52.5% |
+| **Median all_tokens** | | **15** | |
+| **Median content_tokens** | | **14** | |
+
+Per 25-year bucket (titles with year ≥ 1500):
+
+| Year bucket | Total | Short% | Med% | Long% | Median all_t | Median con_t |
+|---|---|---|---|---|---|---|
+| 1500–1524 | 18,788 | 3.4% | 17.5% | 79.0% | 32 | 30 |
+| 1525–1549 | 23,182 | 2.3% | 15.6% | 82.1% | 36 | 34 |
+| 1550–1574 | 32,226 | 3.6% | 15.2% | 81.2% | 40 | 38 |
+| 1575–1599 | 41,895 | 2.8% | 12.8% | 84.4% | 52 | 50 |
+| 1600–1624 | 70,934 | 3.0% | 16.3% | 80.7% | 44 | 43 |
+| 1625–1649 | 46,624 | 3.2% | 16.3% | 80.5% | 45 | 43 |
+| 1650–1674 | 74,698 | 2.2% | 18.3% | 79.5% | 43 | 42 |
+| 1675–1699 | 80,204 | 2.4% | 14.5% | 83.2% | 46 | 44 |
+| 1700–1724 | 100,910 | 3.5% | 14.1% | 82.3% | 48 | 45 |
+| 1725–1749 | 118,444 | 4.4% | 14.4% | 81.2% | 40 | 37 |
+| 1750–1774 | 167,584 | 6.3% | 29.9% | 63.7% | 22 | 20 |
+| 1775–1799 | 283,642 | 6.4% | 36.0% | 57.6% | 18 | 16 |
+| 1800–1824 | 366,440 | 12.5% | 43.4% | 44.1% | 13 | 12 |
+| 1825–1849 | 748,880 | 14.9% | 43.6% | 41.6% | 12 | 11 |
+| 1850–1874 | 1,190,737 | 13.3% | 42.1% | 44.6% | 12 | 12 |
+| 1875–1899 | 1,451,602 | 10.2% | 39.5% | 50.3% | 15 | 13 |
+| 1900–1924 | 1,891,190 | 9.3% | 42.1% | 48.7% | 14 | 13 |
+| 1925–1949 | 1,127,662 | 7.1% | 44.9% | 48.0% | 14 | 12 |
+| 1950–1974 | 105,051 | 10.3% | 41.5% | 48.2% | 14 | 12 |
+| 1975–1999 | 107,852 | 9.8% | 38.6% | 51.6% | 15 | 13 |
+| 2000–2024 | 623,625 | 4.2% | 24.2% | 71.6% | 20 | 18 |
+
+### 7.4 Key differences vs. v1
+
+- **Era pattern preserved.** The pre-1750 long-title dominance (median 32–52, >79% long) and the post-1775 shortening are reproduced — confirming the effect is a real corpus-historical signal, not an artifact of the old corpus construction.
+- **Absolute medians higher.** xlm-roberta BPE splits compound German words into 2–4 subwords each; spaCy splits on whitespace/punctuation only. The ratio between eras is more meaningful than the absolute values.
+- **Long-title share inflated.** 52.5% long vs. 24.5% in v1, driven by BPE fragmentation. The p25/p75 threshold pair (4/14) must be recalibrated: v2 p25 = 8, p75 = 27.
+- **Short% collapses to ~9%.** In v1, "short" (≤4 spaCy tokens) caught many 1–3 word titles; xlm-roberta produces ≥5 pieces for most such titles, so the short category shrinks substantially.
+
+### 7.5 Implications
+
+- **Threshold recalibration needed** before using length categories in SR-08 gold set stratification: replace (≤4 / 5–14 / >14) with (≤8 / 9–27 / >27) or recompute from v2 percentiles.
+- **Latin sub-corpus** (493,712 records, 5.4%) should be faceted separately in era analysis — Latin titles have higher BPE fragmentation and different length characteristics than German-family titles.
+
+---
+
 ## 6. References
 
 The post-1775 title-length shift is attributed to a publishing convention change (early modern → modern title-page norms), not to cataloging standardization. The following are high-confidence anchors for that claim:

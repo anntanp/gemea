@@ -13,7 +13,7 @@ Assumptions: CSV has 200 rows (excluding header); columns 1-17 as per SR-03 spec
 import re
 import pandas as pd
 
-CSV_PATH = "/Users/mta/Documents/claude/gemea/data/processed/sr03_heuristic_validation_sample.csv"
+CSV_PATH = "/Users/mta/Documents/claude/gemea/data/processed/ner/sr03_heuristic_validation_sample.csv"
 
 df = pd.read_csv(CSV_PATH, dtype=str, keep_default_na=False)
 df["fp_fields"] = ""

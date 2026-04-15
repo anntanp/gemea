@@ -5,18 +5,23 @@
 #               Excludes all SR-08 gold sample obj_ids.
 #               Outputs a JSONL file with empty spans ready for manual annotation.
 #
-# Usage:        python3 scripts/sr11_sample_validation.py
-#                   [--data PATH]       # default: data/DF_DE_TITLES_20240125b.pkl
-#                   [--ratings PATH]    # default: data/processed/sr01_isbd_field_ratings.csv
+# Usage:        python3 scripts/ner/sr11_sample_validation.py
+#                   [--data PATH]       # default: data/processed/de_titles_tokenized.parquet
+#                   [--ratings PATH]    # default: data/processed/ner/sr01_isbd_field_ratings.csv
 #                   [--gold PATH]       # default: data/annotation/sr08_gold_sample.csv
 #                   [--output PATH]     # default: data/annotation/sr11_prompt_validation_manual.jsonl
 #                   [--n INT]           # total records to sample (default: 50)
 #                   [--seed INT]        # random seed (default: 42)
 #
-# Inputs:       data/DF_DE_TITLES_20240125b.pkl
-#               data/processed/sr01_isbd_field_ratings.csv
+# Inputs:       data/processed/de_titles_tokenized.parquet  (or pkl)
+#               data/processed/ner/sr01_isbd_field_ratings.csv
 #               data/annotation/sr08_gold_sample.csv
 # Outputs:      data/annotation/sr11_prompt_validation_manual.jsonl
+#
+# NOTE:         dc_type in de_titles_tokenized.parquet must carry the DDB genre/form
+#               values (Leichenpredigt, Einblattdruck, Monografie) for TARGET_TYPES
+#               filtering to work. This requires the correct dc:type / edm:hasType
+#               field to be exported in export_s2.py. Parquet is being regenerated.
 #
 # Dependencies: pandas, numpy
 # Assumptions:  sr01_isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).
@@ -30,9 +35,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT    = Path(__file__).parent.parent
-DATA    = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
-RATINGS = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
+
+def load_corpus(path: Path) -> pd.DataFrame:
+    if path.suffix == ".parquet":
+        return pd.read_parquet(path, columns=["obj_id", "title", "dc_type", "dates"])
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+ROOT    = Path(__file__).parent.parent.parent
+DATA    = ROOT / "data" / "processed" / "de_titles_tokenized.parquet"
+RATINGS = ROOT / "data" / "processed" / "ner" / "sr01_isbd_field_ratings.csv"
 GOLD    = ROOT / "data" / "annotation" / "sr08_gold_sample.csv"
 OUTPUT  = ROOT / "data" / "annotation" / "sr11_prompt_validation_manual.jsonl"
 DDB_URL = "https://www.deutsche-digitale-bibliothek.de/item/{}"
@@ -42,6 +54,8 @@ PRE_1750_ERAS = {"pre-1700", "1700-1800"}
 
 # Phase 2 target dc_types with explicit counts (must sum to <= n).
 # Remainder (n - sum) drawn from non-Kapitel/Abschnitt/Band types only.
+# dc_type values (Leichenpredigt, Einblattdruck, Monografie) come from
+# dc:type / edm:hasType in the DDB EDM export — requires regenerated parquet.
 TARGET_TYPES = [
     ("Leichenpredigt", 15),
     ("Einblattdruck",  15),
@@ -63,8 +77,7 @@ def derive_era(dates_numeric: pd.Series) -> pd.Series:
 
 def load_pool(data_path: Path, ratings_path: Path, gold_path: Path) -> pd.DataFrame:
     print(f"Loading corpus from {data_path} ...")
-    with open(data_path, "rb") as f:
-        df = pickle.load(f)
+    df = load_corpus(data_path)
 
     print(f"Loading ratings from {ratings_path} ...")
     ratings = pd.read_csv(ratings_path, usecols=["obj_id", "silver_tier"])

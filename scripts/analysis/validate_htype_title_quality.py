@@ -3,7 +3,7 @@
 Purpose:  Validate hierarchy-type title quality by computing what fraction of
           titles are generic/structural (boilerplate) vs. content-bearing, for
           both strong and partial candidate htypes identified in
-          notes/ddb/hierarchy-type-title-quality.md.
+          notes/corpus-analysis/htype-title-quality.md.
 Usage:    python scripts/analysis/validate_htype_title_quality.py
 Inputs:   data/out/s2/s2_meta.parquet
 Outputs:  data/processed/htype_title_quality.csv

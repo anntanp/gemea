@@ -4,13 +4,12 @@ Purpose:  Visualise DDB Sector 2 objects by language and creation/issuance year.
           Year is extracted from dc_created (first element), falling back to
           dc_issued (first element). Multi-decade gaps are shown as-is.
 Usage:    python scripts/analysis/lang_by_year.py [options]
-          python scripts/analysis/lang_by_year.py --normalize
           python scripts/analysis/lang_by_year.py --bucket year --top 5 --min-year 1800
 Options:  --bucket {decade,year}  time resolution (default: decade)
-          --top N                 distinct language series in chart (default: 10)
+          --top N                 number of languages shown (default: 10)
           --min-year INT          earliest year to include (default: 1400)
           --max-year INT          latest year to include (default: 2025)
-          --normalize             plot % share per bucket instead of raw counts
+          und, zxx, (none) are always excluded (undefined / no linguistic content)
 Inputs:   data/out/s2/s2_meta.parquet
 Outputs:  data/processed/lang_by_year.csv
           notes/images/lang_by_year.png
@@ -26,19 +25,21 @@ import matplotlib.ticker as mticker
 from pathlib import Path
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
+# Language codes that carry no linguistic information — excluded from all output
+EXCLUDE_LANGS = {"und", "zxx", "(none)"}
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--bucket", choices=["decade", "year"], default="decade")
 parser.add_argument("--top", type=int, default=10)
-parser.add_argument("--min-year", type=int, default=1400)
+parser.add_argument("--min-year", type=int, default=0)
 parser.add_argument("--max-year", type=int, default=2025)
-parser.add_argument("--normalize", action="store_true",
-                    help="Plot %% share per bucket instead of raw counts")
 args = parser.parse_args()
 
 # ── paths ──────────────────────────────────────────────────────────────────────
 PARQUET = Path("data/out/s2/s2_meta.parquet")
 CSV_OUT = Path("data/processed/lang_by_year.csv")
-PNG_OUT = Path("notes/images/lang_by_year.png")
+PNG_OUT  = Path("notes/images/lang_by_year.png")
+PNG_OUT2 = Path("notes/images/lang_by_year_no_top1.png")
 CSV_OUT.parent.mkdir(parents=True, exist_ok=True)
 PNG_OUT.parent.mkdir(parents=True, exist_ok=True)
 
@@ -108,9 +109,10 @@ if args.bucket == "decade":
 else:
     df["bucket"] = df["year"]
 
-# ── language normalisation ─────────────────────────────────────────────────────
+# ── language normalisation & exclusion ────────────────────────────────────────
 df["lang"] = df["lang"].fillna("(none)").str.strip()
 df.loc[df["lang"] == "", "lang"] = "(none)"
+df = df[~df["lang"].isin(EXCLUDE_LANGS)]
 
 # ── counts ─────────────────────────────────────────────────────────────────────
 counts = (
@@ -131,72 +133,113 @@ top_langs = (
 )
 print(f"Top {args.top} languages: {', '.join(top_langs)}")
 
-# ── pivot for plotting ─────────────────────────────────────────────────────────
+# ── helpers ────────────────────────────────────────────────────────────────────
 def make_pivot(df_counts, lang_col):
-    piv = df_counts.pivot_table(
+    return df_counts.pivot_table(
         index="bucket", columns=lang_col, values="count", fill_value=0
     )
-    return piv
 
-# remap: non-top languages → "other"
-counts["lang_plot"] = counts["lang"].where(counts["lang"].isin(top_langs), "other")
-plot_counts = counts.groupby(["bucket", "lang_plot"])["count"].sum().reset_index(name="count")
-piv = make_pivot(plot_counts, "lang_plot")
 
-# column order: top langs sorted by total, then "other"
-col_order = [l for l in top_langs if l in piv.columns]
-if "other" in piv.columns:
-    col_order.append("other")
-piv = piv[col_order]
+def gauss_smooth(y, sigma=12):
+    r = int(4 * sigma)
+    k = np.exp(-0.5 * (np.arange(-r, r + 1) / sigma) ** 2)
+    k /= k.sum()
+    pad = np.pad(y, r, mode="reflect")
+    return np.convolve(pad, k, mode="valid")[:len(y)]
 
-if args.normalize:
-    row_totals = piv.sum(axis=1)
-    piv = piv.div(row_totals, axis=0) * 100
 
-# ── plot ───────────────────────────────────────────────────────────────────────
-# Color palette: qualitative, colorblind-friendly-ish
 PALETTE = [
     "#2980b9", "#27ae60", "#e67e22", "#8e44ad", "#c0392b",
     "#16a085", "#d35400", "#2c3e50", "#f39c12", "#1abc9c",
 ]
-colors = {lang: PALETTE[i % len(PALETTE)] for i, lang in enumerate(top_langs)}
-colors["other"] = "#bdc3c7"
 
-fig, ax = plt.subplots(figsize=(14, 6))
 
-x = piv.index.values
-bottom = pd.Series(0.0, index=piv.index)
-for col in piv.columns:
-    color = colors.get(col, "#bdc3c7")
-    ec = "#c0392b" if col == "(none)" else "none"
-    fc = "#fadbd8" if col == "(none)" else color
-    ax.fill_between(x, bottom, bottom + piv[col], label=col,
-                    color=fc, edgecolor=ec, linewidth=0.3, alpha=0.9)
-    bottom = bottom + piv[col]
+def plot_lang_chart(counts, lang_list, title_line2, png_path):
+    """Render a variable-width Marimekko stacked-area chart for lang_list."""
+    plot_counts = counts[counts["lang"].isin(lang_list)]
+    piv = make_pivot(plot_counts, "lang")
+    col_order = [l for l in lang_list if l in piv.columns]
+    piv = piv[col_order]
 
-ax.set_xlabel(f"{'Decade' if args.bucket == 'decade' else 'Year'}")
-ax.set_xlim(x[0], x[-1])
+    row_totals = piv.sum(axis=1)
+    piv_pct = piv.div(row_totals, axis=0) * 100
 
-if args.normalize:
+    buckets    = piv.index.values.astype(float)
+    counts_per = row_totals.values.astype(float)
+    total_objs = counts_per.sum()
+    year_span  = buckets[-1] - buckets[0]
+
+    widths  = counts_per / total_objs * year_span
+    lefts   = np.concatenate([[buckets[0]], buckets[0] + np.cumsum(widths[:-1])])
+    centres = lefts + widths / 2
+
+    x_fine = np.linspace(centres[0], centres[-1], 800)
+
+    smooth_arr = []
+    for col in piv_pct.columns:
+        y_interp = np.interp(x_fine, centres, piv_pct[col].values)
+        smooth_arr.append(np.clip(gauss_smooth(y_interp), 0, None))
+    smooth_arr = np.array(smooth_arr)
+    col_sums = smooth_arr.sum(axis=0)
+    col_sums[col_sums == 0] = 1
+    smooth_arr = smooth_arr / col_sums * 100
+
+    colors     = {lang: PALETTE[i % len(PALETTE)] for i, lang in enumerate(lang_list)}
+    color_list = [colors[col] for col in piv_pct.columns]
+
+    fig, ax = plt.subplots(figsize=(14, 6))
+    ax.stackplot(x_fine, smooth_arr, labels=list(piv_pct.columns),
+                 colors=color_list, alpha=0.88)
+
+    # X-ticks at century years; skip those too close together (< 2% of x-range)
+    tick_years_all = [b for b in buckets if b % 100 == 0 and b >= buckets[0]]
+    tick_pos_all   = [centres[np.argmin(np.abs(buckets - ty))] for ty in tick_years_all]
+    x_range = x_fine[-1] - x_fine[0]
+    min_gap = 0.02 * x_range
+    tick_years, tick_pos, last_pos = [], [], -np.inf
+    for ty, tp in zip(tick_years_all, tick_pos_all):
+        if tp - last_pos >= min_gap:
+            tick_years.append(ty)
+            tick_pos.append(tp)
+            last_pos = tp
+    ax.set_xticks(tick_pos)
+    ax.set_xticklabels([str(int(ty)) for ty in tick_years], fontsize=7.5)
+
+    ax.set_xlabel("Year  (x-axis width ∝ object count)")
+    ax.set_xlim(x_fine[0], x_fine[-1])
     ax.set_ylabel("Share (%)")
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v:.0f}%"))
     ax.set_ylim(0, 100)
-else:
-    ax.set_ylabel("Object count")
-    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{int(v):,}"))
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.legend(loc="lower right", fontsize=8, ncol=2, framealpha=0.7)
+    ax.set_title(
+        f"Language Distribution in DDB Bibliographic Titles\n{title_line2}",
+        fontsize=9.5,
+    )
+    fig.tight_layout()
+    fig.savefig(png_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"PNG saved → {png_path}")
 
-ax.spines[["top", "right"]].set_visible(False)
-ax.legend(loc="upper left", fontsize=8, ncol=2, framealpha=0.7)
 
-mode = "% share" if args.normalize else "object count"
-bucket_label = "decade" if args.bucket == "decade" else "year"
-ax.set_title(
-    f"DDB Sector 2 — language distribution by {bucket_label}  [{mode}]\n"
-    f"Total: {total:,} objects  ·  With valid year: {n_with_year:,} ({n_with_year / total * 100:.1f}%)  "
-    f"·  Year range: {args.min_year}–{args.max_year}  ·  Top {args.top} languages",
-    fontsize=9.5,
+# ── chart 1: all top-N ─────────────────────────────────────────────────────────
+title2_all = (
+    f"top {args.top} languages  ·  excluded: und, zxx, (none)  "
+    f"·  {n_with_year:,} objects with valid year ({n_with_year / total * 100:.1f}%)"
 )
+plot_lang_chart(counts, top_langs, title2_all, PNG_OUT)
 
-fig.tight_layout()
-fig.savefig(PNG_OUT, dpi=150, bbox_inches="tight")
-print(f"PNG saved → {PNG_OUT}")
+# ── chart 2: top-N excluding the #1 language ──────────────────────────────────
+top1 = top_langs[0]
+top_langs_no1 = (
+    counts[~counts["lang"].isin([top1])]
+    .groupby("lang")["count"].sum()
+    .sort_values(ascending=False)
+    .head(args.top)
+    .index.tolist()
+)
+title2_no1 = (
+    f"top {args.top} languages  ·  excluded: und, zxx, (none), {top1}  "
+    f"·  {n_with_year:,} objects with valid year ({n_with_year / total * 100:.1f}%)"
+)
+plot_lang_chart(counts, top_langs_no1, title2_no1, PNG_OUT2)

@@ -20,11 +20,18 @@ from pathlib import Path
 
 import pandas as pd
 
+
+def load_data(path: Path) -> pd.DataFrame:
+    if path.suffix == ".parquet":
+        return pd.read_parquet(path, columns=["obj_id", "title"])
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 
-ROOT = Path(__file__).parent.parent
+ROOT = Path(__file__).parent.parent.parent
 DATA_DEFAULT = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
 OUTPUT_DEFAULT = ROOT / "data" / "processed" / "sr01_isbd_field_ratings.csv"
 EXAMPLES_DEFAULT = ROOT / "data" / "processed" / "sr01_isbd_examples.csv"
@@ -301,8 +308,7 @@ def main() -> None:
 
     # --- Load ---
     print(f"Loading {args.data} ...")
-    with open(args.data, "rb") as f:
-        df = pickle.load(f)
+    df = load_data(args.data)
     if not isinstance(df, pd.DataFrame):
         raise TypeError(f"Expected DataFrame, got {type(df)}")
 

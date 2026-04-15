@@ -45,7 +45,8 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 - [x] `notes/ner/sr01_isbd-field-rating.md` — ISBD field detection spec
 - [x] `notes/ner/sr01_isbd-field-rating-adr.md` — ADR for tier design and flag decisions
 - [x] Historical language scope (SR-06) — 200-record stratified sample; Early Modern German 93%, Latin ~0.5%; **no Latin stratum needed** for gold set; Early Modern German (pre-1750) is the primary historical challenge. See `notes/ner/sr06_historical-scope.md`.
-- [x] Corpus characterisation (SR-10) — `DF_DE_TITLES` provenance, token-length distribution (p25=4, p75=14), era-stratified length. See `notes/ner/sr10_de-titles-distribution.md`, `notes/ner/sr10_title-length-thresholds.md`.
+- [x] Corpus characterisation (SR-10) — original: `DF_DE_TITLES` provenance, token-length distribution (p25=4, p75=14), era-stratified length. See `notes/ner/sr10_de-titles-distribution.md §§1–6`.
+- [x] Corpus source migration (ADR-02, 2026-04-14) — replaced `DF_DE_TITLES_20240125b.pkl` with `data/out/s2/s2_meta_de_content.parquet` (9.2M rows; ADR-01 htypes + `dc:language ∈ {ger, gmh, nds, lat}`; xlm-roberta-large tokenizer). SR-10/SR-11 artifacts regenerated as `*_v2.*`. New thresholds: p25=8, p75=27. See `notes/adr/corpus-source-adr.md` and `notes/ner/sr10_de-titles-distribution.md §7`.
 - [ ] `scripts/build_silver_spans.py` — span extraction from accepted flags; inputs: `sr01_isbd_field_ratings.csv` + DF_DE_TITLES auxiliary columns (`dc_publisher`, `dc_creator`, `dc_contributor`, `agents`); output: `data/processed/silver_spans.jsonl`
   - PLACE / PUBLISHER enrichment: match `dc_publisher` value as substring in title; label only if found
   - PERSON enrichment: match `dc_creator` / `dc_contributor` names against post-` /` segment; use `f_resp_person` flag only (exclude `f_resp_org`, `f_resp_editor`, `f_resp_other`)
@@ -58,12 +59,20 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 ### Pipeline position
 
 ```
-DF_DE_TITLES_20240125b.pkl
+data/out/s2/s2_meta_de_content.parquet  (ADR-02; replaces DF_DE_TITLES pkl)
       │
       ▼  [DONE]
-rate_isbd_fields.py  →  data/processed/sr01_isbd_field_ratings.csv
+tokenize_de_titles.py  →  data/processed/de_titles_tokenized.parquet
+      │                    (xlm-roberta-large; all_tokens, content_tokens, dates)
+      ▼  [DONE — re-run against parquet]
+sr10_explore_token_distribution.py  →  token-distribution_v2.json, fig_token_distribution_v2.png
+sr10_analyse_title_lengths.py       →  title-length-analysis_v2.json, fig_title_lengths_v2.png/.jsx/.html
+sr11_dctype_by_era.py               →  sr11_dctype_by_era_v2.csv, fig_dctype_by_era_v2.png
       │
       ▼  [NEXT]
+rate_isbd_fields.py  →  data/processed/sr01_isbd_field_ratings.csv
+      │                  (needs re-run against new parquet)
+      ▼
 build_silver_spans.py  ←  auxiliary columns (dc_publisher, dc_creator, agents)
       │                    f_resp_person only; f_parallel / f_edition excluded
       ▼

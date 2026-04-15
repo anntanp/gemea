@@ -588,7 +588,7 @@ def extract_meta(data: dict) -> dict:
         "obj_id":        props.get("item-id", ""),
         "lang":          cho.get("language") or "",
         "title":         (_scalar_values(cho.get("title")) or [""])[0],
-        "dc_type":       cho.get("dcType") or "",
+        "dc_type":       (_scalar_values(cho.get("dcType")) or [""])[0],
         "dc_creator":    _agent_structs(cho.get("creator"), "Agent"),
         "dc_contributor": _agent_structs(cho.get("contributor"), "Agent"),
         "dc_publisher":  publisher_structs,

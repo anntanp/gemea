@@ -122,6 +122,14 @@ sr08_verify_spans.py      (Doccano · pre-1700 first)
 - Tier 2 silver (structural, multi-field): **4,613 records** (0.1%)
 - Tier 1 silver (heuristic, partial): **335,524 records** (7.5%)
 
+**v2 — re-run against `de_titles_tokenized.parquet` (9,213,339 rows, 2026-04-14):**
+- 37.5% have ` :` (was 20.2%), 0.5% have ` /` (was 0.8%), 20.0% have a year (was 14.6%), 3.2% have an edition keyword (was 3.6%)
+- Area separator `. -` in only **0.4%** of records (36,405) — structural tier further diluted in the larger corpus
+- Tier 2 silver: **7,105 records** (0.1% — rate unchanged, absolute count +2,492)
+- Tier 1 silver: **689,453 records** (7.5% — rate unchanged, absolute count doubled)
+- Tier 0: **8,516,781 records** (92.4%)
+- SR-03–06 conclusions remain valid (heuristic behavior is corpus-agnostic; see `notes/project/reprocess-before-after.md` §5)
+
 ### 2.2 SR-02 — ISBD parser split priority
 **Status:** Resolved
 - ` /` (SoR — Statement of Responsibility: the ISBD punctuation that separates the title from the creator/contributor field, e.g. *Faust / von Goethe*) appears in only 0.8% of titles; ` :` (subtitle) at 20.2% is the dominant title-area signal
@@ -226,7 +234,13 @@ See [sr08_gold-set-composition.md](ner/sr08_gold-set-composition.md) for full co
 - **Implication for SR-08:** stratify gold set by length and era; pre-1750 long-form records stress the NER model differently from the short modern majority.
 
 ### 2.11 SR-11 — Labeling strategy and prompt design (pre-1750)
-**Status:** Open — blocked on SR-08 seed (50-record manual annotation)
+**Status:** T11.1a complete — 50-record manual validation sample produced. T11.1b (manual annotation) is the next step.
+
+v2 run (2026-04-15) against `de_titles_tokenized.parquet` (9.21M, dc_type corrected):
+- Pool: 973,146 pre-1750 tier-0 records (after excluding 290 SR-08 gold obj_ids)
+- dc_type sample: Monografie 17, Einblattdruck 15, Leichenpredigt 14, other 4
+- Era: pre-1700 32, 1700–1800 18
+- Output: `data/annotation/sr11_prompt_validation_manual.jsonl`
 
 See [sr11_labeling-strategy.md](ner/sr11_labeling-strategy.md) for full content.
 

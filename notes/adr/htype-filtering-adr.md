@@ -2,7 +2,7 @@
 
 **Format:** MADR (Markdown Architecture Decision Record)
 **Subject:** Which DDB objects to exclude from GND Werk linking based on `hierarchy_type`
-**Source:** `notes/ddb/hierarchy-type-title-quality.md`, `scripts/analysis/filter_content_titles.py`
+**Source:** `notes/corpus-analysis/htype-title-quality.md`, `scripts/analysis/filter_content_titles.py`
 **Status:** Accepted
 
 ---
@@ -16,7 +16,7 @@
 
 The GND Werk linking pipeline (`link_gnd_works.py`) requires titles that could plausibly identify a standalone literary or intellectual work — a title that could have a GND Werk entry. The DDB Sector 2 parquet (`data/out/s2/s2_meta.parquet`, 18,570,245 objects) contains a `hierarchy_type` field that encodes the structural role of each object within its document hierarchy.
 
-Sampling and frequency analysis of titles per hierarchy type (see `notes/ddb/hierarchy-type-title-quality.md`, `scripts/analysis/explore_top_titles.py`, `scripts/analysis/sample_work_titles.py`) revealed three categories of non-work titles:
+Sampling and frequency analysis of titles per hierarchy type (see `notes/corpus-analysis/htype-title-quality.md`, `scripts/analysis/explore_top_titles.py`, `scripts/analysis/sample_work_titles.py`) revealed three categories of non-work titles:
 
 1. **Section labels** — the title is just the section-type name ("Inhalt", "Vorwort", "Register", "Handschriftliche Eintragungen")
 2. **Physical/digitisation labels** — the title refers to the physical object or scan artefact ("Titelblatt", "Einband", "Deckel", "Spiegel", "Maßstab/Farbkeil")
