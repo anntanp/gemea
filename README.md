@@ -47,22 +47,20 @@ DDB JSON-LD → rdf2jsonld → link_gnd_works.py → mocho (EDM→RDA/FRBR) → 
 
 ```
 gemea/
-├── scripts/sh/     Setup and deployment shell scripts
-├── scripts/py/     Python pipeline scripts
-├── ingest/         QLever load modules
-├── data/           Raw and processed data (large files tracked via DVC)
-├── docker/         Docker Compose configs
-├── paper/          ISWC 2026 paper — see paper/iswc-2026 branch for LaTeX source
-└── resource/       Published artifact metadata (VoID descriptor, w3id)
+├── scripts/        Setup and deployment .sh scripts + sample usage .py scripts
+├── ingest/         QLever load modules (for reproducibility)
+├── data/           Raw inputs tracked via DVC (.dvc pointer files)
+├── docker/         Docker Compose configs (EDM + GND stacks)
+├── docs/           Guides: SPARQL examples, self-hosting setup, MCP access
+├── paper/          Submitted PDF (iswc2026.pdf) — stub README until submission
+└── resource/       VoID descriptor, w3id metadata
 ```
 
-**v2 (planned)**: Elasticsearch full-text search, Next.js KG browser, FastAPI + GraphQL layer.
+Research internals (`notes/`, `experiments/`, Python ETL pipeline, `api/`, `frontend/`) live on `develop` — not on `main`.
 
 ---
 
 ## Branches
-
-See [`notes/project/git-branching-strategy.md`](notes/project/git-branching-strategy.md) for the full branch map.
 
 | Branch | Purpose |
 |--------|---------|
