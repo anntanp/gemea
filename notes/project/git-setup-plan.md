@@ -327,13 +327,18 @@ git ls-files notes/rms/                          # check what's still tracked
 git rm -r notes/rms/beamer-bodilla-template/
 git commit -m "chore: remove beamer template (gitignored)"
 
-# 5. [manual] Create empty repos on Gitea (browser — no README, no .gitignore):
+# 5. [manual] Create repos on Gitea (browser):
 #   https://git.xorwell.de/at/gemea-claude
 #   https://git.xorwell.de/at/gemea-transcripts
+#   Note: if Gitea auto-generates a README, use --force on first push (step 6)
 
 # 6. [manual] Push private satellite repos
+#   If Gitea repo was created empty:
 cd .claude     && git push -u origin main && cd ..
 cd transcripts && git push -u origin main && cd ..
+#   If Gitea repo has auto-generated content (use --force):
+cd .claude     && git push -u origin main --force && cd ..
+cd transcripts && git push -u origin main --force && cd ..
 
 # 7. [manual] Push gemea branches to GitHub
 git push -u origin develop releases hotfix paper/iswc-2026
