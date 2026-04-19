@@ -1,0 +1,793 @@
+% RM 057 — GeMeA NER Pipeline for DDB Bibliographic Titles
+% Presenter: Mary Ann Tan, FIZ-KDAI
+% Date: 30 March 2026
+\documentclass[xcolor,aspectratio=169,compress]{beamer}
+\usetheme{Boadilla}
+\definecolor{maincolor}{rgb}{.38,.06,.80}
+\usecolortheme[named=maincolor]{structure}
+\usepackage{sansmath}
+\usepackage{svg}
+\usepackage{tikzsymbols}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+
+\makeatother
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.30\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor{}
+    (\insertshortdate)
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.55\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle\hspace*{3em}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+   \insertframenumber{} / \inserttotalframenumber\hspace*{1ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatletter
+
+\setbeamertemplate{headline}[default]
+\setbeamertemplate{navigation symbols}{}
+\mode<beamer>{\setbeamertemplate{blocks}[rounded][shadow=false]}
+\setbeamercovered{transparent}
+\useoutertheme[subsection=false]{miniframes}
+
+\title[RM 057 --- GeMeA NER]{NER Pipeline for DDB Bibliographic Titles}
+
+\author[M.A.\ Tan]{
+  \includesvg[width=.35\textwidth]{beamer-bodilla-template/Logo/FIZ_Logo_en.svg}\\[.8cm]
+  Mary Ann Tan}
+
+\institute[FIZ-KDAI]{FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure, KDAI}
+
+\date[RM 057, 30.03.2026]{Research Meeting 057, {\sansmath 30$^{\rm th}$} March 2026}
+
+\logo{\includesvg[width=.2\textwidth]{beamer-bodilla-template/Logo/FIZ_Logo_en.svg}\vspace{215pt}}
+
+% % % % % %
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+% ---- OUTLINE ----
+\begin{frame}{Outline}
+  \begin{enumerate}
+    \item Problem \& Scale
+    \item Label Set
+    \item Model Selection
+    \item Evaluation
+    \item Gold Dataset
+    \item Training Dataset
+    \item Summary
+    \item Roadmap \& Next Steps
+  \end{enumerate}
+\end{frame}
+
+% ===== 1. PROBLEM & SCALE =====
+\section{Problem \& Scale}
+
+\begin{frame}{ISBD Punctuation in DDB Title Strings}
+  \small
+  \textbf{ISBD} (International Standard Bibliographic Description) embeds field boundaries as punctuation signals:
+  \smallskip
+  \begin{center}
+  \begin{tabular}{lll}
+    \toprule
+    Signal & Field & Example \\
+    \midrule
+    \texttt{. -} & Area separator & \textit{Faust : ein Fragment. - Weimar : Hoffmann, 1790} \\
+    \texttt{ :}  & Subtitle (\texttt{OTHER\_TITLE}) & \textit{Faust : ein Fragment} \\
+    \texttt{ /}  & Statement of Responsibility (\texttt{PERSON}) & \textit{Faust / von Goethe} \\
+    \texttt{ =}  & Parallel title & \textit{Faust = Faust} \\
+    \texttt{ ;}  & Series volume separator & \textit{(Schriften ; Bd. 7)} \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \smallskip
+  \begin{block}{The problem}
+    Only \textbf{28.4\%} of 4.48M German-language DDB titles have $\geq$1 accepted ISBD signal.\\
+    $\Rightarrow$ \textbf{71.6\% (3.2M records) require NER to extract title fields.}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Scale of the NER Fallback}
+  \small
+  \begin{columns}
+    \begin{column}{.50\textwidth}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{4.48M} DF\_DE\_TITLES: German-language \texttt{content}-type DDB objects
+              (16.8M total; filtered by \texttt{dc:language} + \texttt{langid})
+        \item Goethe--Faust pilot (115K records): $\sim$71\% NER fallback
+        \item Full-corpus estimate: \textbf{71.6\%} --- within 0.6\,pp of pilot
+        \item Trailing \texttt{.} excluded: 93\% false positive (abbreviations, ordinals)
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{tabular}{lrr}
+        \toprule
+        Era & Records & Long ($>$14 tok) \\
+        \midrule
+        Pre-1700   & 331K   & \textbf{46.9\%} \\
+        1700--1800 & 827K   & 32.0\% \\
+        19th-c     & 1.38M  & 24.3\% \\
+        Modern     & 1.94M  & 17.6\% \\
+        \bottomrule
+      \end{tabular}
+      \smallskip
+
+      \textit{Longest title: 921 tokens --- 33 concatenated descriptions from a collective review in
+        \textit{Allgemeine Literatur-Zeitung} (1831); a cataloging artifact.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== 2. LABEL SET =====
+\section{Label Set}
+
+\begin{frame}{Label Set --- FRBR Work-Level Identity}
+  \small
+  \begin{columns}
+    \begin{column}{.52\textwidth}
+      \textbf{Phase 1 (paper scope):}
+      \begin{itemize}\setlength{\itemsep}{1pt}
+        \item \texttt{TITLE} --- title proper
+        \item \texttt{OTHER\_TITLE} --- subtitle
+        \item \texttt{PERSON} --- statement of responsibility
+      \end{itemize}
+      \smallskip
+      \textbf{Phase 2 (future):}
+      \begin{itemize}\setlength{\itemsep}{1pt}
+        \item \texttt{TRANSLATOR}, \texttt{PARALLEL\_TITLE}, \texttt{MEDIUM}
+      \end{itemize}
+      \smallskip
+      \textbf{Deferred:}
+      \begin{itemize}\setlength{\itemsep}{1pt}
+        \item \texttt{PUBLISHER}, \texttt{PLACE}, \texttt{YEAR}, \texttt{SERIES}
+              (Manifestation-level; irrelevant to GND Work identity)
+      \end{itemize}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \begin{block}{Selection rationale}
+        DDB records are Manifestation-level. FRBR Work identity requires title + responsible person --- the minimum to look up a GND Work entry.
+      \end{block}
+      \smallskip
+      \begin{alertblock}{\texttt{TRANSLATOR} / \texttt{EDITOR} dropped}
+        SR-04: 0 true translators in 100-record sample of \texttt{ /} strings; EDITOR F1 = 0.
+        Neither label is reliably recoverable from the title string alone.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== 3+4. MODEL SELECTION =====
+\section{Model Selection}
+
+\begin{frame}{Why Off-the-Shelf NER Fails}
+  \small
+  \begin{enumerate}\setlength{\itemsep}{4pt}
+    \item \textbf{Wrong labels} \\
+          Standard models (spaCy, Flair, BERT-NER): \texttt{PER} / \texttt{ORG} / \texttt{LOC} / \texttt{MISC} only.
+          No \texttt{TITLE} or \texttt{OTHER\_TITLE} exists in any fine-tuned model.
+
+    \item \textbf{Wrong domain} \\
+          DDB strings are structured ISBD records, not prose.
+          \texttt{ :} marks a subtitle; \texttt{. -} an area separator.
+          General-purpose models have never seen this register.
+
+    \item \textbf{Historical register (pre-1750)}
+          \begin{itemize}\setlength{\itemsep}{1pt}
+            \item Author credentials appear \emph{before} the title, with no \texttt{ /} marker
+            \item Early Modern German orthography (\texttt{ck}/\texttt{ch} clusters, umlaut spellings)
+            \item 93\% Early Modern German, $\sim$0.5\% Latin --- standard modern German models fail
+          \end{itemize}
+
+    \item \textbf{Historical NER is the wrong task} \\
+          HIPE-2022 systems extract names from newspaper prose ---
+          different task, different labels, different distribution.
+  \end{enumerate}
+\end{frame}
+
+% (continued: Model Selection)
+
+\begin{frame}{NuNER Zero: Evaluated and Ruled Out}
+  \small
+  \textbf{NuNER Zero}\textsuperscript{[1]}: zero-shot token classifier, $\sim$180M params, CPU-capable.
+  \smallskip
+  \begin{columns}
+    \begin{column}{.47\textwidth}
+      \textbf{Strengths:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\checkmark$] Zero-shot: entity types as natural-language strings at inference
+        \item[$\checkmark$] Token classifier --- no span-length ceiling
+              (GLiNER\textsuperscript{[2]} hard-caps at 12 tokens)
+        \item[$\checkmark$] Inference cost $<$\$0.0001/example
+      \end{itemize}
+    \end{column}
+    \begin{column}{.47\textwidth}
+      \textbf{Limitations:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\times$] English-only training (C4 + GPT-3.5)
+        \item[$\times$] Zero-shot capability not evaluated by authors (p.\,11836)
+        \item[$\times$] Not tested on historical German or ISBD strings
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \smallskip
+  \begin{alertblock}{SR-09 sanity check (2026-03-27)}
+    Tier-2 records: \textbf{F1 = 0.000 across all labels and all prompt variants.} \\
+    Root cause: token-level classifier cannot learn from prompts that
+    author-shaped tokens at the start of an ISBD string are \texttt{TITLE}.
+  \end{alertblock}
+  \smallskip
+  $\Rightarrow$ \textbf{Confirmed path: LLM annotation + fine-tune \texttt{xlm-roberta-base}}\textsuperscript{[3]} \\
+  \hspace*{1.4em} Expected gain: $\sim$+22\,pp F1 vs.\ zero-shot (MultiCONER gap\textsuperscript{[4]})
+\end{frame}
+
+% ===== NuNER SAMPLE RESULT =====
+\begin{frame}{NuNER Zero: Sample Output (SR-09, 2026-03-27)}
+  \small
+  \textbf{Input} (tier-2 record, 19th-c):
+  \smallskip
+  \begin{center}
+  \ttfamily
+  Rastegar, Nosratollah, Uto von Melzer : österreichischen Iranisten. -{}- Wien : Böhlau, 1990
+  \end{center}
+  \smallskip
+
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Gold (ISBD-derived silver):}
+      \smallskip
+
+      \colorbox{green!25}{\texttt{Rastegar, Nosratollah, Uto von Melzer}}
+      $\to$ \textsc{title}
+
+      \smallskip
+      \colorbox{blue!20}{\texttt{österreichischen Iranisten}}
+      $\to$ \textsc{other\_title}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{NuNER Zero prediction (default prompts):}
+      \smallskip
+
+      \colorbox{red!20}{\texttt{Rastegar}} \colorbox{red!20}{\texttt{Nosratollah}} \colorbox{red!20}{\texttt{Uto}} \colorbox{red!20}{\texttt{von}} \colorbox{red!20}{\texttt{Melzer}}
+      $\to$ \textsc{person} $\times5$ (individual tokens)
+
+      \smallskip
+      \colorbox{red!20}{\texttt{österreichischen}} \colorbox{red!20}{\texttt{Iranisten}}
+      $\to$ \textsc{title} $\times2$ (individual tokens)
+    \end{column}
+  \end{columns}
+  \smallskip
+  \begin{alertblock}{Failure mode: wrong granularity}
+    NuNER fires token-by-token rather than extracting full fields.
+    It has no concept that the string before \texttt{ :} is one TITLE span.
+    \textbf{Result: 0 exact matches, F1 = 0.000 on all labels.}
+    Prompt engineering (structural / catalog prompts) produces zero predictions instead.
+  \end{alertblock}
+\end{frame}
+
+% ===== NuNER PROMPT VARIANTS =====
+\begin{frame}[shrink=1]{NuNER Zero: Three Prompt Sets, Same Outcome}
+  \small
+  \begin{tabular}{llp{5cm}}
+    \toprule
+    Prompt set & Label prompts passed & Strategy \\
+    \midrule
+    \textbf{default}    & \textit{``title of a book, work, or publication''} etc.\ & Generic NER descriptions \\
+    \textbf{structural} & \textit{``text before \texttt{ :} in an ISBD string''} etc.\ & Reference ISBD separators explicitly \\
+    \textbf{catalog}    & \textit{``main entry in a library catalog record''} etc.\ & Library catalog terminology \\
+    \bottomrule
+  \end{tabular}
+
+  \begin{tabular}{llrrrrrrr}
+    \toprule
+    & & \multicolumn{3}{c}{TITLE} & \multicolumn{2}{c}{OTHER\_TITLE} & \multicolumn{2}{c}{PERSON} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+    Prompt & F1 & TP & FP & FN & FP & FN & FP & FN \\
+    \midrule
+    default    & \textbf{0.000} &  0 & 145 & 47 & 14 & 15 & 253 & 45 \\
+    structural & \textbf{0.000} &  0 &   0 & 47 &  0 & 15 &   1 & 45 \\
+    catalog    & \textbf{0.000} &  0 &   0 & 47 &  0 & 15 &   6 & 45 \\
+    \bottomrule
+  \end{tabular}
+
+  \footnotesize
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{default:} overconfident but wrong granularity ---
+      fires on individual tokens (\texttt{Rastegar}, \texttt{Uto}, \ldots); high FP, zero TP
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{structural / catalog:} domain-specific language unfamiliar to model (English C4) ---
+      scores drop below threshold; nearly no predictions
+    \end{column}
+  \end{columns}
+  \small\textbf{Conclusion:} prompt engineering cannot fix an architectural mismatch.
+  NuNER Zero has no concept of bibliographic field segmentation regardless of wording.
+\end{frame}
+
+% ===== MODEL COMPARISON =====
+\begin{frame}{Model Comparison --- Why XLM-R Fine-Tuned}
+  \footnotesize
+  \begin{tabular}{lcc>{\raggedright\arraybackslash}p{2cm}c>{\raggedright\arraybackslash}p{2.8cm}}
+    \toprule
+    Model & Zero-shot & Span cap & ISBD domain & Hist.\ DE & Decision \\
+    \midrule
+    spaCy / Flair / BERT-NER
+      & \textcolor{green!60!black}{$\checkmark$}
+      & ---
+      & \textcolor{red}{$\times$} wrong labels
+      & \textcolor{red}{$\times$}
+      & \textcolor{red}{Out} \\[2pt]
+    HIPE-2022 systems
+      & \textcolor{red}{$\times$}
+      & ---
+      & \textcolor{red}{$\times$} newspaper prose
+      & \textcolor{orange}{Partial}
+      & \textcolor{red}{Out} \\[2pt]
+    GLiNER
+      & \textcolor{green!60!black}{$\checkmark$}
+      & \textbf{12 tok}
+      & \textcolor{red}{$\times$}
+      & \textcolor{red}{$\times$}
+      & \textcolor{red}{Out} \\[2pt]
+    NuNER Zero
+      & \textcolor{green!60!black}{$\checkmark$}
+      & none
+      & \textcolor{red}{$\times$}
+      & \textcolor{red}{$\times$}
+      & \textcolor{red}{Out — SR-09 F1\,=\,0.000} \\[2pt]
+    \textbf{XLM-R fine-tuned}
+      & \textcolor{red}{$\times$}
+      & none
+      & \textcolor{green!60!black}{$\checkmark$} DDB silver
+      & \textcolor{green!60!black}{$\checkmark$}
+      & \textcolor{green!60!black}{\textbf{Confirmed path}} \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Why not GLiNER?} \\
+      Same zero-shot premise as NuNER Zero, with an additional hard cap of 12 tokens per span.
+      Pre-1700 titles have median 13 tokens --- the model would truncate them by design.
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Why XLM-R?} \\
+      Multilingual pretraining covers historical German subword patterns.
+      Supervised fine-tuning on DDB silver closes the domain gap.
+      Expected gain: $\sim$+22\,pp F1 vs.\ zero-shot\textsuperscript{[4]}.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== 4. EVALUATION =====
+\section{Evaluation}
+
+\begin{frame}{Stratification}
+  \small
+  Strata defined by \textbf{NER difficulty}, not corpus size.
+  Primary signal: title-length distribution --- longer titles mean harder TITLE boundary detection.
+  \smallskip
+  \footnotesize
+  \begin{tabular}{lrrl}
+    \toprule
+    Era & Records & Long ($>$14\,tok) & Key NER challenge \\
+    \midrule
+    Pre-1700   & 331K  & \textbf{46.9\%} & Author-before-title; early modern orthography; no ISBD \\
+    1700--1800 & 827K  & 32.0\%          & ISBD adoption begins $\sim$1750; author placement mixed \\
+    19th-c     & 1.38M & 24.3\%          & ISBD stabilizes; serials dominate; corporate SoRs \\
+    Modern     & 1.94M & 17.6\%          & Digital-born; subtitles in separate field; ISBD rare \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+  \small
+  \begin{block}{Why per-era reporting?}
+    Difficulty varies discontinuously across eras. A single pooled F1 hides failures in pre-1700 ---
+    the hardest and historically most significant stratum.
+    Per-era reporting is the minimum for a meaningful viability claim.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Evaluation Protocol}
+  \small
+  \begin{columns}
+    \begin{column}{.50\textwidth}
+      \begin{block}{Exact span match}
+        A prediction is correct only if \textbf{both character boundaries} and \textbf{label} match gold exactly.
+        Partial overlaps do not count.
+      \end{block}
+      \smallskip
+      \textbf{Why exact, not partial?} \\
+      A partially extracted title is not a usable lookup key to GND Werk. The span is either right or wrong for that purpose.
+
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Per label $\times$ per era. No pooled averages.}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{Micro excluded:} TITLE in $\sim$100\% of records dominates the pool; OTHER\_TITLE and PERSON disappear
+        \item \textbf{Macro excluded:} PERSON in 0.2--8.7\% of records; equal weight with TITLE misrepresents utility
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Target Scores}
+  \small
+  \begin{columns}
+    \begin{column}{.48\textwidth}
+      \begin{center}
+      \begin{tabular}{lcc}
+        \toprule
+        Stratum & TITLE F1 & PERSON F1 \\
+        \midrule
+        Modern ($\geq$1900) & $\geq$0.85 & --- \\
+        19th-c              & $\geq$0.80 & --- \\
+        1700--1800          & $\geq$0.75 & $\geq$0.70 \\
+        Pre-1700            & $\geq$0.70 & $\geq$0.70 \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+      \smallskip
+      \textit{PERSON targets only where person names appear:
+        8.7\% pre-1700, 5.0\% 1700--1800; $<$1\% in later strata.}
+      \smallskip
+      
+      \textbf{Viability claim:} observed F1 $\geq$ target $\Rightarrow$ pipeline viable.
+      Wide CIs convert the result to a binary --- no ambiguity under $\pm$10\,pp uncertainty.
+    \end{column}
+    \begin{column}{.50\textwidth}
+      \begin{block}{Why not 0.90? Benchmark ceilings:}
+        \begin{itemize}\setlength{\itemsep}{2pt}
+          \item HIPE-2022\textsuperscript{[6]} German NERC-Coarse (best system): \textbf{0.794}
+          \item HIPE-2022 \textit{sonar} (no train set, most comparable):
+                best 0.529, XLM-R base 0.307
+          \item OntoNotes \texttt{WORK\_OF\_ART}: 0.532
+        \end{itemize}
+        Pre-1700 historical orthography + author-before-title goes
+        beyond any of these benchmarks --- 0.70 is already ambitious.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== 5. GOLD DATASET =====
+\section{Gold Dataset}
+
+\begin{frame}{Tiers}
+  \small
+  \begin{columns}
+    \begin{column}{.50\textwidth}
+      28.4\% of records have ISBD signals --- these are the \textbf{silver dataset}: automatic labels derived from punctuation, no human annotation needed.
+      \smallskip
+
+      Not all silver labels are equally reliable. ISBD conformance varies, so silver is split into \textbf{3 tiers of confidence}:
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{Tier 2 --- Structural} (0.1\%, 4.6K): has \texttt{. -} area separator; labels highly reliable
+        \item \textbf{Tier 1 --- Heuristic} (7.5\%, 336K): has \texttt{ :} / \texttt{ /} but no \texttt{. -}; reliable but not guaranteed
+        \item \textbf{Tier 0 --- Fallback} (92.4\%, 4.14M): no ISBD signal; \textbf{NER target}
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Tiers matter for two reasons:}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item \textbf{Training:} tier-1/2 silver ($\sim$340K) is used directly as fine-tuning data for modern and 19th-c strata --- no LLM annotation needed there
+        \item \textbf{Gold stratification:} all 3 tiers sampled in each era, so the gold set covers the full range of record difficulty
+      \end{itemize}
+      \smallskip
+      \begin{alertblock}{Pre-1700 has zero tier-2}
+        No \texttt{. -} before the ISBD era.
+        Pre-1700 is 100\% tier-0 --- the silver gap that SR-11 fills with LLM annotation.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Gold Dataset Sampling}
+  \small
+  \begin{columns}
+    \begin{column}{.48\textwidth}
+      \textbf{Why Wilson CI, not Wald?}
+      \begin{center}\footnotesize
+      \begin{tabular}{lcc}
+        \toprule
+         & Wald & Wilson \\
+        \midrule
+        Large $n$, $\hat{p}\approx0.5$ & \textcolor{green!60!black}{$\checkmark$} & \textcolor{green!60!black}{$\checkmark$} \\
+        Small $n$                       & \textcolor{red}{$\times$} unreliable    & \textcolor{green!60!black}{$\checkmark$} \\
+        $\hat{p}$ near 0 or 1           & \textcolor{red}{$\times$} breaks        & \textcolor{green!60!black}{$\checkmark$} \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+      \smallskip
+      PERSON in pre-1700: $\hat{p}=8.7\%$, so $n_{\text{entity}}\approx11$ instances in 130 records
+      --- both Wald failure conditions hold simultaneously.
+
+      \textbf{Worked example} --- Pre-1700 TITLE ($p=0.70$):
+      \[
+        n \;=\; \frac{z^{2}\,p(1-p)}{e^{2}}, \quad z=1.96
+      \]
+
+    \end{column}
+    \begin{column}{.50\textwidth}
+      \begin{center}\footnotesize
+      \footnotesize($z=1.96$: 95\% of standard normal within $\pm z$; remaining 5\% split into two tails $\Rightarrow$ $P(Z\leq z)=0.975$)
+      \begin{tabular}{lcc}
+        \toprule
+        Precision & $e$ & Min records \\
+        \midrule
+        $\pm$5\,pp  & 0.05 & $\dfrac{3.84\times\overbrace{0.70\times0.30}^{p(1-p)=0.21}}{0.0025}=\mathbf{323}$ \\[8pt]
+        $\pm$10\,pp & 0.10 & $\dfrac{3.84\times0.21}{0.01\phantom{00}}=\mathbf{81}$ \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+      \begin{alertblock}{Decision}
+        $\pm$5\,pp: 1,054 records total --- not feasible. \\
+        $\pm$10\,pp: 265 records total --- \textbf{feasible}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Gold Dataset --- \S5.3 Composition}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.55\textwidth}
+      \footnotesize
+      Stratified by \textbf{era $\times$ silver tier $\times$ \texttt{dc\_type}}.
+      Oversampled: Leichenpredigt \& Einblattdruck ($\sim$40--50 each).
+
+      \smallskip
+      \textbf{TITLE} \textnormal{(record-level CI)}
+      \begin{tabular}{lccc}
+        \toprule
+        Stratum & Target & $\pm$10\,pp & Gold \\
+        \midrule
+        Pre-1700    & $\geq$0.70 &  81 & 130 \textcolor{green!60!black}{$\checkmark$} \\
+        1700--1800  & $\geq$0.75 &  73 &  80 \textcolor{green!60!black}{$\checkmark$} \\
+        19th-c      & $\geq$0.80 &  62 &  60 \textcolor{green!60!black}{$\approx$} \\
+        Modern      & $\geq$0.85 &  49 &  80 \textcolor{green!60!black}{$\checkmark$} \\
+        \midrule
+        \textbf{Total} & & \textbf{265} & \textbf{350} \\
+        \bottomrule
+      \end{tabular}
+
+      \medskip
+      \textbf{PERSON} \textnormal{(instance-level CI, sr08 §2.4)}
+      \begin{tabular}{lcc}
+        \toprule
+        Stratum & Instances & CI \\
+        \midrule
+        Pre-1700 & $\sim$70 & $\pm$8--10\,pp \\
+        All eras & $\sim$120 & $\pm$6--7\,pp \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{.42\textwidth}
+      \textbf{395 = 350 + 45}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item \textbf{350} cover TITLE $\pm$10\,pp CI (min 265)
+        \item \textbf{+45}: dc\_type draw (LP \& EB, tier-0/1, any era)
+      \end{itemize}
+      \smallskip
+
+      \footnotesize\textbf{LP \& EB in gold set} \textnormal{(contains-match)}
+      \begin{tabular}{lrrc}
+        \toprule
+        Era & LP & EB & \% era \\
+        \midrule
+        Pre-1700 (130)  & 30 &  9 & 30\% \\
+        1700--1800 (80) &  8 & 12 & 25\% \\
+        Unknown (45)    & 15 & 30 & 100\% \\
+        \bottomrule
+      \end{tabular}
+
+      \smallskip
+      \footnotesize\textit{Unknown = undated records; all from dc\_type draw.
+      Pre-1700 F1 is genre-weighted, not corpus-representative.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Gold Dataset --- dc\_type Oversampling}
+  \small
+  Random sampling within era strata would yield $\sim$5--10 records per rare dc\_type ---
+  too few to detect genre-specific failures.
+  LP \& EB are oversampled to $\sim$50 each from tier-0/1 records \textit{without era constraint};
+  after deduplication, the net-new +45 records are all undated (excluded from per-era F1).
+  \smallskip
+  \begin{columns}[t]
+    \begin{column}{.49\textwidth}
+      \textbf{Leichenpredigt} (funeral sermon)
+
+      \textit{Title-page structure:} opens with sermon type, then occasion text, then the deceased's name and role.
+      Author (the preacher) often absent from the title string entirely.
+      \smallskip
+
+      \footnotesize
+      \colorbox{green!25}{\texttt{Christliche Leichpredigt}}
+      \texttt{bey ansehnlicher Begräbnuß des Ehrnvesten}
+      \colorbox{blue!20}{\texttt{Herrn Johann Metzgers/ des Eussern Raths}}
+      \texttt{... 1673}
+
+      \smallskip\small
+      \textbf{Challenge:} TITLE is a 2-token genre descriptor; PERSON is the \textit{deceased} (not the author); occasion text is unlabeled.
+    \end{column}
+    \begin{column}{.49\textwidth}
+      \textbf{Einblattdruck} (single-sheet broadsheet)
+
+      \textit{Title-page structure:} no standardized format. May be a dedication, proclamation, occasional poem, or parish record. The opening phrase is often the dedicatee or occasion, not the title proper.
+      \smallskip
+
+      \footnotesize
+      \texttt{Demühtige Pflicht/ Welche Dem ...}
+      \colorbox{blue!20}{\texttt{Herrn Otto Wilhelm von Perbandt/}}
+      \colorbox{blue!20}{\texttt{Hochverordneten Preußischen Ober-Raht}}
+      \texttt{: Als Seine Chur-Fürstl. ...}
+
+      \smallskip\small
+      \textbf{Challenge:} PERSON is the \textit{recipient} of the dedication, not the author; TITLE is the opening phrase (\textit{Demühtige Pflicht}); structure varies by subtype.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== 6. TRAINING DATASET =====
+\section{Training Dataset}
+
+\begin{frame}{XLM-R Training Dataset}
+  \small
+  \begin{tabular}{llrr}
+    \toprule
+    Stratum & Source & $\approx$ Records & $\approx$ Spans \\
+    \midrule
+    Modern       & Silver tier-1/2 (ISBD) & 176K  & 265K    \\
+    19th-c       & Silver tier-1/2 (ISBD) & 126K  & 190K    \\
+    1700--1800\textsuperscript{*}
+                 & Silver tier-1/2 (ISBD) &  38K  &  57K    \\
+    Pre-1750     & LLM annotation (Claude) & 4--5K & 10--15K \\
+    \midrule
+    \textit{Gold (held out)} & \textit{Manual} & \textit{395} & \textit{---} \\
+    \bottomrule
+  \end{tabular}
+  \par\vspace{2pt}
+  \footnotesize\textsuperscript{*}1700--1800 silver drawn from 1750--1800 records (ISBD adoption $\sim$1750);
+  1700--1749 included in LLM batch.
+  \smallskip
+
+  \begin{block}{Why these numbers?}
+    \footnotesize
+    \textbf{Silver (340K):} ISBD-derived, zero annotation cost --- use all available records.\\
+    \textbf{LLM batch (4--5K):} pre-1750 has no silver; 4--5K records yield $\sim$3--5K spans/type,
+    above the $\sim$200--500/type minimum for reliable boundary learning in \texttt{xlm-roberta-base}.\\
+    \textbf{Open question:} is 340K silver actually necessary?
+    Planned learning curve experiment: train on subsets (1K, 5K, 10K, 25K, 50K, 100K, 340K),
+    evaluate F1 per era, identify the point of diminishing returns.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Tier Distribution by Stratum}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Stratum & Tier 2 & Tier 1 & Tier 0 & Total \\
+    \midrule
+    Pre-1700   & \textcolor{red}{\textbf{0}}   & \textcolor{red}{\textbf{0}} & 331K         & 331K   \\
+    1700--1800 & $<$1K                          & $\sim$37K                   & $\sim$789K   & 827K   \\
+    19th-c     & $\sim$2K                       & $\sim$124K                  & $\sim$1,254K & 1,380K \\
+    Modern     & $\sim$2K                       & $\sim$175K                  & $\sim$1,763K & 1,940K \\
+    \midrule
+    \textbf{Total} & \textbf{4.6K} & \textbf{336K} & \textbf{4,138K} & \textbf{4,478K} \\
+    \bottomrule
+  \end{tabular}
+  \par\vspace{2pt}
+  \footnotesize Totals and Pre-1700 zeros are exact;
+  per-stratum tier-1/2 are proportionally estimated (ISBD adoption $\sim$1750).
+  \smallskip
+
+  \begin{columns}[t]
+    \begin{column}{.50\textwidth}
+      \begin{alertblock}{Pre-1700: zero silver}
+        100\% tier-0 --- no ISBD signals before the ISBD era.
+        LLM annotation (4--5K records) is the \textbf{only} training path for this stratum.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{block}{Everything else: silver available}
+        Tier-1/2 ($\sim$340K) provides training data for 1700--1800,
+        19th-c, and Modern at near-zero annotation cost.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ===== SUMMARY =====
+\begin{frame}{Summary}
+  \small
+  \begin{itemize}\setlength{\itemsep}{3pt}
+    \item \textbf{71.6\%} of 4.48M DDB titles lack ISBD signals and require NER
+    \item Labels: \texttt{TITLE}, \texttt{OTHER\_TITLE}, \texttt{PERSON} (FRBR Work-level identity; minimum for GND linking)
+    \item Off-the-shelf models fail: wrong labels, wrong domain, historical register
+    \item NuNER Zero ruled out (SR-09: F1 = 0.000 on all labels)
+    \item \textbf{Confirmed path:} LLM annotation + fine-tune \texttt{xlm-roberta-base}
+    \item Silver dataset: ISBD-derived, 3 tiers; 92.4\% tier-0 is primary NER target
+    \item Gold: 395 records, $\pm$10\,pp CI, per-label $\times$ per-era viability targets
+  \end{itemize}
+  \normalsize
+\end{frame}
+
+% ===== ROADMAP & NEXT STEPS =====
+\section{Roadmap \& Next Steps}
+
+\begin{frame}{GeMeA Pipeline Roadmap}
+  \footnotesize
+  \begin{tabular}{clp{6cm}l}
+    \toprule
+    Phase & Name & Scope & Status \\
+    \midrule
+    0  & Data Acquisition     & DDB JSON-LD ingest; \texttt{langid} filtering; ISBD signal analysis & \textcolor{green!60!black}{Done} \\
+    1  & Ingest               & \texttt{link\_gnd\_works.py}: ISBD rule extraction + \textbf{NER fallback} $\to$ QLever triples & \textcolor{orange}{\textbf{Current}} \\
+    1b & GND Agent Enrichment & \texttt{link\_gnd\_agents.py}: agent $\leftrightarrow$ GND reconciliation; named graph \texttt{gnd-enrichment} & \textcolor{gray}{Blocked on 1} \\
+    2  & API                  & FastAPI + GraphQL (strawberry); SPARQL passthrough & \textcolor{gray}{Pending} \\
+    3  & Frontend             & Next.js + Tailwind; Cytoscape.js / Leaflet / D3 & \textcolor{gray}{Pending} \\
+    4  & DevOps               & Docker Compose; QLever + Elasticsearch; CI/CD & \textcolor{gray}{Pending} \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+  \normalsize
+  \begin{block}{}
+    \small\raggedright NER pipeline is the critical path for Phase 1 --- its output unblocks Phase 1b and all downstream phases.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Next Steps --- NER Pipeline}
+  \small
+  \begin{enumerate}\setlength{\itemsep}{5pt}
+    \item \textbf{LLM annotation of gold set} \\
+          Annotate 395 records (stratified by era $\times$ tier $\times$ dc\_type) using an LLM;
+          adjudicate boundary decisions per \texttt{sr08\_title-boundary-curation.md}
+
+    \item \textbf{Fine-tune \texttt{xlm-roberta-base}} \\
+          Training data: tier-1/2 silver labels + LLM-annotated gold;
+          labels: \texttt{TITLE}, \texttt{OTHER\_TITLE}, \texttt{PERSON}
+
+    \item \textbf{Evaluate on gold set} \\
+          Exact span match F1, per label $\times$ per era;
+          compare against targets (pre-1700 $\geq$0.70, modern $\geq$0.85)
+
+    \item \textbf{Decision gate} \\
+          \textbf{Pass} $\Rightarrow$ integrate NER output into \texttt{link\_gnd\_works.py}; unblock Phase 1b \\
+          \textbf{Fail} $\Rightarrow$ error analysis; revisit silver tier composition or training split
+
+    \item \textbf{Phase 1b: GND Agent Enrichment} \\
+          \texttt{link\_gnd\_agents.py} writes to named graph \texttt{http://gemea.ddb.de/graph/gnd-enrichment};
+          unblocks Elasticsearch index build
+  \end{enumerate}
+\end{frame}
+
+% ===== REFERENCES (no \section — excluded from navigation) =====
+\begin{frame}{References}
+  \footnotesize
+  \begin{enumerate}\setlength{\itemsep}{4pt}
+    \item Bogdanov et al.\ \textit{NuNER: Entity Recognition Encoder Pre-training via LLM-Annotated Data.}
+          EMNLP 2024, pp.\,11827--11844.
+    \item Zaratiana et al.\ \textit{GLiNER: Generalist Model for Named Entity Recognition using Bidirectional Transformer.}
+          NAACL 2024, pp.\,5364--5376.
+    \item Conneau et al.\ \textit{Unsupervised Cross-lingual Representation Learning at Scale.}
+          ACL 2020, pp.\,8440--8451.
+    \item Malmasi et al.\ \textit{MultiCoNER: A Large-scale Multilingual Dataset for Complex Named Entity Recognition.}
+          COLING 2022, pp.\,3798--3809.
+    \item Brown, Cai \& DasGupta. \textit{Interval Estimation for a Binomial Proportion.}
+          Statistical Science 16(2):101--133, 2001.
+    \item Ehrmann et al.\ \textit{Extended Overview of HIPE-2022: Named Entity Recognition and Linking
+          in Multilingual Historical Documents.} CLEF Working Notes, 2022.
+  \end{enumerate}
+\end{frame}
+
+\end{document}
