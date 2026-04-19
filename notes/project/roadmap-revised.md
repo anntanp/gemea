@@ -26,11 +26,13 @@
 ## 2. Framing
 
 **Core claim:**
-> GeMeA provides the first openly browsable, SPARQL-accessible, and MCP-accessible knowledge graph over the German Digital Library corpus (26M objects), deployed via QLever and SHMARQL, with a mocho-based ontology alignment PoC demonstrating data-driven KG enhancement, and serving as a testbed for Semantic Web research including ontology evaluation and agentic KG frameworks.
+> GeMeA provides the first openly browsable, SPARQL-accessible, and MCP-accessible knowledge graph over the German Digital Library corpus (26M objects), deployed via QLever and SHMARQL, with a mocho-based ontology alignment PoC demonstrating data-driven KG enhancement, and serving as a testbed for Semantic Web research including ontology evaluation, agentic KG frameworks, RML mapping applicability, and provenance modelling of LLM-assisted enrichment.
 
 **Downstream use cases (testbed positioning):**
 - `onto-eval` — ontology evaluation research on GeMeA's mocho-aligned subgraph
 - `framework.trails` — agentic KG framework development against the MCP/MCPO interface
+- **RML applicability** — GeMeA's EDM → RDA/mocho mapping pipeline is a candidate for RML (RDF Mapping Language) expression; the KG serves as a testbed for evaluating RML-based declarative mapping vs. the current procedural approach (rdf2jsonld + mocho), including coverage, maintainability, and alignment fidelity
+- **Provenance (Prov-LM)** — GeMeA's KG enhancement pipeline (GND linking, mocho alignment) generates provenance traces (source record, extraction method, match confidence, enrichment graph); testbed for Prov-LM extensions that model LLM-assisted enrichment steps as PROV-O activities with attribution to model version, prompt, and confidence
 - Full GeMeA KG browser (v2) — full-featured web UI over the same QLever backend
 
 ---
@@ -43,7 +45,8 @@
 | Mocho PoC in QLever | **Running on subset** ✓ |
 | SHMARQL over QLever | **Pattern proven** (goethe-faust); adapt `docker-compose.shmarql.yml` + `setup.sh` |
 | MCP/MCPO on QLever | **Pattern proven** (`setup.sh mcp-add`); needs inventory of exposed tools |
-| GND agent linking | not started → deferred to v1.1 |
+| GND Werk Linking (`link_gnd_works.py`) | **blocked** — depends on Phase 0a NER + mocho.owl stability; rule-based ISBD pass (~28% coverage) possible without NER |
+| GND Agent Linking (`link_gnd_agents.py`) | lower priority; deferred to v1.1 |
 | Persistent URI (w3id / Zenodo DOI) | **needed before 2 May** |
 
 ---
