@@ -1,23 +1,45 @@
-# GeMeA — German Memory Atlas
+# GeMeA — Knowledge Graph Testbed for 23M+ German Digital Library Objects
 
-A knowledge graph browser for the German Digital Library (DDB).
-
-**Track:** ISWC 2026 Resource Track
-**Status:** In development
+**Track**: ISWC 2026 Resource Track &nbsp;|&nbsp; **License**: CC BY-SA 4.0 &nbsp;|&nbsp; **SPARQL**: _endpoint TBD_
 
 ---
 
 ## Abstract
 
-> To be written.
+We present GeMeA, a publicly accessible knowledge graph over 23M+ objects from the German Digital Library (DDB), queryable via SPARQL (QLever), browsable via SHMARQL, and accessible to AI agents through an MCP interface — a combination not previously available for cultural heritage data at this scale. The resource includes a mocho-based ontology alignment layer mapping DDB EDM metadata to RDA/FRBR, with partial GND entity linking via rule-based ISBD title extraction. GeMeA is released as a research testbed for work on ontology evaluation, agentic KG applications, RML-based declarative mapping, and provenance modelling of LLM-assisted enrichment. Data is licensed CC BY-SA 4.0; the SPARQL endpoint, Linked Data browser, and source code are available at [URI].
 
 ---
 
-## What it is
+## Access
 
-GeMeA exposes 65 million cultural heritage objects from the DDB as a navigable knowledge graph. It provides keyword search, faceted browsing, entity pages, graph visualization, a map view, a timeline, and a public SPARQL endpoint.
+| Interface | URL | Description |
+|-----------|-----|-------------|
+| SPARQL endpoint | `http://[host]:42004` | QLever — EDM KG (23M+ objects) |
+| Linked Data browser | `http://[host]:42003` | SHMARQL |
+| MCP interface | `http://[host]:42005` | MCPO — agentic AI access |
+| GND SPARQL | `http://[host]:42006` | QLever — GND Werk / Person / CorporateBody |
 
-**Pipeline:** DDB JSON-LD → [rdf2jsonld](../rdf2jsonld/) → `link_gnd_works.py` (GND Werk linking) → [mocho](../mocho/) (RDA normalization) → QLever + Elasticsearch → GeMeA
+---
+
+## Testbed Use Cases
+
+GeMeA is designed as a multi-disciplinary research testbed. Four named research avenues:
+
+1. **Ontology evaluation** — large real-world aligned subgraph via the mocho PoC (EDM → RDA/FRBR); suitable for evaluating alignment quality and completeness on cultural heritage data at scale.
+
+2. **Agentic KG frameworks** — MCP-native access layer, the first of its kind for cultural heritage KGs; supports development of AI agents that query, navigate, and reason over linked cultural heritage data.
+
+3. **RML declarative mapping** — applicability study of RML-based declarative mapping as an alternative to the current procedural pipeline; GeMeA's EDM-to-RDF transformation is a concrete target use case.
+
+4. **LLM enrichment provenance** — PROV-O extensions (Prov-LM) for modelling the provenance of LLM-assisted KG enrichment steps; GeMeA's entity linking and alignment pipeline provides the enrichment trace.
+
+---
+
+## Pipeline
+
+```
+DDB JSON-LD → rdf2jsonld → link_gnd_works.py → mocho (EDM→RDA/FRBR) → QLever + SHMARQL + MCPO
+```
 
 ---
 
@@ -25,102 +47,43 @@ GeMeA exposes 65 million cultural heritage objects from the DDB as a navigable k
 
 ```
 gemea/
-├── paper/          ISWC 2026 Resource Track paper (LaTeX/LNCS)
-├── ingest/         Phase 1 — ETL: mocho RDF → QLever + Elasticsearch
-├── frontend/       Phase 3 — Next.js web application
-├── docker/         Phase 4 — Docker Compose, Nginx, self-hosting docs
-├── api/            Phase 2 — FastAPI backend
-├── notes/          Spec, architecture, roadmap, paper outline
-├── data/           Raw and processed data
-├── scripts/        Standalone ops scripts
-├── experiments/    Evaluation runs (for paper quality section)
-└── resource/       Published artifact metadata
+├── scripts/sh/     Setup and deployment shell scripts
+├── scripts/py/     Python pipeline scripts
+├── ingest/         QLever load modules
+├── data/           Raw and processed data (large files tracked via DVC)
+├── docker/         Docker Compose configs
+├── paper/          ISWC 2026 paper — see paper/iswc-2026 branch for LaTeX source
+└── resource/       Published artifact metadata (VoID descriptor, w3id)
 ```
+
+**v2 (planned)**: Elasticsearch full-text search, Next.js KG browser, FastAPI + GraphQL layer.
 
 ---
 
-## Notes
+## Branches
 
-### Project fundamentals
+See [`notes/project/git-branching-strategy.md`](notes/project/git-branching-strategy.md) for the full branch map.
 
-| File | Content |
-|------|---------|
-| `notes/project/spec.md` | Requirements, scope, success criteria |
-| `notes/project/architecture.md` | System architecture and component interactions |
-| `notes/project/roadmap.md` | Phase-by-phase plan (0a → 0 → 1 → 1b → 3 → 4 → 2) |
-| `notes/project/priorities.md` | Current priorities and blockers |
+| Branch | Purpose |
+|--------|---------|
+| `main` | Stable public record — tagged at each ISWC deadline |
+| `develop` | Active development — code, experiments, research notes |
+| `paper/iswc-2026` | LaTeX source for the ISWC 2026 submission |
+| `releases` | Zenodo snapshots, versioned KG dumps, VoID releases |
+| `hotfix` | Post-submission corrections |
+| `meetings` | Research meeting slides (Beamer) — orphan branch, never merges |
 
-### Phase 0a — NER for title parsing
+---
 
-| File | Content |
-|------|---------|
-| `notes/ner/ner-bibliographic.md` | NER model spec; FRBR-organized label definitions; fine-tuning path |
-| `notes/ner/silver-dataset-pipeline.md` | Silver-label pipeline framework and status |
-| `notes/ner/sr01_isbd-field-rating.md` | ISBD field detection spec and silver candidate stratification |
-| `notes/ner/sr01_isbd-field-rating-adr.md` | ADR: tier design and flag inclusion/exclusion decisions |
-| `notes/ner/sr01_isbd-applicability.md` | ISBD applicability analysis on DDB corpus |
-| `notes/ner/sr01_isbd-title-analysis.md` | Title string analysis supporting SR-01 |
-| `notes/ner/sr03_silver-label-fp-review.md` | Per-field false-positive rates (200-record sample) |
-| `notes/ner/sr04_translator-person-disambiguation.md` | `f_person` sub-classification into `f_resp_*` flags |
-| `notes/ner/sr05_trailing-period-noise.md` | Trailing `.` as standalone silver signal — excluded (93% FP) |
-| `notes/ner/sr05_abbreviations.md` | Abbreviation handling in ISBD parsing |
-| `notes/ner/sr06_historical-scope.md` | Language scope: Early Modern German primary; Latin stratum not needed |
-| `notes/ner/sr08_gold-set-composition.md` | Gold set stratification plan (~500 records) |
-| `notes/ner/sr08_annotation-guide.md` | NER annotation guide for human and LLM annotators |
-| `notes/ner/sr08_label-design-rationale.md` | Rationale for label name choices (PERSON, OTHER_TITLE, PARALLEL_TITLE) with ISBD citations |
-| `notes/ner/sr10_de-titles-distribution.md` | `DF_DE_TITLES` provenance and token-length distribution |
-| `notes/ner/sr10_title-length-thresholds.md` | Title length thresholds for stratification |
-| `notes/ner/sr10_tracing-df-de-titles.md` | Tracing `DF_DE_TITLES` back to DDB source fields |
-| `notes/ner/sr11_labeling-strategy.md` | LLM-assisted vs. manual labeling strategy |
-| `notes/ner/sr12_field-level-weighting.md` | Field-level weighting in NER evaluation |
-| `notes/ner/ref_gliner-nunerzero-comparison.md` | Reference: GLiNER vs. NuNER Zero comparison |
-| `notes/ner/ref_zhan2026-generative-ner.md` | Reference: generative NER (Zhan 2026) |
+## Resource
 
-### Phase 0 — Data acquisition and conversion
-
-| File | Content |
-|------|---------|
-| `notes/gnd/gnd-linking-spec.md` | Full spec for `link_gnd_works.py` (title extraction → GND SPARQL → scoring) |
-| `notes/gnd/gnd-linking-plan.md` | Implementation plan and step-by-step design |
-| `notes/adr/gnd-linking-adr.md` | ADRs: match predicate choice, query patterns, open questions |
-| `notes/gnd/gnd-title-extraction.md` | Title extraction design (ISBD rules + NER fallback) |
-| `notes/gnd/mocho-alignment.md` | mocho.owl alignment status and integration notes |
-
-### Phase 1 — Ingest
-
-| File | Content |
-|------|---------|
-| `notes/infra/elasticsearch-index.md` | ES index mapping: German analyzer, GeoPoint, type/sector facets |
-| `notes/infra/triplestore-comparison.md` | QLever vs. Virtuoso vs. Jena — decision rationale |
-| `notes/gnd/gnd-qlever-setup.md` | QLever setup and index configuration notes |
-
-### Phase 3 — Frontend
-
-| File | Content |
-|------|---------|
-| `notes/infra/graphviz-dynamic-expansion.md` | Cytoscape.js dynamic graph expansion design |
-
-### Phase 4 — DevOps
-
-| File | Content |
-|------|---------|
-| `notes/infra/owasp-security.md` | OWASP checklist for SPARQL injection, input sanitization, headers |
-
-### Paper (ISWC 2026)
-
-| File | Content |
-|------|---------|
-| `notes/paper/paper-outline.md` | Section outline and argument structure |
-| `notes/literature/` | Related work annotations |
-
-### Reference and background
-
-| File | Content |
-|------|---------|
-| `notes/ddb/ddb-objects.md` | DDB EDM object structure and field inventory |
-| `notes/ner/nlp-tasks.md` | NLP task inventory across the pipeline |
-| `notes/project/future-work.md` | Post-v1 ideas and v2 features |
-| `notes/project/review-checklist.md` | Pre-submission review checklist |
+| Field | Value |
+|-------|-------|
+| Persistent URI | TBD — w3id or Zenodo DOI (registered before May 2, 2026) |
+| License | CC BY-SA 4.0 |
+| Paper | ISWC 2026 Resource Track |
+| SPARQL endpoint | TBD |
+| Data download | TBD |
 
 ---
 
@@ -134,18 +97,3 @@ gemea/
 | Notification | 16 July 2026 |
 | Camera-ready | 6 August 2026 |
 | Conference | 27–29 October 2026 |
-
----
-
-## Resource
-
-| Field | Value |
-|-------|-------|
-| Persistent URI | TBD (w3id or Zenodo DOI) |
-| License (data) | CC BY 4.0 |
-| License (code) | TBD (MIT or Apache 2.0) |
-| SPARQL endpoint | TBD |
-| Data download | TBD |
-
----
-
