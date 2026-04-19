@@ -4,7 +4,8 @@
 .trash/
 .DS_Store
 
-data/gnd
+data/gnd/**
+!data/gnd/*.dvc
 data/models
 
 references/
@@ -12,3 +13,25 @@ references/
 boats/
 
 scripts/analysis/DDB.pkl
+
+# Python env
+.venv/
+
+# Generated outputs
+out/
+output/
+
+# Private satellite repos
+transcripts/
+
+# Large data and indexes
+qlever-gnd-index/
+data/processed/
+data/raw/
+data/annotation/
+data/sqlite/
+data/out/
+data/*.pkl
+
+# Meeting slides template (local only)
+notes/rms/beamer-bodilla-template/

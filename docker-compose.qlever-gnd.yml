@@ -1,0 +1,64 @@
+# QLever SPARQL engine for GND Werk authority data (local data, no download).
+#
+# Prerequisites:
+#   werk.nt must exist in data/gnd/nt/ (run scripts/jsonld-to-nt.py first).
+#
+# Usage:
+#   docker compose -f docker-compose.qlever-gnd.yml up -d --wait
+#   # SPARQL endpoint: http://localhost:7020
+#   # MCP server:
+#   claude mcp add gnd-werk -- docker run --rm -i --network=host \
+#     ghcr.io/xorwell/mcp-server-qlever:latest -e http://localhost:7020
+#
+# Data: Deutsche Nationalbibliothek GND Werk authority data (CC0)
+
+services:
+  qlever-gnd-werk:
+    image: docker.io/adfreiburg/qlever:latest
+    ports:
+      - "${QLEVER_PORT:-7020}:7019"
+    volumes:
+      - ./data/gnd/nt:/input:ro
+      - ./data/gnd/qlever-index:/data
+      - ./data/gnd/qlever-settings.json:/tmp/settings.json:ro
+    user: root
+    working_dir: /data
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+
+        if [ -f /data/index.ready ]; then
+          echo "GND Werk index already built, starting server..."
+          exec /qlever/qlever-server -i /data/gnd-werk -p 7019 \
+            -m ${QLEVER_MEMORY:-4GB} --default-query-timeout 30s
+        fi
+
+        echo "=== GND Werk Index Build ==="
+
+        if [ ! -s /input/werk.nt ]; then
+          echo "ERROR: /input/werk.nt is missing or empty."
+          exit 1
+        fi
+
+        wc -l /input/werk.nt
+
+        echo "Building QLever index from werk.nt..."
+        /qlever/qlever-index -i /data/gnd-werk -f /input/werk.nt \
+          -F nt -s /tmp/settings.json 2>&1
+
+        touch /data/index.ready
+        echo "=== Index ready ==="
+
+        exec /qlever/qlever-server -i /data/gnd-werk -p 7019 \
+          -m ${QLEVER_MEMORY:-4GB} --default-query-timeout 30s
+
+    environment:
+      - QLEVER_MEMORY=${QLEVER_MEMORY:-4GB}
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:7019/?cmd=stats"]
+      interval: 5s
+      timeout: 5s
+      retries: 120
+      start_period: 300s
+
