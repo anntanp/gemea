@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-# Purpose:      Re-export only the Parquet metadata from s2.sqlite, skipping NT generation.
-#               Use this to rebuild s2_meta.parquet after schema changes without re-running
-#               the full export_s2.py pipeline.
-# Usage:        python3 export_s2_parquet.py <s2.sqlite>
-# Inputs:       s2.sqlite — table objs, column bufgz (gzip-compressed cortex JSON)
+# Purpose:      Re-export only the Parquet metadata from a sector sqlite, skipping NT generation.
+#               Use this to rebuild <stem>_meta.parquet after schema changes without re-running
+#               the full export_ddb.py pipeline.
+# Usage:        python3 export_ddb_parquet.py <sector>.sqlite
+# Inputs:       <sector>.sqlite — table objs, column bufgz (gzip-compressed cortex JSON)
 # Outputs:      $OUTPUT_DIR/<stem>_meta.parquet
 # Dependencies: pyarrow
 # Assumptions:  Run from project root; .venv exists
@@ -23,10 +23,10 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-# Re-use schema constants and internal helpers from export_s2.
+# Re-use schema constants and internal helpers from export_ddb.
 # extract_meta is redefined below with the dc_created fix.
 sys.path.insert(0, str(Path(__file__).parent))
-from export_s2 import (
+from export_ddb import (
     PARQUET_SCHEMA,
     REPORT_INTERVAL,
     WORKER_REPORT_INTERVAL,
@@ -45,7 +45,7 @@ from export_s2 import (
 def extract_meta(data: dict) -> dict:
     """Extract ProvidedCHO metadata for the Parquet row.
 
-    Fixes vs. export_s2.extract_meta:
+    Fixes vs. export_ddb.extract_meta:
       - dc_created: read dcterms:created from ProvidedCHO directly first,
         then extend with LIDO creation-event chain.
       - dc_issued:  read dcterms:issued from ProvidedCHO directly first (was

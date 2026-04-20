@@ -37,7 +37,7 @@ Retire the pkl. Build the corpus pipeline from scratch using the DDB Sector 2 SQ
 
 ```
 data/sqlite/s2.sqlite
-    │  export_s2.py
+    │  export_ddb.py
     ▼
 data/out/s2/s2_meta.parquet            18,570,245 rows
     │  filter_de_content.py

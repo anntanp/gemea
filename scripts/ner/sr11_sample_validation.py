@@ -21,7 +21,7 @@
 # NOTE:         dc_type in de_titles_tokenized.parquet must carry the DDB genre/form
 #               values (Leichenpredigt, Einblattdruck, Monografie) for TARGET_TYPES
 #               filtering to work. This requires the correct dc:type / edm:hasType
-#               field to be exported in export_s2.py. Parquet is being regenerated.
+#               field to be exported in export_ddb.py. Parquet is being regenerated.
 #
 # Dependencies: pandas, numpy
 # Assumptions:  sr01_isbd_field_ratings.csv exists (run sr01_rate_isbd_fields.py first).

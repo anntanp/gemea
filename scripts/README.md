@@ -23,13 +23,18 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | Script | Purpose |
 |--------|---------|
 | `sh/download_data.sh` | Fetch mocho-normalized RDF from public data dump |
+| `sh/export_batch_remote.sh` | Remote-server batch driver: run `export_ddb.py` on s1, s3–s7; skip-if-done; timestamped log |
+| `sh/process_sqlite.sh` | Run `export_ddb.py` against one or more `s*.sqlite` files (local dev) |
 | `sh/setup_gnd_fuseki.sh` | (deprecated) Start local Fuseki container and load GND authority files |
 | `sh/setup_gnd_qlever.sh` | Convert GND JSON-LD to N-Triples, build QLever index, start SPARQL server |
+| `sh/smoke_test_export_s2.sh` | Smoke-test `export_ddb.py` against the 1000-record JSON sample |
 
 ### `py/` — general Python scripts
 
 | Script | Purpose |
 |--------|---------|
+| `py/export_ddb.py` | Export any DDB sector sqlite to batched N-Triples + Parquet (covers all sectors) |
+| `py/export_ddb_parquet.py` | Re-export Parquet only from a sector sqlite, skipping NT (for schema rebuilds) |
 | `py/sr10_explore_token_distribution.py` | SR-10: plot raw token-count distribution with percentile markers; outputs `notes/images/fig_token_distribution.png` |
 | `py/sr10_analyse_title_lengths.py` | SR-10: plot title-length distribution per year bucket; outputs `notes/images/fig_title_lengths.png` |
 | `py/sr10_render_title_viz.py` | SR-10: generate per-theme standalone HTML files from fig_title_lengths.jsx |

@@ -42,7 +42,7 @@ CSV: `data/processed/cho_keys.csv`
 
 ### `date` (dc:date)
 - Free-text string, often with parenthetical qualifier: `"2018 (Fotografische Aufnahme)"`, `"18300213"`
-- Parsed by `parse_dc_date()` in `export_s2.py`
+- Parsed by `parse_dc_date()` in `export_ddb.py`
 
 ### `issued` (dcterms:issued)
 - List of `{resource: null, lang: null, $: "year"}` dicts
@@ -53,7 +53,7 @@ CSV: `data/processed/cho_keys.csv`
 ### `created` (dcterms:created)
 - **Not present** in ProvidedCHO for this dataset
 - `cho.get("created")` always returns `None`
-- Fix in `export_s2_parquet.py` is correct but has no effect for LIDO/Fotothek items
+- Fix in `export_ddb_parquet.py` is correct but has no effect for LIDO/Fotothek items
 
 ---
 
@@ -69,7 +69,7 @@ Events live under `rdf.Event` keyed by `about`. Each event has:
 
 ---
 
-## 4. Implications for export_s2_parquet.py
+## 4. Implications for export_ddb_parquet.py
 
 | Column | Source | Status |
 |--------|--------|--------|

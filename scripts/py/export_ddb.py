@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-# Purpose:      Export s2.sqlite to batched N-Triples (full EDM graph) and a
-#               Parquet file (ProvidedCHO metadata), rewriting extract_src_from_full.py
-#               for the s2.sqlite cortex JSON format.
-# Usage:        python3 export_s2.py <s2.sqlite>
-# Inputs:       s2.sqlite — table objs, column bufgz (gzip-compressed cortex JSON)
-# Outputs:      $OUTPUT_DIR/edm_{worker:02d}_{batch:04d}.nt  — batched N-Triples
-#               $OUTPUT_DIR/s2_meta.parquet                  — metadata Parquet
+# Purpose:      Export any DDB sector sqlite to batched N-Triples (full EDM graph) and a
+#               Parquet file (ProvidedCHO metadata).
+# Usage:        python3 export_ddb.py <sector>.sqlite
+# Inputs:       <sector>.sqlite — table objs, column bufgz (gzip-compressed cortex JSON)
+# Outputs:      $OUTPUT_DIR/ddbedm-<stem>_{worker:02d}_{batch:04d}.nt  — batched N-Triples
+#               $OUTPUT_DIR/<stem>_meta.parquet                         — metadata Parquet
 # Dependencies: pyoxigraph, pyarrow
 # Assumptions:  The cortex JSON edm.RDF structure follows the DDB non-standard
 #               serialisation ($ / resource / lang value patterns, camelCase field names).

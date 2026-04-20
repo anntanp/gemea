@@ -1,4 +1,4 @@
-# export_s2.py — Design Note
+# export_ddb.py — Design Note
 
 ## 1. Context
 
@@ -381,7 +381,7 @@ out/
 ### 8.1 Smoke test
 Run against a small slice:
 ```bash
-BATCH_SIZE=1000 python export_s2.py s2.sqlite
+BATCH_SIZE=1000 python export_ddb.py s2.sqlite
 ```
 
 ### 8.2 N-Triples validation

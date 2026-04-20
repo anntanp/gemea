@@ -7,7 +7,7 @@ Run these via `sparql_query` (MCP tool) or `curl http://localhost:7020`.
 ## Goethe-authored books — goethe-faust QLever
 
 Query ProvidedCHO records with `dc:creator` matching Goethe by GND URI or literal.
-UNION needed because `export_s2.py` emits only the URI when a `resource` field is present,
+UNION needed because `export_ddb.py` emits only the URI when a `resource` field is present,
 or only the literal when not — never both.
 
 ```sparql

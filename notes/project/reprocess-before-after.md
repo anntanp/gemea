@@ -41,7 +41,7 @@ The ~1.1M records recovered by removing the langid filter are entirely within `g
 
 | | `DF_DE_TITLES_20240125b.pkl` | `de_titles_tokenized.parquet` |
 |--|--|--|
-| Source | `2024.01 MT-QA.ipynb` | `export_s2.py` + filter + tokenize |
+| Source | `2024.01 MT-QA.ipynb` | `export_ddb.py` + filter + tokenize |
 | N rows | 4,477,780 | 9,213,339 |
 | Language filter | `dc:language=ger` AND `langid=ger` | `dc:language ∈ {ger, gmh, nds, lat}` |
 | htype filter | `hierarchy_type=content` (notebook-defined) | ADR-01 BLANKET_EXCLUDE |

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Purpose:      Run export_s2.py against one or more s*.sqlite files
+# Purpose:      Run export_ddb.py against one or more s*.sqlite files
 # Usage:        bash scripts/sh/process_sqlite.sh [s1.sqlite s2.sqlite ...]
 #               If no arguments given, processes all data/sqlite/s*.sqlite files
 # Inputs:       data/sqlite/s*.sqlite  — one per sector
@@ -42,7 +42,7 @@ for DB in "${FILES[@]}"; do
     OUTPUT_DIR="${OUT}" \
     MAX_WORKERS="${MAX_WORKERS}" \
     BATCH_SIZE="${BATCH_SIZE}" \
-        python3 scripts/py/export_s2.py "${DB}"
+        python3 scripts/py/export_ddb.py "${DB}"
     echo
 done
 

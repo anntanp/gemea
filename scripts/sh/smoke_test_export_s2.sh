@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Purpose:      Smoke-test export_s2.py against the 1000-record JSON sample
+# Purpose:      Smoke-test export_ddb.py against the 1000-record JSON sample
 # Usage:        bash scripts/sh/smoke_test_export_s2.sh
 # Inputs:       data/processed/s2_sample_1000.json
-#               scripts/py/export_s2.py
+#               scripts/py/export_ddb.py
 # Outputs:      stdout — errors, NT byte count, meta fields, first NT lines
 # Dependencies: Python venv with pyoxigraph, pyarrow
 # Assumptions:  Run from project root; .venv exists
@@ -15,7 +15,7 @@ source .venv/bin/activate
 python3 - <<'EOF'
 import json, sys, traceback
 sys.path.insert(0, "scripts/py")
-from export_s2 import record_to_triples, extract_meta
+from export_ddb import record_to_triples, extract_meta
 
 data = json.load(open("data/processed/s2_sample_1000.json"))
 

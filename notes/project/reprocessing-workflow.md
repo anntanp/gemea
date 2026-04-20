@@ -21,7 +21,7 @@ This note documents the end-to-end pipeline from the raw DDB data dump to the to
 │  data/sqlite/s2.sqlite                                              │
 │  table: objs  · column: bufgz (gzip-compressed cortex JSON)        │
 └──────────────────────────────┬──────────────────────────────────────┘
-                               │  scripts/py/export_s2.py
+                               │  scripts/py/export_ddb.py
                                │  (via scripts/sh/process_sqlite.sh)
                                ▼
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -91,7 +91,7 @@ This note documents the end-to-end pipeline from the raw DDB data dump to the to
 
 ### 3.1 Ingestion: SQLite → Parquet
 
-**Script:** `scripts/py/export_s2.py` (via `scripts/sh/process_sqlite.sh`)
+**Script:** `scripts/py/export_ddb.py` (via `scripts/sh/process_sqlite.sh`)
 **Input:** `data/sqlite/s2.sqlite` — DDB Sector 2 dump in cortex JSON format
 **Output:** `data/out/s2/s2_meta.parquet`, `data/out/s2/edm_*.nt`
 
@@ -186,7 +186,7 @@ Token distribution (xlm-roberta-large BPE):
 
 | | `DF_DE_TITLES_20240125b.pkl` | `de_titles_tokenized.parquet` |
 |--|--|--|
-| Source | `2024.01 MT-QA.ipynb` | `export_s2.py` + filter + tokenize |
+| Source | `2024.01 MT-QA.ipynb` | `export_ddb.py` + filter + tokenize |
 | N rows | 4,477,780 | 9,213,339 |
 | Language filter | `dc:language=ger` AND `langid=ger` | `dc:language ∈ {ger, gmh, nds, lat}` |
 | htype filter | `hierarchy_type=content` (notebook-defined) | ADR-01 BLANKET_EXCLUDE |
