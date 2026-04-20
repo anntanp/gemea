@@ -19,8 +19,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # --- configuration (override via env) ---
 VENV_DIR="${VENV_DIR:-${PROJECT_ROOT}/venv}"
-SQLITE_DIR="${SQLITE_DIR:-/data/ddb}"
-OUT_BASE="${OUT_BASE:-/data/ddb/out}"
+SQLITE_DIR="${SQLITE_DIR:-/data/ddb/data}"
+OUT_BASE="${OUT_BASE:-/data/ddb/nt}"
 EXPORT_SCRIPT="${EXPORT_SCRIPT:-${PROJECT_ROOT}/scripts/py/export_ddb.py}"
 MAX_WORKERS="${MAX_WORKERS:-$(python3 -c 'import multiprocessing; print(max(1, multiprocessing.cpu_count() - 2))')}"
 BATCH_SIZE="${BATCH_SIZE:-100000}"

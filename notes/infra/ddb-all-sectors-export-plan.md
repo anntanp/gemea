@@ -35,8 +35,8 @@ Renamed to `export_ddb.py` to reflect general use. A new remote-server batch dri
 | Variable | Default | Purpose |
 |---|---|---|
 | `VENV_DIR` | `./venv` | Python venv path |
-| `SQLITE_DIR` | `/data/ddb` | Input sqlite directory |
-| `OUT_BASE` | `/data/ddb/out` | Root output directory |
+| `SQLITE_DIR` | `/data/ddb/data` | Input sqlite directory |
+| `OUT_BASE` | `/data/ddb/nt` | Root output directory |
 | `EXPORT_SCRIPT` | `./scripts/py/export_ddb.py` | Path to export_ddb.py |
 | `MAX_WORKERS` | `nproc - 2`, min 1 | Workers passed to export_ddb.py |
 | `BATCH_SIZE` | `100000` | Batch size passed to export_ddb.py |
