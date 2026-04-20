@@ -1,0 +1,4 @@
+# Minimal requirements for export_ddb.py and export_ddb_parquet.py
+# Install with: pip install -r requirements-export.txt
+pyarrow==21.0.0
+pyoxigraph==0.5.6

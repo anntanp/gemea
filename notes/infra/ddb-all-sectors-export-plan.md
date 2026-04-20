@@ -14,12 +14,12 @@ Renamed to `export_ddb.py` to reflect general use. A new remote-server batch dri
 
 | Sector sqlite | NT output (P##) | Parquet output (P##) |
 |---|---|---|
-| `s1.sqlite` | P03 `data/out/s1/edm_*.nt` | P09 `data/out/s1/s1_meta.parquet` |
-| `s3.sqlite` | P04 `data/out/s3/edm_*.nt` | P10 `data/out/s3/s3_meta.parquet` |
-| `s4.sqlite` | P05 `data/out/s4/edm_*.nt` | P11 `data/out/s4/s4_meta.parquet` |
-| `s5.sqlite` | P06 `data/out/s5/edm_*.nt` | P12 `data/out/s5/s5_meta.parquet` |
-| `s6.sqlite` | P07 `data/out/s6/edm_*.nt` | P13 `data/out/s6/s6_meta.parquet` |
-| `s7.sqlite` | P08 `data/out/s7/edm_*.nt` | P14 `data/out/s7/s7_meta.parquet` |
+| `s1.sqlite` | P03 `/data/ddb/nt/s1/edm_*.nt` | P09 `/data/ddb/nt/s1/s1_meta.parquet` |
+| `s3.sqlite` | P04 `/data/ddb/nt/s3/edm_*.nt` | P10 `/data/ddb/nt/s3/s3_meta.parquet` |
+| `s4.sqlite` | P05 `/data/ddb/nt/s4/edm_*.nt` | P11 `/data/ddb/nt/s4/s4_meta.parquet` |
+| `s5.sqlite` | P06 `/data/ddb/nt/s5/edm_*.nt` | P12 `/data/ddb/nt/s5/s5_meta.parquet` |
+| `s6.sqlite` | P07 `/data/ddb/nt/s6/edm_*.nt` | P13 `/data/ddb/nt/s6/s6_meta.parquet` |
+| `s7.sqlite` | P08 `/data/ddb/nt/s7/edm_*.nt` | P14 `/data/ddb/nt/s7/s7_meta.parquet` |
 
 ## Scripts
 
@@ -62,6 +62,39 @@ Failed    : N
 Elapsed   : Xm Ys
 Log       : /data/ddb/logs/export_batch.log
 ```
+
+## Remote server setup
+
+Remote server: `ise-d-teach03`. Project at `/home/ann/gemea`.
+
+### Create venv and install dependencies
+
+```bash
+cd /home/ann/gemea
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements-export.txt
+```
+
+`requirements-export.txt` is a minimal install (only `pyarrow` + `pyoxigraph`). The full
+`requirements.txt` includes torch/transformers and is not needed for the export job.
+
+### Run the export
+
+```bash
+# all remaining sectors (s1, s3–s7) with defaults
+bash scripts/sh/export_batch_remote.sh
+
+# single sector
+bash scripts/sh/export_batch_remote.sh /data/ddb/data/s6.sqlite
+
+# override venv or output location
+VENV_DIR=/opt/gemea/venv OUT_BASE=/data/ddb/nt bash scripts/sh/export_batch_remote.sh
+```
+
+Log tailed live or checked after: `/data/ddb/logs/export_batch.log`.
+
+---
 
 ## Files changed during rename
 
