@@ -1,42 +1,40 @@
-%% 01-intro.tex — Introduction
+%% 10-intro.tex — Introduction
 
 \section{Introduction}
 \label{sec:introduction}
 
+The German Digital Library (Deutsche Digitale Bibliothek, DDB)\todo{cite here!} aggregates over 65 million objects from archives, libraries, museums, media libraries, and monument preservation institutions across Germany, all described using the Europeana Data Model (EDM)\todo{cite here!}.
+Despite this semantic foundation, the corpus has no public SPARQL endpoint, no Linked Data browser, and no machine-readable interface suitable for KG-based research.
+Access is limited to the DDB's own search interface, which supports neither graph traversal nor structured querying.
+
+A shared metadata schema is rarely encountered in its idealized form at scale.
+Institutions encode data against different versions of the same schema, apply locally-specific interpretations of its fields, and carry cataloging traditions shaped by sector — library, archive, museum — into every record.
+These local conventions are internally consistent; their collective complexity becomes visible only at transformation scale.
+Schema heterogeneity is not a preprocessing detail but the research problem itself.
+
+GeMeA (German Memory Atlas) is a publicly accessible knowledge graph over 26 million DDB objects, accompanied by a documented workflow for its construction.
+The name reflects both the resource's scope and its function: the DDB aggregates the holdings of German memory institutions --- archives, libraries, museums, and media libraries --- and GeMeA provides the structured, graph-navigable index over that record that has so far been absent.
+Four contributions are described in this paper:
+
 \begin{enumerate}
-    \item Introduction
-    \item Related Work
-    \item Resource Description
-    \begin{enumerate}
-        \item EDM Knowledge Graph (26M objects, QLever, SHMARQL)
-        \item Ontology Alignment PoC (mocho, EDM → RDA/FRBR)
-        \item Access Layer (SPARQL, MCP/MCPO)
-        \item Entity Linking (GND, rule-based baseline)        
-    \end{enumerate}
-    \item Quality \& Validation
-    \item Usage \& Reusability
-    \item Impact \& Sustainability
-    \item Conclusion
+    \item \textbf{Resource.} A publicly queryable KG of 26M German cultural heritage objects, served via a QLever SPARQL endpoint~\cite{bast2017qlever} and browsable through a SHMARQL Linked Data interface --- the first open, SPARQL-accessible KG over the DDB corpus.
+
+    \item \textbf{Ontology alignment PoC.} A \texttt{mocho}-based alignment layer mapping DDB EDM metadata to RDA/FRBR-compatible representations, demonstrated on a representative subset, with scope boundaries documented rather than suppressed.
+
+    \item \textbf{Agentic access layer.} An MCP/MCPO interface on the QLever endpoint, enabling AI agents to query GeMeA programmatically via any MCP-compatible client.
+
+    \item \textbf{Transformation workflow.} A documented, iterative workflow for constructing a KG from aggregated cross-institutional metadata: analyze real encodings, design alignment rules, transform, measure preservation and loss, refine. Instantiated on EDM and \texttt{mocho}; applicable wherever a large metadata corpus must be mapped to a KG under a schema that institutions have interpreted heterogeneously.
 \end{enumerate}
 
-Option B — Testbed-forward
-Restructures around the paper's distinguishing claim; good if reviewers need convincing that a PoC-scale resource warrants publication.
+GeMeA is released as a research testbed for LLM + KG research at cultural heritage scale, including KG-grounded retrieval, entity embedding, explainability, and agentic KG access.
+Ontology evaluation on the \texttt{mocho}-aligned subgraph and provenance modeling of LLM-assisted KG enrichment are also supported.
+Data is licensed CC~BY~4.0; the SPARQL endpoint, Linked Data browser, and source code are available at \todo{[persistent URI]}.
 
-Introduction
-Related Work
-Resource Description
-KG Enhancement Pipeline (mocho PoC + entity linking)
-Testbed Applications (onto-eval, MCP/agentic, RML, Prov-LM)
-Quality \& Sustainability
-Conclusion
-Option C — With Discussion
-Adds explicit space for limitations and positioning; useful given the PoC framing.
-
-Introduction
-Related Work
-Resource Description
-Quality \& Validation
-Usage \& Reusability
-Discussion (scope, known gaps, comparison with ArtKB/Europeana LOD)
-Conclusion
-Recommendation: Option A for a first submission — it matches reviewer expectations for the Resource Track and maps cleanly onto the mandatory sections (availability, quality, usage, sustainability). The testbed applications fit naturally into §5 Usage \& Reusability without needing a dedicated section.
+The remainder of this paper is structured as follows.
+Section~\ref{sec:related} surveys related cultural heritage KGs and Linked Data initiatives.
+Section~\ref{sec:resource} describes the GeMeA resource: the EDM knowledge graph, the \texttt{mocho} ontology alignment PoC, the SHMARQL browsing interface, and the MCP access layer.
+Section~\ref{sec:quality} reports on data quality, known scope boundaries, and validation results.
+Section~\ref{sec:usage} illustrates usage through SPARQL examples and downstream research applications.
+Section~\ref{sec:impact} addresses broader impact and FAIR compliance.
+Section~\ref{sec:sustainability} addresses long-term sustainability.
+Section~\ref{sec:conclusion} concludes.

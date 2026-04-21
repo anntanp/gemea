@@ -1,13 +1,34 @@
+%% 60-impact.tex — Impact and Adoption
+
 \section{Impact and Adoption}
 \label{sec:impact}
 
-% TODO (~0.5–1 page)
-% - Fills the gap: first open SPARQL + search interface over the full DDB corpus
-% - FAIR principles: Findable (persistent URI, registry), Accessible (SPARQL + download),
-%   Interoperable (RDA/EDM ontologies, standard RDF serializations), Reusable (CC BY 4.0, VoID)
-% - Potential users: digital humanities researchers, library scientists, KG/IR researchers,
-%   cultural heritage institutions
-% - Relation to ddbkg research (IR benchmarking on GeMeA data)
-% - Societal interest: making German cultural heritage discoverable and machine-readable
-% - Comparison to Europeana LOD (scope, freshness, granularity)
-\todo{Impact and Adoption.}
+\subsection{Access to the DDB Corpus}
+
+GeMeA is the first open, SPARQL-accessible knowledge graph over the DDB corpus.
+The DDB corpus has been used in IR benchmarking and cultural heritage analysis research, but was previously inaccessible to KG-based methods.
+GeMeA makes 26 million of those objects queryable by SPARQL, dereferenceable as Linked Data, and accessible to AI agents via MCP.
+
+\subsection{FAIR Compliance}
+
+GeMeA satisfies the FAIR data principles~\cite{wilkinson2016fair}:
+
+\begin{itemize}
+    \item \textbf{Findable.} The dataset is registered with a persistent URI (\todo{w3id or Zenodo DOI}) and described by a VoID and DCAT dataset descriptor.
+    \item \textbf{Accessible.} Data is available via a public SPARQL endpoint, as bulk download (N-Triples per named graph), and through the SHMARQL Linked Data browser.
+    \item \textbf{Interoperable.} Standard RDF serializations (N-Triples, Turtle, JSON-LD), established vocabularies (EDM, RDA, FRBR, Dublin Core, GeoNames), and GND authority identifiers for agents and works are used throughout.
+    \item \textbf{Reusable.} Data is licensed CC~BY~4.0; software is released under an open source license; the VoID descriptor documents provenance, coverage, and known limitations.
+\end{itemize}
+
+\subsection{Target Communities}
+
+\paragraph{Digital humanities and library science.}
+German cultural heritage research has lacked a machine-readable, graph-accessible corpus at this scale.
+GeMeA enables quantitative analysis of DDB metadata --- cross-sector co-occurrence patterns, temporal distribution of holdings, geographic coverage --- that was previously infeasible without custom DDB API scraping.
+
+\paragraph{Semantic Web and KG research.}
+A public SPARQL endpoint, named graph provenance, \texttt{mocho} ontology alignment, and MCP agentic access make GeMeA a practical testbed for KG construction methods, ontology evaluation, entity linking, and LLM + KG research (Section~\ref{sec:usage}).
+
+\paragraph{Cultural heritage institutions.}
+GeMeA provides a self-hostable reference deployment that any cultural heritage aggregator can adapt: the rdf2jsonld + \texttt{mocho} + QLever + SHMARQL stack is documented, containerized, and demonstrated at 26M-object scale.
+Institutions that have contributed data to the DDB can use GeMeA to query their own holdings in graph form.

@@ -1,15 +1,90 @@
+%% 50-usage.tex — Usage and Reusability
+
 \section{Usage and Reusability}
 \label{sec:usage}
 
-% TODO (~1–2 pages)
-% - Web UI: search bar, facets (type/place/time/institution), entity pages, graph viz, map, timeline
-% - SPARQL endpoint: example queries (keyword search, geo-filter, timespan, agent lookup)
-% - Self-hosting: Docker Compose, hardware requirements, lite mode for dev
-% - Example SPARQL queries (listings with SPARQL syntax highlighting):
-%   1. Find all objects by a given agent (GND URI)
-%   2. Objects created in a given place and decade
-%   3. Count objects per provider institution
-%   4. 1-hop neighborhood of a ProvidedCHO
-% - Extension points: adding new providers, enrichment with Wikidata/GND
-% - Tutorials / documentation links
-\todo{Usage and Reusability.}
+\subsection{SPARQL Access}
+
+A public read-only SPARQL 1.1 endpoint is available at \todo{[endpoint URL]}, backed by QLever.
+QLever's integrated text and SPARQL support allows queries that combine keyword matching with graph constraints in a single request via \texttt{ql:contains-entity}.
+
+\paragraph{Query 1: Objects associated with a given agent (GND URI).}
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
+PREFIX edm: <http://www.europeana.eu/schemas/edm/>
+PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+SELECT ?cho ?title WHERE {
+  ?agg edm:aggregatedCHO ?cho .
+  ?cho dc:creator <http://d-nb.info/gnd/118540238> ;
+       dc:title   ?title .
+}
+LIMIT 100
+\end{lstlisting}
+
+\paragraph{Query 2: Objects created in a given place and decade.}
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
+PREFIX edm:     <http://www.europeana.eu/schemas/edm/>
+PREFIX dc:      <http://purl.org/dc/elements/1.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+SELECT ?cho ?title ?date WHERE {
+  ?cho edm:currentLocation <http://sws.geonames.org/2925533/> ;
+       dc:title             ?title ;
+       dcterms:issued       ?date .
+  FILTER(?date >= "1800"^^xsd:gYear && ?date < "1810"^^xsd:gYear)
+}
+LIMIT 100
+\end{lstlisting}
+
+\paragraph{Query 3: Object count per provider institution.}
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
+PREFIX edm: <http://www.europeana.eu/schemas/edm/>
+SELECT ?provider (COUNT(?cho) AS ?count) WHERE {
+  ?agg edm:dataProvider ?provider ;
+       edm:aggregatedCHO ?cho .
+}
+GROUP BY ?provider ORDER BY DESC(?count)
+\end{lstlisting}
+
+\paragraph{Query 4: One-hop neighborhood of a ProvidedCHO.}
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
+PREFIX edm: <http://www.europeana.eu/schemas/edm/>
+SELECT ?p ?o WHERE {
+  { <http://www.deutsche-digitale-bibliothek.de/item/EXAMPLE123>
+    ?p ?o . }
+  UNION
+  { ?o ?p
+    <http://www.deutsche-digitale-bibliothek.de/item/EXAMPLE123> . }
+}
+\end{lstlisting}
+
+\subsection{Linked Data Browser}
+
+The SHMARQL interface (Section~\ref{sec:resource:shmarql}) provides point-and-click navigation over GeMeA without requiring SPARQL knowledge.
+Entity URIs for ProvidedCHOs, agents, places, and time spans are dereferenceable: a browser request renders an HTML entity page with outgoing and incoming links; HTTP content negotiation returns Turtle or JSON-LD for machine clients.
+
+\subsection{Research Applications}
+
+GeMeA supports the following LLM + KG research use cases.
+
+\paragraph{KG-grounded retrieval.}
+The SPARQL endpoint and MCP interface support evaluation of KG-grounded RAG pipelines, entity-linked question answering, and hybrid text + structured query benchmarks over a real-world CH corpus at scale.
+QLever's integrated text search (\texttt{ql:contains-entity}) enables single-query evaluation of text and graph constraints without a separate full-text search layer.
+
+\paragraph{Entity embedding and link prediction.}
+The 26M entity graph --- agents, places, timespans, providers, and \texttt{mocho:Work} groupings --- provides a benchmark for entity embedding methods and link prediction.
+Named graph structure supports provenance-aware experiments that distinguish source triples from enrichment triples.
+
+\paragraph{Explainability.}
+Provenance-tracked named graphs and PROV-O\todo{cite here!} traces on GND-linked triples support evaluation of KG-grounded explanation methods, including tracing a retrieval result back to its source institution, enrichment pathway, and match confidence.
+
+\paragraph{Agentic KG access (\texttt{framework.trails}).}
+The MCP/MCPO interface supports development and evaluation of multi-step KG reasoning agents.
+An agent with access to the GeMeA MCP server can resolve entity queries, explore graph neighborhoods, and compose multi-hop SPARQL queries without manual endpoint configuration.
+\todo{Insert 2 example MCP agent interactions.}
+
+\paragraph{Ontology evaluation (\texttt{onto-eval}).}
+The \texttt{mocho}-aligned subgraph --- with documented alignment coverage and scope boundaries --- provides a grounded evaluation target for ontology evaluation methods and a benchmark for alignment improvement.
+
+\subsection{Self-Hosting}
+
+The full GeMeA stack is deployable via Docker Compose.
+\todo{Hardware requirements, stack services (QLever, SHMARQL, MCP proxy), and link to deployment documentation.}

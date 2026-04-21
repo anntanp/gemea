@@ -1,13 +1,34 @@
+%% 70-sustainability.tex — Sustainability
+
 \section{Sustainability}
 \label{sec:sustainability}
 
-% TODO (~0.5 page)
-% - Maintenance: versioned releases aligned with DDB data dumps
-% - Update cadence: TBD (quarterly? annual?)
-% - Versioning: named graphs per ingestion batch; VoID version metadata
-% - Hosting: TBD (institutional server, cloud VPS, or community-hosted)
-% - Self-hosting option: anyone can run the full stack via Docker Compose
-% - Persistent URI: w3id (preferred) or Zenodo DOI
-% - Open source: code repository (GitHub), MIT or Apache 2.0 license for software
-% - Institutional support: TBD
-\todo{Sustainability.}
+\paragraph{Versioning.}
+Each ingestion cycle produces a versioned set of named graphs tagged with the DDB dump date.
+Version metadata is recorded in the VoID descriptor (\texttt{void:Dataset} with \texttt{dcterms:modified} and \texttt{owl:versionInfo}).
+Named graph URIs follow the scheme \texttt{http://gemea.ddb.de/graph/\{provider\_id\}/v\{YYYY-MM\}}, allowing parallel versions to coexist in the triplestore during transition periods.
+
+\paragraph{Update cadence.}
+GeMeA tracks DDB data releases as they become available.
+\todo{Confirm expected update cadence (quarterly/annual) with DDB.}
+
+\paragraph{Persistent URI.}
+The dataset is registered at \todo{[w3id.org/gemea or Zenodo DOI]}, providing a stable reference URI independent of hosting infrastructure.
+
+\paragraph{Open source.}
+The full pipeline --- rdf2jsonld, \texttt{mocho}, QLever configuration, SHMARQL Docker Compose, and MCP setup --- is available at \todo{[GitHub repository URL]} under an open source license.
+The GeMeA index is reproducible from the DDB data dump using the provided scripts.
+
+\paragraph{Institutional support.}
+GeMeA is developed at FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure in collaboration with the Karlsruhe Institute of Technology (AIFB).
+The resource is hosted on institutional infrastructure.
+\todo{Confirm hosting arrangement and expected availability period.}
+
+\paragraph{Dependency management.}
+The \texttt{mocho} alignment layer depends on \texttt{mocho.owl}, which is under active development.
+Alignment rule changes upstream are tracked in the GeMeA repository and trigger a re-run of the affected named graph.
+Known scope boundaries in the current alignment (Section~\ref{sec:quality}) are documented as versioned issue records.
+
+\paragraph{v2 roadmap.}
+v2 extends the corpus to the full 65M DDB objects, adds an Elasticsearch full-text index for faceted search, replaces SHMARQL with a purpose-built Next.js KG browser, and completes the GND agent and Werk linking pipeline.
+The v1 QLever index and named graph structure are reused without migration.

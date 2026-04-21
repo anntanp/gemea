@@ -1,37 +1,57 @@
+%% 20-related.tex — Related Work
+
 \section{Related Work}
 \label{sec:related}
 
-% TODO (~1–1.5 pages)
-%
-% Structure:
-%
-% 1. Cultural heritage KGs and LOD initiatives
-%    - Europeana LOD (EDM; large scale, but limited SPARQL endpoint and no graph browser)
-%    - Smithsonian LOD, British Museum CIDOC-CRM
-%    - ArCo: Italian CH KG (CIDOC-CRM based, interlinked with DBpedia/GVP) [Carriero et al. ISWC 2019]
-%    - ICH-KG: Chinese intangible CH (automated population from ICH database)
-%    - ArtGraph: WikiArt + DBpedia (artistic KG with graph-based discovery) [Castellano et al. 2022]
-%
-% 2. Multimodal CH knowledge bases — ArtKB [Blanco et al. ESWC 2026] is the closest contemporary work:
-%    - CACAO ontology (CIDOC-CRM extension), built from Wikidata, 8M triples, 307K artefacts
-%    - Combines RDF graph (GraphDB) + vector DB (Qdrant) + object storage (MinIO) + API gateway
-%    - Use cases: Text2SPARQL, neural image retrieval, AI metadata suggestion, Text2RDF
-%    - Key difference from GeMeA: small curated art collection (307K) vs. national cross-domain
-%      corpus (65M); API-only vs. full web UI; no named graph provenance; no self-hosting docs
-%
-% 3. RDA/FRBR-based linked bibliographic data
-%    - BIBFRAME (Library of Congress): RDA-aligned, bibliographic focus
-%    - Linked bibliographic data initiatives (OCLC, DNB)
-%    - mocho as a bridge between EDM and RDA (this work)
-%
-% 4. KG browsers and SPARQL interfaces
-%    - Wikidata Query Service (public SPARQL; no CH-specific browsing)
-%    - DBpedia Spotlight / LodLive (generic LOD browsers)
-%    - DDB native UI: search only, no SPARQL, no graph navigation, no open data export
-%
-% 5. Comparison table (rows: GeMeA, ArtKB, Europeana LOD, ArCo, DDB native UI)
-%    Columns: scale, source, ontology, SPARQL endpoint, web UI, multimodal, open/self-hostable
-%
-% 6. ORKG comparison: TBD
+\subsection{Cultural Heritage Knowledge Graphs and LOD Initiatives}
 
-\todo{Related Work.}
+Europeana LOD~\cite{europeana2012lod} is the largest CH Linked Open Data initiative, exposing EDM-compliant metadata for tens of millions of objects aggregated from across Europe.
+Its SPARQL endpoint has been discontinued; data is distributed primarily as bulk download, with no interactive graph browser.
+National counterparts share similar limitations: the Smithsonian Institution\todo{cite here!} and British Museum\todo{cite here!} have published CIDOC-CRM\todo{cite here!}-aligned collections, but interactive SPARQL access and Linked Data browsing remain inconsistent.
+
+Domain-specific CH KGs have been published at ISWC and ESWC.
+ArCo~\cite{carriero2019arco} is an Italian CH KG modeled with CIDOC-CRM and interlinked with DBpedia and the Getty Vocabularies, covering around 820K cultural objects; it provides a SPARQL endpoint but no graph browser.
+ICH-KG~\cite{ichkg2022} automatically populates a KG from Chinese intangible cultural heritage databases.
+ArtGraph~\cite{castellano2022artgraph} combines WikiArt and DBpedia for art-specific discovery via graph-based methods, but is limited to visual art and does not expose a SPARQL endpoint.
+
+The closest contemporary work is ArtKB~\cite{blanco2026artkb}, presented at ESWC 2026.
+ArtKB is a multimodal knowledge base for art objects built using the CACAO ontology (a CIDOC-CRM extension), combining a GraphDB RDF store with a Qdrant vector database, MinIO object storage, and an API gateway.
+It supports Text2SPARQL, neural image retrieval, AI metadata suggestion, and Text2RDF.
+ArtKB covers 307K curated art objects from Wikidata, exposes an API gateway without a public SPARQL endpoint, and does not document self-hosting or include a Linked Data browser.
+
+\subsection{Bibliographic Linked Data and Ontology Alignment}
+
+BIBFRAME~\cite{bibframe}, developed by the Library of Congress, provides an RDA-aligned linked data model for bibliographic description.
+The DNB (Deutsche Nationalbibliothek)\todo{cite here!} and OCLC\todo{cite here!} have published linked bibliographic data using BIBFRAME and related vocabularies.
+\texttt{mocho}~\cite{mocho} bridges EDM and RDA\todo{cite here!}/FRBR\todo{cite here!}: it maps EDM ProvidedCHOs to FRBR Manifestations, groups them into \texttt{mocho:Work} entities via GND\todo{cite here!} Werk links, and normalizes properties to RDA vocabulary.
+GeMeA's alignment layer is a direct application of \texttt{mocho} to the DDB corpus.
+
+\subsection{SPARQL Endpoints and KG Browsers}
+
+The Wikidata Query Service provides a public SPARQL endpoint at scale but is domain-general and lacks CH-specific browsing.
+Generic LOD browsers (LodLive\todo{cite here!}, Pubby\todo{cite here!}) support RDF dereferencing but are not designed for faceted search or collection-level navigation.
+SHMARQL~\cite{shmarql} is a lightweight Linked Data publishing layer that provides a browsable web interface and SPARQL proxy over any SPARQL endpoint, deployed via Docker with no custom frontend development required.
+The DDB's own interface supports keyword search over its full 65M-object corpus but provides no SPARQL access, no graph navigation, and no open data export.
+
+\subsection{Comparison}
+
+Table~\ref{tab:related} summarizes GeMeA relative to the most relevant systems.
+Among the systems listed, only GeMeA combines national-scale cross-domain coverage with a public SPARQL endpoint, an interactive Linked Data browser, and self-hostable deployment.
+The MCP/MCPO agentic access layer has no published precedent in CH KG work.
+
+\begin{table}[t]
+\caption{Comparison of GeMeA with related cultural heritage knowledge graphs and interfaces. \emph{Scale} = approximate object count; \emph{SPARQL} = public SPARQL endpoint; \emph{Browser} = interactive Linked Data or graph browser; \emph{Self-host} = self-hostable deployment documented.}
+\label{tab:related}
+\centering
+\begin{tabular}{lrllll}
+\toprule
+\textbf{System} & \textbf{Scale} & \textbf{Ontology} & \textbf{SPARQL} & \textbf{Browser} & \textbf{Self-host} \\
+\midrule
+GeMeA (this work)   & 26M  & EDM + \texttt{mocho} (RDA/FRBR) & \checkmark & SHMARQL  & \checkmark \\
+ArtKB~\cite{blanco2026artkb} & 307K & CACAO (CIDOC-CRM) & --     & --       & -- \\
+Europeana LOD~\cite{europeana2012lod} & $\sim$50M & EDM & --  & --       & -- \\
+ArCo~\cite{carriero2019arco}  & 820K & CIDOC-CRM & \checkmark & --   & partial \\
+DDB native UI       & 65M  & proprietary & --     & search only & -- \\
+\bottomrule
+\end{tabular}
+\end{table}

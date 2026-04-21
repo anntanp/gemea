@@ -26,13 +26,32 @@
 ## 2. Framing
 
 **Core claim:**
-> GeMeA provides the first openly browsable, SPARQL-accessible, and MCP-accessible knowledge graph over the German Digital Library corpus (26M objects), deployed via QLever and SHMARQL, with a mocho-based ontology alignment PoC demonstrating data-driven KG enhancement, and serving as a testbed for Semantic Web research including ontology evaluation, agentic KG frameworks, RML mapping applicability, and provenance modelling of LLM-assisted enrichment.
+> GeMeA provides the first openly browsable, SPARQL-accessible, and MCP-accessible knowledge graph over the German Digital Library corpus (26M objects), deployed via QLever and SHMARQL, with a mocho-based ontology alignment PoC demonstrating data-driven KG enhancement, and serving as a testbed for LLM + KG research at cultural heritage scale.
 
-**Downstream use cases (testbed positioning):**
-- `onto-eval` — ontology evaluation research on GeMeA's mocho-aligned subgraph
-- `framework.trails` — agentic KG framework development against the MCP/MCPO interface
-- **RML applicability** — GeMeA's EDM → RDA/mocho mapping pipeline is a candidate for RML (RDF Mapping Language) expression; the KG serves as a testbed for evaluating RML-based declarative mapping vs. the current procedural approach (rdf2jsonld + mocho), including coverage, maintainability, and alignment fidelity
-- **Provenance (Prov-LM)** — GeMeA's KG enhancement pipeline (GND linking, mocho alignment) generates provenance traces (source record, extraction method, match confidence, enrichment graph); testbed for Prov-LM extensions that model LLM-assisted enrichment steps as PROV-O activities with attribution to model version, prompt, and confidence
+**Workflow framing (second contribution pillar):**
+
+A recurring challenge in KG construction is that the shared schema underpinning a data collection is rarely encountered in its idealized form. Schemas evolve; institutions encode data against different points in that evolution; and each institution brings its own cataloging tradition to every field. The complexity only becomes visible when you attempt a large-scale transformation — at which point it becomes the research problem.
+
+GeMeA documents this as a generalizable workflow:
+1. **Analyze** — characterize real metadata encodings across institutions and sectors
+2. **Align** — design rules that account for cross-institutional variation (and, where applicable, schema versioning)
+3. **Transform** — apply rdf2jsonld + mocho to produce KG-ready triples
+4. **Measure** — identify what is preserved and what hits a scope boundary
+5. **Refine** — extend rules or document boundary conditions for the next iteration
+
+GeMeA instantiates this on the DDB corpus using EDM as the source schema and mocho (EDM → RDA/FRBR) as the alignment target. The primary challenge it surfaces is **cross-institutional heterogeneity**: cataloging traditions vary by sector; EDM fields carry locally-defined semantics that were internally consistent but collectively ambiguous at aggregation time. The workflow is also applicable to cases where **temporal heterogeneity** compounds the problem — schemas change over time, and a large corpus may encode data against multiple schema versions in parallel — though GeMeA does not claim to have measured this for DDB.
+
+*Note on framing:* Provider-level complexity reflects rational local decisions made without visibility into future aggregation needs. The paper treats it as a structural property of cross-institutional metadata, not a failure of any participant.
+
+**Testbed positioning (LLM + KG research):**
+- **Retrieval** — benchmark corpus for KG-grounded retrieval: SPARQL-assisted RAG, entity-linked QA over German CH metadata, hybrid text + structured query evaluation
+- **Explainability** — provenance-tracked named graphs enable evaluation of KG-grounded explanations for LLM outputs
+- **Embeddings** — 26M entities with rich relational structure support entity embedding research and link prediction benchmarks
+- **Agentic KG** (`framework.trails`) — MCP/MCPO interface for development and evaluation of multi-step KG reasoning agents
+- **Ontology evaluation** (`onto-eval`) — mocho-aligned subgraph with documented scope boundaries as a grounded evaluation target
+- **Open question (no existing literature):** Does using verbose, descriptive ontology labels (e.g., `rda:dateOfPublication` vs. MARC codes) meaningfully affect LLM performance on KG tasks? GeMeA's mocho-aligned layer is a natural testbed for this question — worth noting as a research direction, not a prior-work claim.
+- **Provenance** — enrichment pipeline traces (GND linking, mocho alignment) as a testbed for provenance modeling of LLM-assisted KG enhancement (PROV-O / Prov-LM extensions)
+- **RML** — preliminary idea only, no experiments: the EDM → RDA/mocho mapping is a potential candidate for RML expression; deferred
 - Full GeMeA KG browser (v2) — full-featured web UI over the same QLever backend
 
 ---
@@ -117,7 +136,33 @@
 
 ---
 
-## 8. Checklist
+## 8. What Determines Acceptance
+
+The Resource Track scores differently from a research paper. The following are ordered by weight.
+
+**The one non-negotiable: the resource must be live when reviewers check it.**
+Reviewers will click the URI. If the SPARQL endpoint returns an error, the paper is rejected regardless of writing quality. QLever endpoint, SHMARQL browser, and persistent URI must all be reachable before reviews come in.
+
+**Acceptance-critical items, in order:**
+
+1. **Persistent URI registered** — mandatory for the Resource Availability Statement. Must happen before the 2 May abstract, not the 7 May full paper. Single most time-critical item on the checklist.
+
+2. **Concrete stats in §3** — every `\todo{}` placeholder in the scale paragraph is a red flag. Reviewers expect triple counts, object counts, named graph inventory. Claiming "26M objects" without a number in the paper reads as unverified.
+
+3. **The PoC framing must be quantified** — the mocho alignment on a subset is acceptable, but only if §4 Quality clearly states what the subset covers and what it does not. A PoC without numbers fails the quality criterion. Scope boundaries need numbers, not only prose.
+
+4. **SPARQL examples must run** — the four queries in §5 must work against the live endpoint. A reviewer who tries Query 1 and gets a SPARQL error reads everything else with suspicion.
+
+5. **Workflow contribution must be backed by §3/§4 material** — contribution 4 (transformation workflow) differentiates GeMeA from a pure dataset paper. It only carries weight if §3 and §4 contain concrete material to support it. Describing the workflow in the abstract without grounding it in results reduces it to a claim.
+
+**Critical path before 2 May:**
+Register persistent URI → get QLever stats → submit abstract with real numbers.
+
+SHMARQL screenshots, MCP tool inventory, and §4 Quality prose can follow before 7 May, but the resource must be accessible and core numbers must be real by abstract time.
+
+---
+
+## 9. Checklist
 
 ### Before abstract (2 May)
 
@@ -147,7 +192,7 @@
 
 ---
 
-## 9. Paper Milestones
+## 10. Paper Milestones
 
 | Date | Milestone |
 |------|-----------|

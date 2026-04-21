@@ -1,16 +1,66 @@
+%% 30-resource.tex — Resource Description
+
 \section{Resource Description}
 \label{sec:resource}
 
-% TODO (~3–4 pages)
-% - Overview: GeMeA as app + dataset (Virtuoso triple store + Elasticsearch index)
-% - Source data: DDB (Deutsche Digitale Bibliothek), EDM records, 65M objects
-% - Pipeline: DDB JSON-LD → rdf2jsonld → mocho (RDA/FRBR normalization) → bulk load
-% - Data model: RDA WEMI hierarchy, EDM entities (ProvidedCHO, Aggregation, WebResource,
-%   Agent, Place, TimeSpan), mocho alignment
-% - Schema diagram (figure)
-% - Scale: objects, triples, agents, places, time spans, providers/institutions
-% - Named graph strategy (partition by provider)
-% - Web application components: search, facets, entity pages, graph viz, map, timeline
-% - SPARQL endpoint: access URL, supported query patterns, rate limits
-% - VoID / DCAT dataset descriptor
-\todo{Resource Description.}
+GeMeA is a knowledge graph over 26 million objects from the German Digital Library (DDB), organized into named graphs by provider institution and accessible via a public SPARQL endpoint, a Linked Data browser, and an MCP/MCPO agentic interface.
+The resource is built in four layers: (1) an EDM knowledge graph loaded into QLever, (2) a \texttt{mocho}-based ontology alignment layer mapping EDM to RDA/FRBR on a representative subset, (3) a SHMARQL Linked Data browsing interface, and (4) an MCP interface on the QLever endpoint.
+
+\subsection{EDM Knowledge Graph}
+\label{sec:resource:kg}
+
+The source data is the DDB corpus: JSON-LD exports of EDM records aggregated from \todo{N} German cultural heritage institutions across five sectors --- Bibliothek (library), Archiv (archive), Museum, Mediathek (media library), and Denkmal (monument preservation).
+Records are converted from DDB JSON-LD to N-Triples using rdf2jsonld~\cite{rdf2jsonld}, which normalizes EDM predicates, repairs malformed URIs, and partitions output by provider institution.
+
+\paragraph{Named graph structure.}
+The QLever index is organized as named graphs following the scheme \texttt{http://gemea.ddb.de/graph/\{provider\_id\}}, one per provider institution.
+A summary graph at \texttt{http://gemea.ddb.de/graph/meta} holds VoID and DCAT dataset descriptors.
+Named graph partitioning preserves provenance at the provider level and enables per-institution queries without full-corpus scans.
+
+\paragraph{Scale.}
+\todo{Run \texttt{SELECT (COUNT(*) AS ?n) WHERE \{ ?s ?p ?o \}} per named graph and fill in: total triple count, ProvidedCHO count, provider count, named graph count.}
+
+\paragraph{Object types and sectors.}
+\todo{Insert sector and mediatype distribution table from QLever once stats are available.}
+
+\paragraph{VoID descriptor.}
+\todo{Insert VoID snippet (void:Dataset with triples, distinctSubjects, properties, sparqlEndpoint, dataDump).}
+
+\subsection{Mocho Ontology Alignment PoC}
+\label{sec:resource:mocho}
+
+EDM is designed for cross-institutional aggregation rather than for KG reasoning or bibliographic work-level grouping.
+\texttt{mocho}~\cite{mocho} maps EDM to RDA/FRBR-compatible representations: \texttt{edm:ProvidedCHO} is typed as \texttt{frbr:Manifestation}; agents are split into \texttt{frbr:Person} and \texttt{frbr:CorporateBody} by GND type; EDM predicates are mapped to RDA vocabulary (e.g., \texttt{dc:title} $\to$ \texttt{rda:title}, \texttt{dc:creator} $\to$ \texttt{rda:creator}).
+Where a GND Werk URI is available (from \texttt{link\_gnd\_works.py}), \texttt{mocho} groups co-manifesting ProvidedCHOs into a \texttt{mocho:Work} entity.
+
+The alignment PoC is run on a representative subset of the DDB corpus.
+\todo{Subset size (CHO count), classes produced, triple count, mapping quality summary (direct vs.\ approximate matches, known scope boundaries).}
+
+Real EDM encodings surface scope boundaries in the initial alignment rules --- most notably in \texttt{dc:type} values, which carry locally-defined free-text strings in several sectors rather than the controlled vocabulary terms the rules assumed.
+These boundaries are documented in Section~\ref{sec:quality}.
+
+\subsection{SHMARQL Linked Data Interface}
+\label{sec:resource:shmarql}
+
+SHMARQL~\cite{shmarql} is a lightweight Linked Data publishing layer deployed as a Docker container (\texttt{ghcr.io/epoz/shmarql}).
+Entity URIs are dereferenceable, RDF is served with content negotiation (HTML, Turtle, JSON-LD), and a built-in SPARQL query editor is included.
+No custom frontend development is required.
+
+For GeMeA, SHMARQL is deployed as a proxy over the QLever endpoint.
+The deployment pattern was validated on the Goethe-Faust corpus~\cite{goethefaust} before being adapted for GeMeA's larger index.
+The GeMeA SHMARQL instance is available at \todo{[SHMARQL URL]}.
+
+\todo{Insert 1--2 screenshots of the SHMARQL interface: entity page and SPARQL editor.}
+
+\subsection{MCP/MCPO Agentic Access Layer}
+\label{sec:resource:mcp}
+
+The Model Context Protocol (MCP)~\cite{mcp2024} is an open standard for exposing tools and data sources to AI agents.
+GeMeA's QLever SPARQL endpoint is registered as an MCP server using \texttt{mcp-server-qlever}~\cite{mcpqlever}, making the KG queryable by any MCP-compatible agent or LLM client without custom integration code.
+An MCPO~\cite{mcpo} wrapper further exposes the endpoint as an OpenAPI-compatible HTTP interface for frameworks that do not natively support MCP.
+
+The registration is reproducible via \texttt{./setup.sh mcp-add} in the GeMeA Docker Compose stack, following the pattern established in the Goethe-Faust deployment.
+\todo{Inventory of MCP tools exposed by mcp-server-qlever: list tool names and descriptions.}
+
+\paragraph{Example agent interaction.}
+\todo{Insert 2 example agent interactions (MCP tool calls + responses) once mcp-add is run.}
