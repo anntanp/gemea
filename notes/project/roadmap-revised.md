@@ -47,7 +47,7 @@
 
 | Component | Status |
 |-----------|--------|
-| QLever endpoint (26M objects) | **Public** ✓ |
+| QLever endpoint (115k objects, 8M triples) | **Local only** ⚠ (edm-goethe-faust.nt on local machine; not yet public) |
 | Mocho PoC in QLever | **Running on subset** ✓ |
 | SHMARQL over QLever | **Pattern proven** (goethe-faust); adapt `docker-compose.shmarql.yml` + `setup.sh` |
 | MCP/MCPO on QLever | **Pattern proven** (`setup.sh mcp-add`); needs inventory of exposed tools |
@@ -123,7 +123,7 @@ Source: `fetch-ids-by-sector.py` against DDB Solr API (`digitalisat:true`); file
 
 | Requirement | Status |
 |-------------|--------|
-| Resource publicly accessible at review time | ✓ (QLever public) + SHMARQL browser (needs deploy) |
+| Resource publicly accessible at review time | ⚠ QLever running locally only (edm-goethe-faust.nt); not yet public + SHMARQL browser (needs deploy) |
 | VoID descriptor in paper | to write |
 | Persistent URI registered | **before 2 May** |
 | License statement (CC BY 4.0 for data) | ready |
