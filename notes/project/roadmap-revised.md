@@ -28,7 +28,7 @@
 **Core claim:**
 > GeMeA provides the first openly browsable, SPARQL-accessible, and MCP-accessible knowledge graph over the German Digital Library corpus (26M objects), deployed via QLever and SHMARQL, with a mocho-based ontology alignment PoC demonstrating data-driven KG enhancement, and serving as a testbed for LLM + KG research at cultural heritage scale.
 
-**Note:** A "documented observations" / experience report framing was considered and dropped. The three contributions are the resource, the \texttt{mocho} alignment PoC, and the agentic access layer. Scope boundaries from the alignment are documented in §4 Quality as part of the resource description, not as a standalone contribution.
+**Note:** A "documented observations" / experience report framing was considered and dropped. The three contributions are the resource, the \texttt{mocho} alignment PoC, and the agentic access layer. Scope boundaries from the alignment are documented in §4 Quality as part of the resource description, not as a standalone contribution. NER (GND Works linking) was also dropped from scope: it is a separate problem, and the time pressure of the 7 May deadline makes it the wrong place to spend paper budget.
 
 **Testbed positioning (LLM + KG research):**
 - **Retrieval** — benchmark corpus for KG-grounded retrieval: SPARQL-assisted RAG, entity-linked QA over German CH metadata, hybrid text + structured query evaluation
@@ -97,6 +97,10 @@ Source: `fetch-ids-by-sector.py` against DDB Solr API (`digitalisat:true`); file
 ---
 
 ## 5. Paper Structure
+
+**LaTeX draft**: https://overleaf.epoz.org/project/69e62ea641be25a8280374bf
+
+
 
 | Section | Content | Status |
 |---------|---------|--------|
