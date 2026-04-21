@@ -23,6 +23,9 @@ ArtKB covers 307K curated art objects from Wikidata, exposes an API gateway with
 
 BIBFRAME~\cite{bibframe}, developed by the Library of Congress, provides an RDA-aligned linked data model for bibliographic description.
 The DNB (Deutsche Nationalbibliothek)\todo{cite here!} and OCLC\todo{cite here!} have published linked bibliographic data using BIBFRAME and related vocabularies.
+Automatic ontology alignment tools, as benchmarked in the OAEI campaigns\todo{cite here!}, operate on ontological structure: lexical and structural similarity between class and property definitions.
+The EDM-to-RDA/FRBR mapping is not a structural similarity problem: distinguishing FRBR levels requires knowledge of cataloguing conventions; splitting \texttt{edm:Agent} into \texttt{frbr:Person} and \texttt{frbr:CorporateBody} requires external authority file lookups (GND); and the semantics of \texttt{dc:type} are sector-dependent and underdetermined by the EDM specification.
+A rule-based, domain-knowledge-driven alignment strategy is therefore appropriate for this class of problem.
 \texttt{mocho}~\cite{mocho} bridges EDM and RDA\todo{cite here!}/FRBR\todo{cite here!}: it maps EDM ProvidedCHOs to FRBR Manifestations, groups them into \texttt{mocho:Work} entities via GND\todo{cite here!} Werk links, and normalizes properties to RDA vocabulary.
 GeMeA's alignment layer is a direct application of \texttt{mocho} to the DDB corpus.
 

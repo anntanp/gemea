@@ -10,11 +10,10 @@ Access is limited to the DDB's own search interface, which supports neither grap
 A shared metadata schema is rarely encountered in its idealized form at scale.
 Institutions encode data against different versions of the same schema, apply locally-specific interpretations of its fields, and carry cataloging traditions shaped by sector — library, archive, museum — into every record.
 These local conventions are internally consistent; their collective complexity becomes visible only at transformation scale.
-Schema heterogeneity is not a preprocessing detail but the research problem itself.
 
-GeMeA (German Memory Atlas) is a publicly accessible knowledge graph over 26 million DDB objects, accompanied by a documented workflow for its construction.
+GeMeA (German Memory Atlas) is a publicly accessible knowledge graph over 26 million DDB objects.
 The name reflects both the resource's scope and its function: the DDB aggregates the holdings of German memory institutions --- archives, libraries, museums, and media libraries --- and GeMeA provides the structured, graph-navigable index over that record that has so far been absent.
-Four contributions are described in this paper:
+Three contributions are described in this paper:
 
 \begin{enumerate}
     \item \textbf{Resource.} A publicly queryable KG of 26M German cultural heritage objects, served via a QLever SPARQL endpoint~\cite{bast2017qlever} and browsable through a SHMARQL Linked Data interface --- the first open, SPARQL-accessible KG over the DDB corpus.
@@ -22,8 +21,6 @@ Four contributions are described in this paper:
     \item \textbf{Ontology alignment PoC.} A \texttt{mocho}-based alignment layer mapping DDB EDM metadata to RDA/FRBR-compatible representations, demonstrated on a representative subset, with scope boundaries documented rather than suppressed.
 
     \item \textbf{Agentic access layer.} An MCP/MCPO interface on the QLever endpoint, enabling AI agents to query GeMeA programmatically via any MCP-compatible client.
-
-    \item \textbf{Transformation workflow.} A documented, iterative workflow for constructing a KG from aggregated cross-institutional metadata: analyze real encodings, design alignment rules, transform, measure preservation and loss, refine. Instantiated on EDM and \texttt{mocho}; applicable wherever a large metadata corpus must be mapped to a KG under a schema that institutions have interpreted heterogeneously.
 \end{enumerate}
 
 GeMeA is released as a research testbed for LLM + KG research at cultural heritage scale, including KG-grounded retrieval, entity embedding, explainability, and agentic KG access.

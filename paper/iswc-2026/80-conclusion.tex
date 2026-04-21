@@ -5,9 +5,6 @@
 
 GeMeA is a publicly accessible knowledge graph over 26 million German cultural heritage objects from the DDB, with a public SPARQL endpoint, a SHMARQL Linked Data browser, and an MCP/MCPO agentic access layer --- no prior equivalent exists for the DDB corpus.
 
-The transformation workflow documented in this paper is not specific to EDM or the DDB.
-Wherever a large metadata corpus is mapped to a KG under a schema that institutions have interpreted heterogeneously, the same pattern applies: analyze real encodings, design alignment rules, transform, measure what is preserved and what falls outside current scope, refine.
-GeMeA instantiates this on EDM and \texttt{mocho}; the scope boundaries from the current alignment are documented in Section~\ref{sec:quality} as inputs to the next iteration.
 
 The v1 resource comprises a live QLever endpoint over 26M objects, a \texttt{mocho} alignment PoC on a representative subset, and a SHMARQL browser and MCP interface.
 v2 will scale to the full 65M-object corpus, add full-text indexing and faceted search, and complete the GND entity linking pipeline.

@@ -28,20 +28,7 @@
 **Core claim:**
 > GeMeA provides the first openly browsable, SPARQL-accessible, and MCP-accessible knowledge graph over the German Digital Library corpus (26M objects), deployed via QLever and SHMARQL, with a mocho-based ontology alignment PoC demonstrating data-driven KG enhancement, and serving as a testbed for LLM + KG research at cultural heritage scale.
 
-**Workflow framing (second contribution pillar):**
-
-A recurring challenge in KG construction is that the shared schema underpinning a data collection is rarely encountered in its idealized form. Schemas evolve; institutions encode data against different points in that evolution; and each institution brings its own cataloging tradition to every field. The complexity only becomes visible when you attempt a large-scale transformation — at which point it becomes the research problem.
-
-GeMeA documents this as a generalizable workflow:
-1. **Analyze** — characterize real metadata encodings across institutions and sectors
-2. **Align** — design rules that account for cross-institutional variation (and, where applicable, schema versioning)
-3. **Transform** — apply rdf2jsonld + mocho to produce KG-ready triples
-4. **Measure** — identify what is preserved and what hits a scope boundary
-5. **Refine** — extend rules or document boundary conditions for the next iteration
-
-GeMeA instantiates this on the DDB corpus using EDM as the source schema and mocho (EDM → RDA/FRBR) as the alignment target. The primary challenge it surfaces is **cross-institutional heterogeneity**: cataloging traditions vary by sector; EDM fields carry locally-defined semantics that were internally consistent but collectively ambiguous at aggregation time. The workflow is also applicable to cases where **temporal heterogeneity** compounds the problem — schemas change over time, and a large corpus may encode data against multiple schema versions in parallel — though GeMeA does not claim to have measured this for DDB.
-
-*Note on framing:* Provider-level complexity reflects rational local decisions made without visibility into future aggregation needs. The paper treats it as a structural property of cross-institutional metadata, not a failure of any participant.
+**Note:** A "documented observations" / experience report framing was considered and dropped. The three contributions are the resource, the \texttt{mocho} alignment PoC, and the agentic access layer. Scope boundaries from the alignment are documented in §4 Quality as part of the resource description, not as a standalone contribution.
 
 **Testbed positioning (LLM + KG research):**
 - **Retrieval** — benchmark corpus for KG-grounded retrieval: SPARQL-assisted RAG, entity-linked QA over German CH metadata, hybrid text + structured query evaluation
@@ -67,6 +54,21 @@ GeMeA instantiates this on the DDB corpus using EDM as the source schema and moc
 | GND Werk Linking (`link_gnd_works.py`) | **blocked** — depends on Phase 0a NER + mocho.owl stability; rule-based ISBD pass (~28% coverage) possible without NER |
 | GND Agent Linking (`link_gnd_agents.py`) | lower priority; deferred to v1.1 |
 | Persistent URI (w3id / Zenodo DOI) | **needed before 2 May** |
+
+### 3.1 ID corpus by sector (teach03)
+
+| File | Sector | Ingested | IDs | Size (MB) |
+|---|---|---|---|---|
+| `ids_sec_01_digitalisat.txt` | Archive | [ ] | 3,486,444 | 109.7 |
+| `ids_sec_02_digitalisat.txt` | Library | [ ] | 18,570,245 | 584.5 |
+| `ids_sec_03_digitalisat.txt` | Monument Preservation | [ ] | 83,575 | 2.6 |
+| `ids_sec_04_digitalisat.txt` | Research | [ ] | 1,223,929 | 38.5 |
+| `ids_sec_05_digitalisat.txt` | Media Library | [ ] | 1,799,840 | 56.7 |
+| `ids_sec_06_digitalisat.txt` | Museum | [ ] | 2,011,737 | 63.3 |
+| `ids_sec_07_digitalisat.txt` | Others | [ ] | 89,904 | 2.8 |
+| **Total** | | | **27,265,674** | **858.1** |
+
+Source: `fetch-ids-by-sector.py` against DDB Solr API (`digitalisat:true`); files on `ise-d-teach03:/data/ddb/data/ids/`. See `notes/project/ddb-27m.md`.
 
 ---
 
