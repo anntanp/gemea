@@ -8,7 +8,7 @@
 ## 1. Scope
 
 **In scope (v1 — this paper):**
-- 26M DDBEDM objects in QLever with public SPARQL endpoint
+- [26M DDBEDM objects](https://github.com/anntanp/gemea/blob/develop/notes/project/ddb-27m.md) in QLever with public SPARQL endpoint
 - Mocho PoC in QLever (ontology alignment on a representative subset)
 - **SHMARQL** — lightweight Linked Data publishing layer over QLever; provides browsable web UI + `/sparql` endpoint with zero custom frontend development (Docker, `ghcr.io/epoz/shmarql`)
 - MCP/MCPO interfaces on both QLever instances
@@ -59,11 +59,11 @@
 
 | File | Sector | Ingested | IDs | Size (MB) |
 |---|---|---|---|---|
-| `ids_sec_01_digitalisat.txt` | Archive | [ 250,000 ] | 3,486,444 | 109.7 |
+| `ids_sec_01_digitalisat.txt` | Archive | [ 351,405 ] | 3,486,444 | 109.7 |
 | `ids_sec_02_digitalisat.txt` | Library | [ x ] | 18,570,245 | 584.5 |
 | `ids_sec_03_digitalisat.txt` | Monument Preservation | [ ] | 83,575 | 2.6 |
 | `ids_sec_04_digitalisat.txt` | Research | [ ] | 1,223,929 | 38.5 |
-| `ids_sec_05_digitalisat.txt` | Media Library | [ 659,591 ] | 1,799,840 | 56.7 |
+| `ids_sec_05_digitalisat.txt` | Media Library | [ 1,094,957 ] | 1,799,840 | 56.7 |
 | `ids_sec_06_digitalisat.txt` | Museum | [ x ] | 2,011,737 | 63.3 |
 | `ids_sec_07_digitalisat.txt` | Others | [ ] | 89,904 | 2.8 |
 | **Total** | | | **27,265,674** | **858.1** |
