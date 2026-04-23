@@ -63,7 +63,7 @@
 | `ids_sec_02_digitalisat.txt` | Library | [ x ] | 18,570,245 | 584.5 |
 | `ids_sec_03_digitalisat.txt` | Monument Preservation | [ ] | 83,575 | 2.6 |
 | `ids_sec_04_digitalisat.txt` | Research | [ ] | 1,223,929 | 38.5 |
-| `ids_sec_05_digitalisat.txt` | Media Library | [ 1,094,957 ] | 1,799,840 | 56.7 |
+| `ids_sec_05_digitalisat.txt` | Media Library | [ 1,309,130 ] | 1,799,840 | 56.7 |
 | `ids_sec_06_digitalisat.txt` | Museum | [ x ] | 2,011,737 | 63.3 |
 | `ids_sec_07_digitalisat.txt` | Others | [ ] | 89,904 | 2.8 |
 | **Total** | | | **27,265,674** | **858.1** |
