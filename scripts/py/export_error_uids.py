@@ -25,7 +25,14 @@ def main(db_path: Path) -> None:
         with open(out_path, "w", encoding="utf-8") as f:
             for uid in uids:
                 f.write(f"{uid}\n")
-        print(f"Wrote {len(uids)} UIDs to {out_path}")
+
+    total = sum(len(v) for v in by_code.values())
+    print(f"\nSummary — {db_path.name}")
+    print(f"  Total errors : {total}")
+    print(f"  Status codes : {len(by_code)}")
+    for code, uids in sorted(by_code.items()):
+        pct = len(uids) / total * 100
+        print(f"    {code}  {len(uids):>6}  ({pct:.1f}%)")
 
 
 if __name__ == "__main__":
