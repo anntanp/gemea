@@ -31,6 +31,9 @@ def get_db():
     db.executescript(
         """CREATE TABLE IF NOT EXISTS objs (uid TEXT PRIMARY KEY, download_timestamp TEXT, bufgz BLOB);
            CREATE TABLE IF NOT EXISTS srcs (uid TEXT PRIMARY KEY, download_timestamp TEXT, bufgz BLOB);
+           CREATE TABLE IF NOT EXISTS errors (uid TEXT, timestamp TEXT, status_code INTEGER);
+           CREATE INDEX IF NOT EXISTS idx_objs_pending ON objs(uid) WHERE bufgz IS NULL;
+           CREATE INDEX IF NOT EXISTS idx_srcs_pending ON srcs(uid) WHERE bufgz IS NULL;
            PRAGMA journal_mode=WAL;"""
     )
     return db
@@ -38,7 +41,7 @@ def get_db():
 
 def download_obj(uid, output_filepath):
     if os.path.exists(output_filepath):
-        return True
+        return True, None
 
     with httpx.Client() as client:
         try:
@@ -46,27 +49,34 @@ def download_obj(uid, output_filepath):
             resp = client.get(uri, follow_redirects=True, timeout=30.0)
             if resp.status_code == 200:
                 open(output_filepath, "wb").write(gzip.compress(resp.content))
-                return True
+                return True, None
             else:
                 logging.error(
                     f"Problem retrieving {uid} status code was {resp.status_code} {resp.text}"
                 )
+                return False, resp.status_code
         except httpx.ConnectError:
             logging.error(f"Connect Error {uid}, sleeping a bit")
             time.sleep(1)
         except:
             logging.error(traceback.format_exc())
             logging.error(f"Problem with {uid}")
+    return False, None
 
 
 def worker(number, Q):
+    db = get_db()
     while True:
         uid = Q.get()
         if uid is None:
             logging.info(f"Worker {number} 'None' received stopping.")
             break
 
-        ok = download_obj(uid, os.path.join(OUTPUT_PATH, uid) + ".json.gz")
+        ok, status_code = download_obj(uid, os.path.join(OUTPUT_PATH, uid) + ".json.gz")
+        if not ok and status_code is not None:
+            timestamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.gmtime())
+            db.execute("INSERT INTO errors VALUES (?, ?, ?)", (uid, timestamp, status_code))
+            db.commit()
 #        if ok:
 #            ok = download_obj(f"{uid}/source/record", os.path.join(OUTPUT_PATH, uid) + ".xml.gz")
 #        if not ok:
