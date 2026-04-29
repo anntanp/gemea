@@ -18,7 +18,7 @@ if DB_PATH is None:
 DDB_URI = "https://api.deutsche-digitale-bibliothek.de/2/items/"
 BUF_SIZE = int(os.environ.get("BUF_SIZE", 999))
 SELECT_SIZE = int(os.environ.get("SELECT_SIZE", 50000))
-WORKER_COUNT = int(os.environ.get("WORKER_COUNT", 8))
+WORKER_COUNT = int(os.environ.get("WORKER_COUNT", 25))
 IMPORT_INTERVAL = int(os.environ.get("IMPORT_INTERVAL", 120))  # in seconds
 
 OUTPUT_PATH = os.environ.get("OUTPUT_PATH", "./out/")
@@ -39,44 +39,44 @@ def get_db():
     return db
 
 
-def download_obj(uid, output_filepath):
+def download_obj(uid, output_filepath, client):
     if os.path.exists(output_filepath):
         return True, None
 
-    with httpx.Client() as client:
-        try:
-            uri = DDB_URI + uid
-            resp = client.get(uri, follow_redirects=True, timeout=30.0)
-            if resp.status_code == 200:
-                open(output_filepath, "wb").write(gzip.compress(resp.content))
-                return True, None
-            else:
-                logging.error(
-                    f"Problem retrieving {uid} status code was {resp.status_code} {resp.text}"
-                )
-                return False, resp.status_code
-        except httpx.ConnectError:
-            logging.error(f"Connect Error {uid}, sleeping a bit")
-            time.sleep(1)
-        except:
-            logging.error(traceback.format_exc())
-            logging.error(f"Problem with {uid}")
+    try:
+        uri = DDB_URI + uid
+        resp = client.get(uri)
+        if resp.status_code == 200:
+            open(output_filepath, "wb").write(gzip.compress(resp.content))
+            return True, None
+        else:
+            logging.error(
+                f"Problem retrieving {uid} status code was {resp.status_code} {resp.text}"
+            )
+            return False, resp.status_code
+    except httpx.ConnectError:
+        logging.error(f"Connect Error {uid}, sleeping a bit")
+        time.sleep(1)
+    except:
+        logging.error(traceback.format_exc())
+        logging.error(f"Problem with {uid}")
     return False, None
 
 
 def worker(number, Q):
     db = get_db()
-    while True:
-        uid = Q.get()
-        if uid is None:
-            logging.info(f"Worker {number} 'None' received stopping.")
-            break
+    with httpx.Client(follow_redirects=True, timeout=30.0) as client:
+        while True:
+            uid = Q.get()
+            if uid is None:
+                logging.info(f"Worker {number} 'None' received stopping.")
+                break
 
-        ok, status_code = download_obj(uid, os.path.join(OUTPUT_PATH, uid) + ".json.gz")
-        if not ok and status_code is not None:
-            timestamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.gmtime())
-            db.execute("INSERT INTO errors VALUES (?, ?, ?)", (uid, timestamp, status_code))
-            db.commit()
+            ok, status_code = download_obj(uid, os.path.join(OUTPUT_PATH, uid) + ".json.gz", client)
+            if not ok and status_code is not None:
+                timestamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.gmtime())
+                db.execute("INSERT INTO errors VALUES (?, ?, ?)", (uid, timestamp, status_code))
+                db.commit()
 #        if ok:
 #            ok = download_obj(f"{uid}/source/record", os.path.join(OUTPUT_PATH, uid) + ".xml.gz")
 #        if not ok:
@@ -149,8 +149,8 @@ def main():
     while keep_going:
         uids = [
             uid
-            for uid, _ in db.execute(
-                f"SELECT uid, download_timestamp FROM objs WHERE bufgz IS NULL LIMIT {SELECT_SIZE}"
+            for uid, in db.execute(
+                f"SELECT uid FROM objs WHERE bufgz IS NULL LIMIT {SELECT_SIZE}"
             )
         ]
         if len(uids) < 1:
