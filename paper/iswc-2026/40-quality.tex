@@ -5,8 +5,38 @@
 % - Completeness: coverage of DDB corpus (% of total objects loaded)
 % - URI well-formedness: results from rdf2jsonld URI validator (repair rate, drop rate)
 % - mocho mapping quality: direct vs. approximate matches; coverage per ontology
+% - mocho was built with ODK and reasoned with HermiT~\cite{motik2009hypertableau}
 % - SHACL constraints / SPARQL ASK validation queries
 % - Consistency checks: duplicate detection, dangling references
 % - Known limitations: unresolved entities, sparse geographic data, temporal gaps
 % - Metrics table
+\textbf{MOCHO} was built with the Ontology Development Kit (ODK).
+The ontology requires OWL~2~DL expressivity: it makes use of universal restrictions
+(\texttt{owl:allValuesFrom}), cardinality constraints, complement and disjointness axioms,
+and property chains, which collectively place it outside the OWL~2~EL profile and preclude
+the use of consequence-based reasoners such as ELK~\cite{kazakov2014elk}.
+
+In \textbf{MOCHO}~1.0, classification was performed with
+HermiT~\cite{motik2009hypertableau}, whose hypertableau algorithm provides complete
+OWL~2~DL reasoning but proved slow for our ontology.
+Subsequent versions use \textbf{Openllet}~\cite{sirin2007pellet}\footnote{\url{https://github.com/Galigator/openllet}}, the actively maintained
+open-source fork of Pellet, for the following reasons:
+%
+\begin{itemize}
+  \item \textbf{ROBOT integration.} Openllet is supported natively by
+        \texttt{robot reason -{}-reasoner Openllet}, fitting directly into the ODK
+        build pipeline without additional server infrastructure.
+  \item \textbf{Explanation support.} Openllet can produce justifications for
+        entailments and inconsistencies, which is essential for debugging alignment
+        axioms across the RDA, EDM, and CIDOC-CRM vocabularies imported by \textbf{MOCHO}.
+  \item \textbf{Active maintenance.} Konclude~\cite{steigmiller2014konclude} offers
+        faster parallel tableau classification but has not been updated since 2020;
+        Openllet receives ongoing releases. At \textbf{MOCHO}'s current scale
+        (334 classes, 456 object properties) the parallelism advantage of Konclude
+        does not outweigh the tooling and maintenance cost.
+\end{itemize}
+%
+Materialised inferences are exported as RDF triples and loaded into QLever alongside
+the DDB corpus; no runtime reasoning is performed by the triplestore.
+
 \todo{Quality and Validation.}

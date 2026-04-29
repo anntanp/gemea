@@ -39,4 +39,8 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(f"Usage: {sys.argv[0]} <path/to/s1.sqlite>", file=sys.stderr)
         sys.exit(1)
-    main(Path(sys.argv[1]))
+    db = Path(sys.argv[1])
+    if not db.is_file():
+        print(f"Error: {db} is not a file", file=sys.stderr)
+        sys.exit(1)
+    main(db)

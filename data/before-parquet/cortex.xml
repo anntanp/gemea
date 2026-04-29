@@ -1,0 +1,397 @@
+<?xml version="1.0"?>
+<tag0:cortex xmlns:tag0="http://www.deutsche-digitale-bibliothek.de/cortex">
+  <tag0:properties>
+    <tag0:item-id>W75Q6GACBEYXD526R2NQ5WY2TUIYXWIA</tag0:item-id>
+    <tag0:dataset-id xmlns:tag0="http://www.deutsche-digitale-bibliothek.de/cortex">9673917527888189zoCG</tag0:dataset-id>
+    <tag0:dataset-label>Gesamtlieferung - Staatsbibliothek zu Berlin (00008125) - METS/MODS</tag0:dataset-label>
+    <tag0:revision-id>23</tag0:revision-id>
+    <tag0:ingest-date xmlns:tag0="http://www.deutsche-digitale-bibliothek.de/cortex">2022-03-10T07:56:52+0100</tag0:ingest-date>
+    <tag0:cortex-type>Kultur</tag0:cortex-type>
+    <tag0:mapping-version>2.56</tag0:mapping-version>
+  </tag0:properties>
+  <tag0:edm>
+    <ns3:RDF xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+      <ore:Aggregation xmlns:ore="http://www.openarchives.org/ore/terms/" ns3:about="http://www.zvdd.de/record/DE-1/PPN749667699/DMDLOG_0009">
+        <edm:aggregatedCHO xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://www.deutsche-digitale-bibliothek.de/item/W75Q6GACBEYXD526R2NQ5WY2TUIYXWIA"/>
+        <edm:dataProvider xmlns:edm="http://www.europeana.eu/schemas/edm/">Staatsbibliothek zu Berlin - Preu&#xDF;ischer Kulturbesitz</edm:dataProvider>
+        <edm:dataProvider xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://www.deutsche-digitale-bibliothek.de/organization/6GFV3I4ELFEEFQIN2WECOXMTI5FUWHCK"/>
+        <edm:isShownAt xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://digital.staatsbibliothek-berlin.de/dms/werkansicht/?PPN=PPN749667699"/>
+        <edm:object xmlns:ore="http://www.openarchives.org/ore/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://content.staatsbibliothek-berlin.de/dms/PPN749667699/800/0/00000181.jpg"/>
+        <edm:provider xmlns:edm="http://www.europeana.eu/schemas/edm/">Deutsche Digitale Bibliothek</edm:provider>
+        <edm:rights xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+        <dcterms:rights xmlns:dcterms="http://purl.org/dc/terms/" ns3:resource="http://creativecommons.org/publicdomain/zero/1.0/"/>
+        <tag1:aggregator xmlns:tag1="http://www.deutsche-digitale-bibliothek.de/edm/" xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://www.deutsche-digitale-bibliothek.de/organization/X6VKVOM5HGHDIQX36BI3ZKWROZTN74UX"/>
+      </ore:Aggregation>
+      <edm:Agent xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="http://www.deutsche-digitale-bibliothek.de/organization/X6VKVOM5HGHDIQX36BI3ZKWROZTN74UX">
+        <skos:prefLabel xmlns:skos="http://www.w3.org/2004/02/skos/core#">zvdd &#x2013; Zentrales Verzeichnis Digitalisierter Drucke</skos:prefLabel>
+      </edm:Agent>
+      <edm:Agent xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="http://www.deutsche-digitale-bibliothek.de/organization/6GFV3I4ELFEEFQIN2WECOXMTI5FUWHCK">
+        <skos:prefLabel xmlns:skos="http://www.w3.org/2004/02/skos/core#">Staatsbibliothek zu Berlin - Preu&#xDF;ischer Kulturbesitz</skos:prefLabel>
+        <ns3:type xmlns:tag1="http://www.deutsche-digitale-bibliothek.de/edm/" xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://ddb.vocnet.org/sparte/sparte002"/>
+        <dcterms:isPartOf xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://www.deutsche-digitale-bibliothek.de/organization/FB2OLEOR7CKRPB23WLCIUIIJMJOGN3UH"/>
+      </edm:Agent>
+      <skos:Concept xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" ns3:about="http://ddb.vocnet.org/sparte/sparte002">
+        <skos:notation>sec_02</skos:notation>
+      </skos:Concept>
+      <edm:Agent xmlns:tag1="http://www.deutsche-digitale-bibliothek.de/edm/" xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="http://www.deutsche-digitale-bibliothek.de/organization/FB2OLEOR7CKRPB23WLCIUIIJMJOGN3UH">
+        <skos:prefLabel xmlns:skos="http://www.w3.org/2004/02/skos/core#">Stiftung Preu&#xDF;ischer Kulturbesitz</skos:prefLabel>
+      </edm:Agent>
+      <edm:WebResource xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="http://digital.staatsbibliothek-berlin.de/dms/werkansicht/?PPN=PPN749667699">
+        <edm:rights ns3:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+        <dc:type xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:resource="http://ddb.vocnet.org/medientyp/mt003"/>
+        <dcterms:rights xmlns:tag1="http://www.deutsche-digitale-bibliothek.de/edm/" xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+        <dcterms:created xmlns:skos="http://www.w3.org/2004/02/skos/core#">2013</dcterms:created>
+        <dc:publisher xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/">Staatsbibliothek zu Berlin &#x2013; Preu&#xDF;ischer Kulturbesitz, Germany</dc:publisher>
+      </edm:WebResource>
+      <skos:Concept xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:about="http://ddb.vocnet.org/medientyp/mt003">
+        <skos:notation>mediatype_003</skos:notation>
+      </skos:Concept>
+      <edm:WebResource xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="http://content.staatsbibliothek-berlin.de/dms/PPN749667699/800/0/00000181.jpg">
+        <edm:rights ns3:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+        <dc:type xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:resource="http://ddb.vocnet.org/medientyp/mt003"/>
+        <dcterms:rights xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+        <dcterms:created xmlns:dcterms="http://purl.org/dc/terms/">2013</dcterms:created>
+        <dc:publisher xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/">Staatsbibliothek zu Berlin &#x2013; Preu&#xDF;ischer Kulturbesitz, Germany</dc:publisher>
+      </edm:WebResource>
+      <skos:Concept xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:about="http://ddb.vocnet.org/medientyp/mt003">
+        <skos:notation>mediatype_003</skos:notation>
+      </skos:Concept>
+      <edm:ProvidedCHO xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="http://www.deutsche-digitale-bibliothek.de/item/W75Q6GACBEYXD526R2NQ5WY2TUIYXWIA">
+        <edm:hasType ns3:resource="http://ddb.vocnet.org/hierarchietyp/ht003"/>
+        <edm:hasMet xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:resource="MHMKTV2MNMMZG6GTLW2KJDNXAPAPBM5D"/>
+        <edm:hasMet xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:resource="WIVZXOHHOFUD467XMW5USBUNWYFJGNNR"/>
+        <edm:type>TEXT</edm:type>
+        <dc:creator xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="zxx">Schiller, Friedrich</dc:creator>
+        <dc:description xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="zxx">bibliography: Marcuse, H. Schiller-Bibliographie 163</dc:description>
+        <dc:identifier xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/">http://resolver.staatsbibliothek-berlin.de/SBB0000E02E00010000</dc:identifier>
+        <dc:identifier xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">http://www.zvdd.de/object/DE-1/PPN749667699/LOG_0017</dc:identifier>
+        <dc:relation xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="zxx"> VD18 digital</dc:relation>
+        <dc:language xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/">ger</dc:language>
+        <dc:publisher xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="zxx">Mannheim : Schwan und G&#xF6;tz</dc:publisher>
+        <dc:type xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="de">Beigef&#xFC;gtes oder enthaltenes Werk</dc:type>
+        <dc:title xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:lang="zxx">Die R&#xE4;uber</dc:title>
+        <dcterms:language ns3:resource="http://id.loc.gov/vocabulary/iso639-2/ger"/>
+        <dcterms:extent xmlns:dcterms="http://purl.org/dc/terms/" xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/">166 S., [1] Bl.</dcterms:extent>
+        <dcterms:extent xmlns:dc="http://purl.org/dc/elements/1.1/">8&#xB0;</dcterms:extent>
+        <dcterms:issued xmlns:edm="http://www.europeana.eu/schemas/edm/" xmlns:dc="http://purl.org/dc/elements/1.1/">1798</dcterms:issued>
+        <tag1:hierarchyType xmlns:tag1="http://www.deutsche-digitale-bibliothek.de/edm/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/">htype_003</tag1:hierarchyType>
+        <dcterms:isPartOf ns3:resource="http://www.deutsche-digitale-bibliothek.de/item/5TDO4FDSLNRRE7HW5J47QRCSYPA3KVUQ"/>
+      </edm:ProvidedCHO>
+      <skos:Concept xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:about="http://ddb.vocnet.org/hierarchietyp/ht003">
+        <skos:prefLabel xml:lang="de">Beigef&#xFC;gtes oder enthaltenes Werk</skos:prefLabel>
+      </skos:Concept>
+      <dcterms:LinguisticSystem xmlns:tag1="http://www.deutsche-digitale-bibliothek.de/edm/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dc="http://purl.org/dc/elements/1.1/" ns3:about="http://id.loc.gov/vocabulary/iso639-2/ger">
+        <ns3:value>ger</ns3:value>
+      </dcterms:LinguisticSystem>
+      <edm:Event xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="MHMKTV2MNMMZG6GTLW2KJDNXAPAPBM5D">
+        <edm:hasType ns3:resource="http://terminology.lido-schema.org/eventType/creation"/>
+        <crm:P11_had_participant xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#" ns3:resource="OPWL3SLMF5GSE3CMOE5KPQD3XR5TQMO5"/>
+      </edm:Event>
+      <edm:Agent xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="OPWL3SLMF5GSE3CMOE5KPQD3XR5TQMO5">
+        <skos:prefLabel xmlns:skos="http://www.w3.org/2004/02/skos/core#">Schiller, Friedrich</skos:prefLabel>
+        <edm:wasPresentAt xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="MHMKTV2MNMMZG6GTLW2KJDNXAPAPBM5D"/>
+      </edm:Agent>
+      <edm:Event xmlns:crm="http://www.cidoc-crm.org/rdfs/cidoc_crm_v5.0.2_english_label.rdfs#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="WIVZXOHHOFUD467XMW5USBUNWYFJGNNR">
+        <edm:hasType ns3:resource="http://terminology.lido-schema.org/eventType/publication"/>
+        <crm:P11_had_participant xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="NQWCGJFRRFSKI4EEND6EFSZ2GOLDXZLE"/>
+        <edm:happenedAt xmlns:skos="http://www.w3.org/2004/02/skos/core#" ns3:resource="DS6U2CE6EGG5GM4MNBL2LMPLF6FHQKHH"/>
+        <edm:occuredAt xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="4K2BHMTE2JTAM5OOZPJ7YI6NCO5XPUPP"/>
+      </edm:Event>
+      <edm:Agent xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="NQWCGJFRRFSKI4EEND6EFSZ2GOLDXZLE">
+        <skos:prefLabel xmlns:skos="http://www.w3.org/2004/02/skos/core#">Schwan und G&#xF6;tz</skos:prefLabel>
+        <edm:wasPresentAt xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:resource="WIVZXOHHOFUD467XMW5USBUNWYFJGNNR"/>
+      </edm:Agent>
+      <edm:Place xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="DS6U2CE6EGG5GM4MNBL2LMPLF6FHQKHH">
+        <skos:prefLabel xmlns:skos="http://www.w3.org/2004/02/skos/core#">Mannheim</skos:prefLabel>
+      </edm:Place>
+      <edm:TimeSpan xmlns:skos="http://www.w3.org/2004/02/skos/core#" xmlns:edm="http://www.europeana.eu/schemas/edm/" ns3:about="4K2BHMTE2JTAM5OOZPJ7YI6NCO5XPUPP">
+        <edm:begin>1798</edm:begin>
+        <edm:end xmlns:edm="http://www.europeana.eu/schemas/edm/">1798</edm:end>
+      </edm:TimeSpan>
+    </ns3:RDF>
+  </tag0:edm>
+  <tag0:indexing-profile>
+    <tag0:item-id>W75Q6GACBEYXD526R2NQ5WY2TUIYXWIA</tag0:item-id>
+    <tag0:facet xmlns:edm="http://www.europeana.eu/schemas/edm/" name="place_fct">
+      <tag0:value>Mannheim</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="place_fct_autocomplete">
+      <tag0:value>Mannheim</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="affiliate_fct">
+      <tag0:value>Schiller, Friedrich</tag0:value>
+      <tag0:value>Schwan und G&#xF6;tz</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="affiliate_fct_autocomplete">
+      <tag0:value>Schiller, Friedrich</tag0:value>
+      <tag0:value>Schwan und G&#xF6;tz</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="affiliate_fct_role">
+      <tag0:value>Schiller, Friedrich</tag0:value>
+      <tag0:value>Schwan und G&#xF6;tz</tag0:value>
+      <tag0:value>Schiller, Friedrich_1_affiliate_fct_involved</tag0:value>
+      <tag0:value>Schwan und G&#xF6;tz_1_affiliate_fct_involved</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="affiliate_fct_role_autocomplete">
+      <tag0:value>Schiller, Friedrich</tag0:value>
+      <tag0:value>Schwan und G&#xF6;tz</tag0:value>
+      <tag0:value>Schiller, Friedrich_1_affiliate_fct_involved</tag0:value>
+      <tag0:value>Schwan und G&#xF6;tz_1_affiliate_fct_involved</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="keywords_fct">
+      <tag0:value>Beigef&#xFC;gtes oder enthaltenes Werk</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="keywords_fct_autocomplete">
+      <tag0:value>Beigef&#xFC;gtes oder enthaltenes Werk</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="keywords_fct_normdata">
+      <tag0:value>http://ddb.vocnet.org/hierarchietyp/ht003</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="objecttype_fct">
+      <tag0:value>Beigef&#xFC;gtes oder enthaltenes Werk</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="objecttype_fct_autocomplete">
+      <tag0:value>Beigef&#xFC;gtes oder enthaltenes Werk</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="language_fct">
+      <tag0:value>ger</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="type_fct">
+      <tag0:value>mediatype_003</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="provider_fct_normdata">
+      <tag0:value>http://www.deutsche-digitale-bibliothek.de/organization/X6VKVOM5HGHDIQX36BI3ZKWROZTN74UX</tag0:value>
+      <tag0:value>http://www.deutsche-digitale-bibliothek.de/organization/6GFV3I4ELFEEFQIN2WECOXMTI5FUWHCK</tag0:value>
+      <tag0:value>http://www.deutsche-digitale-bibliothek.de/organization/FB2OLEOR7CKRPB23WLCIUIIJMJOGN3UH</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="provider_fct">
+      <tag0:value>zvdd &#x2013; Zentrales Verzeichnis Digitalisierter Drucke</tag0:value>
+      <tag0:value>Staatsbibliothek zu Berlin - Preu&#xDF;ischer Kulturbesitz</tag0:value>
+      <tag0:value>Stiftung Preu&#xDF;ischer Kulturbesitz</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="provider_fct_autocomplete">
+      <tag0:value>zvdd &#x2013; Zentrales Verzeichnis Digitalisierter Drucke</tag0:value>
+      <tag0:value>Staatsbibliothek zu Berlin - Preu&#xDF;ischer Kulturbesitz</tag0:value>
+      <tag0:value>Stiftung Preu&#xDF;ischer Kulturbesitz</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="sector_fct">
+      <tag0:value>sec_02</tag0:value>
+    </tag0:facet>
+    <tag0:facet name="last_update">
+      <tag0:value>2022-03-10T07:56:52+0100</tag0:value>
+    </tag0:facet>
+  </tag0:indexing-profile>
+  <tag0:preview media="text" type="Kultur">
+    <tag0:title>Die R&#xE4;uber</tag0:title>
+    <tag0:subtitle>Schiller, Friedrich; Deutsche Forschungsgemeinschaft. -  Trauerspiele von Friedrich Schiller : Die R&#xE4;uber. Die Verschw&#xF6;rung des Fiesko zu Genua. Kabale und Liebe ; Zum erstenmal aufgef&#xFC;hrt auf der Mannheimer National-Schaub&#xFC;hne</tag0:subtitle>
+    <tag0:thumbnail href="7a807729-cafb-463d-94b7-af998de5ab67"/>
+  </tag0:preview>
+  <tag0:view>
+    <ns2:item xmlns:ns2="http://www.deutsche-digitale-bibliothek.de/item">
+      <ns2:identifier>http://www.zvdd.de/object/DE-1/PPN749667699/LOG_0017</ns2:identifier>
+      <ns2:label>Die R&#xE4;uber</ns2:label>
+      <ns2:title>Die R&#xE4;uber</ns2:title>
+      <ns2:subtitle xmlns:ns2="http://www.deutsche-digitale-bibliothek.de/item"/>
+      <ns2:rights/>
+      <ns2:metadata-rights>http://creativecommons.org/publicdomain/zero/1.0/</ns2:metadata-rights>
+      <ns2:origin>http://digital.staatsbibliothek-berlin.de/dms/werkansicht/?PPN=PPN749667699</ns2:origin>
+      <ns2:category xmlns:ns2="http://www.deutsche-digitale-bibliothek.de/item">Kultur</ns2:category>
+      <ns2:media>text</ns2:media>
+      <ns2:thumbnail/>
+      <ns2:latitude/>
+      <ns2:longitude xmlns:ns2="http://www.deutsche-digitale-bibliothek.de/item"/>
+      <ns2:viewers>
+        <ns2:viewer>
+          <ns2:name id="dfgKey">DFG-Viewer</ns2:name>
+          <ns2:url>http://dfg-viewer.de/show/?tx_dlf[id]/tx_dlf[page]</ns2:url>
+        </ns2:viewer>
+      </ns2:viewers>
+      <ns2:license xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" ns3:resource="http://creativecommons.org/publicdomain/mark/1.0/"/>
+      <ns2:institution>
+        <ns2:url>http://staatsbibliothek-berlin.de/die-staatsbibliothek/portraet/</ns2:url>
+        <ns2:id>6GFV3I4ELFEEFQIN2WECOXMTI5FUWHCK</ns2:id>
+        <ns2:name>Staatsbibliothek zu Berlin - Preu&#xDF;ischer Kulturbesitz</ns2:name>
+        <ns2:logo-institution-ddbid xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">6GFV3I4ELFEEFQIN2WECOXMTI5FUWHCK</ns2:logo-institution-ddbid>
+      </ns2:institution>
+      <ns2:fields usage="display">
+        <ns2:field id="flex_arch_014">
+          <ns2:name>Urheber</ns2:name>
+          <ns2:value>Schiller, Friedrich</ns2:value>
+        </ns2:field>
+        <ns2:field xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" id="flex_bibl_003">
+          <ns2:name>Dokumenttyp</ns2:name>
+          <ns2:value>Beigef&#xFC;gtes oder enthaltenes Werk</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_004">
+          <ns2:name>Erschienen in</ns2:name>
+          <ns2:value>Trauerspiele von Friedrich Schiller : Die R&#xE4;uber. Die Verschw&#xF6;rung des Fiesko zu Genua. Kabale und Liebe ; Zum erstenmal aufgef&#xFC;hrt auf der Mannheimer National-Schaub&#xFC;hne</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_005">
+          <ns2:name>Ausgabe</ns2:name>
+          <ns2:value>Neue f&#xFC;r die Mannheimer B&#xFC;hne verbesserte Original-Auflage</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_006">
+          <ns2:name>Erschienen</ns2:name>
+          <ns2:value>Mannheim : Schwan und G&#xF6;tz , 1798</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_008">
+          <ns2:name>Sprache</ns2:name>
+          <ns2:value>Deutsch</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_009">
+          <ns2:name>Umfang</ns2:name>
+          <ns2:value>166 S., [1] Bl., 8&#xB0;</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_010">
+          <ns2:name>Reihe</ns2:name>
+          <ns2:value>VD18 digital</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_012">
+          <ns2:name>Anmerkungen</ns2:name>
+          <ns2:value>Marcuse, H. Schiller-Bibliographie 163</ns2:value>
+        </ns2:field>
+        <ns2:field id="flex_bibl_013a">
+          <ns2:name>PURL</ns2:name>
+          <ns2:value>http://resolver.staatsbibliothek-berlin.de/SBB0000E02E00010000</ns2:value>
+        </ns2:field>
+      </ns2:fields>
+      <ns2:fields usage="index">
+        <ns2:field xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#" ns3:resource="http://purl.org/dc/elements/1.1/title" id="title">
+          <ns2:name>Title</ns2:name>
+          <ns2:value>Die R&#xE4;uber</ns2:value>
+        </ns2:field>
+        <ns2:field id="ranking">
+          <ns2:name>Ranking</ns2:name>
+          <ns2:value>Beigef&#xFC;gtes oder enthaltenes Werk</ns2:value>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">Schiller, Friedrich</ns2:value>
+        </ns2:field>
+        <ns2:field id="begin_time">
+          <ns2:name>Anfang</ns2:name>
+          <ns2:value>656343</ns2:value>
+        </ns2:field>
+        <ns2:field id="end_time">
+          <ns2:name>Ende</ns2:name>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">656707</ns2:value>
+        </ns2:field>
+        <ns2:field id="license">
+          <ns2:name>Lizenz</ns2:name>
+          <ns2:value>http://creativecommons.org/publicdomain/mark/1.0/</ns2:value>
+        </ns2:field>
+        <ns2:field id="license_group">
+          <ns2:name>Lizenzstatus</ns2:name>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">rights_001</ns2:value>
+        </ns2:field>
+        <ns2:field id="digitalisat">
+          <ns2:name>digitalisat</ns2:name>
+          <ns2:value>true</ns2:value>
+        </ns2:field>
+        <ns2:field id="aggregator_id">
+          <ns2:name>aggregator_id</ns2:name>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">00000463</ns2:value>
+        </ns2:field>
+        <ns2:field id="dataset_id">
+          <ns2:name>dataset_id</ns2:name>
+          <ns2:value>9673917527888189zoCG</ns2:value>
+        </ns2:field>
+        <ns2:field id="dataset_label">
+          <ns2:name>dataset_label</ns2:name>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">Gesamtlieferung - Staatsbibliothek zu Berlin (00008125) - METS/MODS</ns2:value>
+        </ns2:field>
+        <ns2:field id="delivery_id">
+          <ns2:name>delivery_id</ns2:name>
+          <ns2:value>34754917041661268XhhR</ns2:value>
+        </ns2:field>
+        <ns2:field id="supplier_id">
+          <ns2:name>supplier_id</ns2:name>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">00000463</ns2:value>
+        </ns2:field>
+        <ns2:field id="mapping_version">
+          <ns2:name>mapping_version</ns2:name>
+          <ns2:value>2.56</ns2:value>
+        </ns2:field>
+        <ns2:field id="md_format">
+          <ns2:name>Metadata Format</ns2:name>
+          <ns2:value xmlns:ns3="http://www.w3.org/1999/02/22-rdf-syntax-ns#">mets</ns2:value>
+        </ns2:field>
+        <ns2:field id="source_format">
+          <ns2:name>source_format</ns2:name>
+          <ns2:value>http://www.loc.gov/METS/</ns2:value>
+        </ns2:field>
+      </ns2:fields>
+    </ns2:item>
+  </tag0:view>
+  <source:source xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source">
+    <source:description id="W75Q6GACBEYXD526R2NQ5WY2TUIYXWIA">
+      <source-description:record xmlns:source-description="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source-description" ref="5TDO4FDSLNRRE7HW5J47QRCSYPA3KVUQ" href="/items/5TDO4FDSLNRRE7HW5J47QRCSYPA3KVUQ/source/record" type="http://www.loc.gov/METS/">
+        <source-description:id type="mods:recordIdentifier" value="PPN749667699 PPN749668504"/>
+        <source-description:id type="mets:div/@DMDID" value="DMDLOG_0009"/>
+        <source-description:id xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source" type="mets:div/@ID" value="PHYS_0181"/>
+      </source-description:record>
+    </source:description>
+  </source:source>
+  <tag0:provider-info>
+    <tag0:provider-domains>
+      <tag0:provider-domain>http://ddb.vocnet.org/sparte/sparte002</tag0:provider-domain>
+      <tag0:provider-domain xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source"/>
+      <tag0:provider-domain/>
+    </tag0:provider-domains>
+    <tag0:provider-name>Staatsbibliothek zu Berlin - Preu&#xDF;ischer Kulturbesitz</tag0:provider-name>
+    <tag0:provider-europeana-name xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source"/>
+    <tag0:provider-parent-id>00050350</tag0:provider-parent-id>
+    <tag0:provider-facebook>https://www.facebook.com/Staatsbibliothekzuberlin</tag0:provider-facebook>
+    <tag0:provider-twitter xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source">https://twitter.com/sbb_news</tag0:provider-twitter>
+    <tag0:provider-uri>http://staatsbibliothek-berlin.de/die-staatsbibliothek/portraet/</tag0:provider-uri>
+    <tag0:provider-email/>
+    <tag0:provider-collection xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source"/>
+    <tag0:provider-item-id>http://www.zvdd.de/object/DE-1/PPN749667699/LOG_0017</tag0:provider-item-id>
+    <tag0:provider-item-id-type/>
+    <tag0:provider-id xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source">00008125</tag0:provider-id>
+    <tag0:provider-ddb-id>6GFV3I4ELFEEFQIN2WECOXMTI5FUWHCK</tag0:provider-ddb-id>
+    <tag0:provider-isil>http://ld.zdb-services.de/resource/organisations/DE-1</tag0:provider-isil>
+    <tag0:provider-logo xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source">https://registrierung.deutsche-digitale-bibliothek.de/logos/00008125.png</tag0:provider-logo>
+    <tag0:provider-longitude>13.39099</tag0:provider-longitude>
+    <tag0:provider-latitude>52.51752</tag0:provider-latitude>
+    <tag0:provider-state xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source">Berlin</tag0:provider-state>
+    <tag0:provider-parents>
+      <tag0:provider-info>
+        <tag0:provider-domains>
+          <tag0:provider-domain>http://ddb.vocnet.org/sparte/sparte007</tag0:provider-domain>
+          <tag0:provider-domain/>
+          <tag0:provider-domain xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source"/>
+        </tag0:provider-domains>
+        <tag0:provider-name>Stiftung Preu&#xDF;ischer Kulturbesitz</tag0:provider-name>
+        <tag0:provider-parent-id/>
+        <tag0:provider-uri>http://www.hv.spk-berlin.de/deutsch/wir_ueber_uns/profil.php?navid=1</tag0:provider-uri>
+        <tag0:provider-email/>
+        <tag0:provider-collection xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source"/>
+        <tag0:provider-item-id-type/>
+        <tag0:provider-id>00050350</tag0:provider-id>
+        <tag0:provider-ddb-id>FB2OLEOR7CKRPB23WLCIUIIJMJOGN3UH</tag0:provider-ddb-id>
+        <tag0:provider-logo>https://registrierung.deutsche-digitale-bibliothek.de/logos/00050350.png</tag0:provider-logo>
+        <tag0:provider-longitude xmlns:source="http://www.deutsche-digitale-bibliothek.de/ns/cortex-item-source">13.3551828</tag0:provider-longitude>
+        <tag0:provider-latitude>52.5067062</tag0:provider-latitude>
+        <tag0:aggregator>false</tag0:aggregator>
+      </tag0:provider-info>
+    </tag0:provider-parents>
+  </tag0:provider-info>
+  <tag0:aggregator-info>
+    <tag0:aggregator-domains>
+      <tag0:aggregator-domain>http://ddb.vocnet.org/sparte/sparte002</tag0:aggregator-domain>
+      <tag0:aggregator-domain/>
+      <tag0:aggregator-domain/>
+    </tag0:aggregator-domains>
+    <tag0:aggregator-name>zvdd &#x2013; Zentrales Verzeichnis Digitalisierter Drucke</tag0:aggregator-name>
+    <tag0:aggregator-parent-id/>
+    <tag0:aggregator-uri>http://www.zvdd.de</tag0:aggregator-uri>
+    <tag0:aggregator-email/>
+    <tag0:aggregator-item-id-type/>
+    <tag0:aggregator-id>00000463</tag0:aggregator-id>
+    <tag0:aggregator-ddb-id>X6VKVOM5HGHDIQX36BI3ZKWROZTN74UX</tag0:aggregator-ddb-id>
+    <tag0:aggregator-logo>https://registrierung.deutsche-digitale-bibliothek.de/logos/00000463.png</tag0:aggregator-logo>
+    <tag0:aggregator-longitude>9.9358179</tag0:aggregator-longitude>
+    <tag0:aggregator-latitude>51.5400097</tag0:aggregator-latitude>
+  </tag0:aggregator-info>
+  <tag0:binaries>
+    <tag0:binary ref="7a807729-cafb-463d-94b7-af998de5ab67" kind="http://creativecommons.org/publicdomain/mark/1.0/" name="Die R&#xE4;uber" mimetype="image/jpeg" position="1" name2="[Electronic ed.]: Staatsbibliothek zu Berlin &#x2013; Preu&#xDF;ischer Kulturbesitz, Germany (2013)" local_pathname="http://content.staatsbibliothek-berlin.de/dms/PPN749667699/800/0/00000181.jpg" primary="true"/>
+  </tag0:binaries>
+</tag0:cortex>

@@ -4,7 +4,7 @@
 \label{sec:resource}
 
 GeMeA is a knowledge graph over 26 million objects from the German Digital Library (DDB), organized into named graphs by provider institution and accessible via a public SPARQL endpoint, a Linked Data browser, and an MCP/MCPO agentic interface.
-The resource is built in four layers: (1) an EDM knowledge graph loaded into QLever, (2) a \texttt{mocho}-based ontology alignment layer mapping EDM to RDA/FRBR on a representative subset, (3) a SHMARQL Linked Data browsing interface, and (4) an MCP interface on the QLever endpoint.
+The resource is built in four layers: (1) an EDM knowledge graph loaded into QLever, (2) a \textbf{MOCHO}-based ontology alignment layer mapping EDM to RDA/FRBR on a representative subset, (3) a SHMARQL Linked Data browsing interface, and (4) an MCP interface on the QLever endpoint.
 
 \subsection{EDM Knowledge Graph}
 \label{sec:resource:kg}
@@ -30,8 +30,8 @@ Named graph partitioning preserves provenance at the provider level and enables 
 \label{sec:resource:mocho}
 
 EDM is designed for cross-institutional aggregation rather than for KG reasoning or bibliographic work-level grouping.
-\texttt{mocho}~\cite{mocho} maps EDM to RDA/FRBR-compatible representations: \texttt{edm:ProvidedCHO} is typed as \texttt{frbr:Manifestation}; agents are split into \texttt{frbr:Person} and \texttt{frbr:CorporateBody} by GND type; EDM predicates are mapped to RDA vocabulary (e.g., \texttt{dc:title} $\to$ \texttt{rda:title}, \texttt{dc:creator} $\to$ \texttt{rda:creator}).
-Where a GND Werk URI is available (from \texttt{link\_gnd\_works.py}), \texttt{mocho} groups co-manifesting ProvidedCHOs into a \texttt{mocho:Work} entity.
+\textbf{MOCHO}~\cite{mocho} maps EDM to RDA/FRBR-compatible representations: \texttt{edm:ProvidedCHO} is typed as \texttt{frbr:Manifestation}; agents are split into \texttt{frbr:Person} and \texttt{frbr:CorporateBody} by GND type; EDM predicates are mapped to RDA vocabulary (e.g., \texttt{dc:title} $\to$ \texttt{rda:title}, \texttt{dc:creator} $\to$ \texttt{rda:creator}).
+Where a GND Werk URI is available (from \texttt{link\_gnd\_works.py}), \textbf{MOCHO} groups co-manifesting ProvidedCHOs into a \texttt{mocho:Work} entity.
 
 The alignment PoC is run on a representative subset of the DDB corpus.
 \todo{Subset size (CHO count), classes produced, triple count, mapping quality summary (direct vs.\ approximate matches, known scope boundaries).}

@@ -1,0 +1,711 @@
+% RM 058 — GeMeA Status: Revised Roadmap, Mocho v1.1, Paper
+% Presenter: Mary Ann Tan, FIZ-KDAI
+% Date: 29 April 2026
+\documentclass[xcolor,aspectratio=169,compress]{beamer}
+\usetheme{Boadilla}
+\definecolor{maincolor}{rgb}{.38,.06,.80}
+\usecolortheme[named=maincolor]{structure}
+\usepackage{sansmath}
+\usepackage{svg}
+\usepackage{tikzsymbols}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{pifont}
+
+\newcommand{\cmark}{\textcolor{green!60!black}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}
+\newcommand{\done}{\textcolor{green!60!black}{Done}}
+\newcommand{\current}{\textcolor{orange}{\textbf{Current}}}
+\newcommand{\blocked}{\textcolor{red}{Blocked}}
+\newcommand{\deferred}{\textcolor{gray}{Deferred}}
+
+\makeatother
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.30\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor{}
+    (\insertshortdate)
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.55\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle\hspace*{3em}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+   \insertframenumber{} / \inserttotalframenumber\hspace*{1ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatletter
+
+\setbeamertemplate{headline}[default]
+\setbeamertemplate{navigation symbols}{}
+\mode<beamer>{\setbeamertemplate{blocks}[rounded][shadow=false]}
+\setbeamercovered{transparent}
+\useoutertheme[subsection=false]{miniframes}
+
+\title[RM 058 --- GeMeA Status]{GeMeA Status Update}
+
+\author[M.A.\ Tan]{Mary Ann Tan}
+
+\institute[FIZ-KDAI]{FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure, KDAI}
+
+\date[RM 058, 29.04.2026]{Research Meeting 058, {\sansmath 29$^{\rm th}$} April 2026}
+
+% \logo{\includesvg[width=.2\textwidth]{../beamer-bodilla-template/Logo/FIZ_Logo_en.svg}\vspace{215pt}}
+
+% % % % % %
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+% ---- OUTLINE ----
+\begin{frame}{Outline}
+  \begin{enumerate}
+    \item Revised Roadmap
+    \item Mocho v1.1
+    \item NER Annotation
+    \item Status \& Deliverables
+  \end{enumerate}
+\end{frame}
+
+% =================================================================
+\section{Revised Roadmap}
+% source: gemea/notes/project/roadmap-revised.md
+% =================================================================
+
+% ---- 1.1 What Changed ----
+% source: roadmap-revised.md §1 Scope
+\begin{frame}{Revised Roadmap --- What Changed}
+  {\tiny\url{https://github.com/anntanp/gemea/blob/develop/notes/project/roadmap-revised.md}}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Original scope (dropped / deferred):}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\times$] Elasticsearch + faceted search $\to$ v2
+        \item[$\times$] Next.js KG browser frontend $\to$ v2
+        \item[$\times$] FastAPI / GraphQL API $\to$ v2
+        \item[$\times$] Full 65M-object corpus $\to$ v2
+        \item[$\times$] GND Works linking (NER) $\to$ described only; not implemented
+      \end{itemize}
+    \end{column}
+    \begin{column}{.50\textwidth}
+      \textbf{v1 scope (what we are claiming):}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\checkmark$] \textbf{27M} DDB objects in QLever, public SPARQL endpoint
+        \item[$\checkmark$] \textbf{Mocho PoC} in QLever (representative subset)
+        \item[$\checkmark$] \textbf{SHMARQL} --- lightweight Linked Data browser over QLever
+        \item[$\checkmark$] \textbf{MCP/MCPO} --- agentic access layer on QLever
+        \item[$\circ$] GND agent linking: described as pipeline component; deferred to v1.1
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \smallskip
+  \begin{block}{Core claim}
+    \footnotesize First openly browsable, SPARQL-accessible, and MCP-accessible KG over DDB
+    (27M objects) with mocho-based ontology alignment PoC; testbed for LLM + KG research
+    at cultural heritage scale.
+  \end{block}
+\end{frame}
+
+% ---- 1.1b Revised Contribution Framing ----
+% source: gemea/notes/paper/plan-abstract.md v3
+%         gemea/notes/paper/paper-framing.md §Suggested framing adjustment
+%         gemea/notes/project/roadmap-revised.md §2 Framing + §8 What Determines Acceptance
+\begin{frame}{Contribution}
+  \small
+  \begin{itemize}\setlength{\itemsep}{4pt}
+    \item First openly browsable, \textbf{SPARQL-accessible, and MCP-accessible} KG over DDB (27M objects)
+    \item Lightweight Linked Data browser (SHMARQL) --- zero custom frontend
+    \item mocho alignment PoC: EDM $\to$ \textbf{domain- and modality-specific ontologies}
+          (RDA, RiC-O, MO/ACO, VRA, EBUCore, DoCO\ldots) on a quantified, scoped subset
+  \end{itemize}
+  \smallskip
+  \footnotesize
+  \begin{tabular}{lp{9cm}}
+    \toprule
+    1. Novel access layer & MCP interface on a CH KG --- no prior work has this \\
+    2. Multi-domain alignment PoC & Data-driven EDM $\to$ sector/modality ontologies via mocho; quantified + honestly scoped \\
+    3. Testbed / Dataset for Future Research & enables studies on ontology evaluation, agentic KG (MCP), RML mapping, LLM-assisted KG enrichment \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ---- 1.2 Roadmap Overview ----
+% source: roadmap-revised.md §1, §3; rm057 roadmap table
+\begin{frame}{Roadmap Overview --- v1 vs.\ v2}
+  \footnotesize
+  \begin{tabular}{cl>{\raggedright\arraybackslash}p{6.5cm}l}
+    \toprule
+    Phase & Name & v1 scope & Status \\
+    \midrule
+    0  & Data Acquisition   & DDB JSON-LD ingest; \texttt{langid} filtering; sector ID files & \done \\
+    1  & Ingest             & QLever index (27M objects); mocho PoC; named graphs; SHMARQL  & \current \\
+    1b & GND Enrichment     & \texttt{link\_gnd\_agents.py}: described, not implemented      & \blocked \\
+    2  & API                & MCP/MCPO on QLever (replaces FastAPI for v1)                   & \current \\
+    3  & Frontend           & SHMARQL (replaces Next.js for v1); full browser $\to$ v2       & \current \\
+    4  & DevOps             & Docker Compose; QLever + SHMARQL + MCPO; CI/CD                 & \current \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ---- 1.3 Current Status ----
+% source: roadmap-revised.md §3
+\begin{frame}{Current Status}
+  \small
+  \begin{tabular}{ll>{\raggedright\arraybackslash}p{5.2cm}}
+    \toprule
+    Component & Status & Note \\
+    \midrule
+    QLever endpoint (115k objects, 8M triples)
+      & \textcolor{orange}{\textbf{Local only}} $\triangle$
+      & not yet public \\
+    Mocho PoC in QLever
+      & \textcolor{green!60!black}{Running} \cmark
+      & subset; classes + triples TBD \\
+    SHMARQL over QLever
+      & \textcolor{green!60!black}{Pattern proven} \cmark
+      & goethe-faust; adapt for GeMeA \\
+    MCP/MCPO on QLever
+      & \textcolor{green!60!black}{Pattern proven} \cmark
+      & needs tool inventory \\
+    GND Linking (Werk + Agent)
+      & \textcolor{red}{Blocked}
+      & scope: Monograph, Multi-volume, Manuscript only;
+        \footnotesize chapters/sections/articles removed per Q2--Q3 2026
+        feed restructure (Maria, FIZ-IR) \\
+    Persistent URI (w3id / Zenodo)
+      & \textcolor{red}{\textbf{Needed before 2 May}}
+      & mandatory for abstract \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+
+  % source: roadmap-revised.md §3.1 ID corpus by sector
+  \par\footnotesize\textbf{teach03:} 27.4M objects ---
+  Library 18.6M, Archive 3.6M, Museum 2.0M.
+\end{frame}
+
+% ---- 1.3b DDB Feed Restructure: Risk to Use Case ----
+% source: mocho-gatherer-adr.md §4.2 R6; Maria (FIZ-IR), April 2026
+\begin{frame}[shrink=10]{DDB Feed Restructure --- Risk to Collection Browse Use Case}
+  \small
+  % source: mocho-gatherer-adr.md §4.2 R6 — Work-level top result, item-level drill-down
+  \textbf{Planned use case (R6):} users browse at two levels ---
+  \begin{itemize}\setlength{\itemsep}{2pt}
+    \item \textbf{Top level:} primary objects / topmost document component
+          (Monograph, Multi-volume work, Manuscript)
+    \item \textbf{Drill-down:} sub-components mapped via \texttt{htype} to document-structure classes ---
+          e.g.\ \texttt{htype\_018} (Kapitel) $\to$ \texttt{doco:Chapter},
+          \texttt{htype\_006} (Aufsatz) $\to$ \texttt{doco:Section}
+          (see \texttt{goethe-faust/output/lookup\_htype\_doco\_rico.csv})
+  \end{itemize}
+
+  \medskip
+  \textbf{DDB planned change (Maria, FIZ-IR, Q2--Q3 2026):}
+  \begin{block}{}
+    \footnotesize
+    Objects with \texttt{htype} = Kapitel, Abschnitt, Aufsatz, etc.\ will no longer be ingested
+    after the Splitter is removed and data is reloaded.
+    Only the associated Monographien will remain in the DDB.
+    The change will be applied incrementally --- dataset by dataset on reload.
+  \end{block}
+
+  \begin{alertblock}{Risk}
+    \small Sub-component records (chapters, sections, articles) will disappear from the DDB feed.
+    The drill-down layer of the browse use case loses its primary source of
+    fine-grained document-structure objects.
+    GeMeA must decide whether to: (a) preserve sub-components from earlier snapshots,
+    (b) scope the browse use case to top-level objects only, or
+    (c) derive sub-components from full-text / structural metadata.
+  \end{alertblock}
+\end{frame}
+
+% ---- 1.4 PoC Pipeline ----
+% source: goethe-faust/notes/openwebui-ollama-setup.md
+\begin{frame}{PoC Pipeline --- OpenWebUI + Ollama + QLever}
+  \small
+  {\tiny\url{https://github.com/anntanp/goethe-faust/blob/main/notes/openwebui-ollama-setup.md}}
+  \smallskip
+
+  \small
+  \begin{columns}[t]
+    \begin{column}{.52\textwidth}
+      \textbf{Components:}
+      \begin{tabular}{ll}
+        \toprule
+        Component & Port \\
+        \midrule
+        OpenWebUI & \texttt{:3000} \\
+        Ollama (native, Metal GPU) & \texttt{:11434} \\
+        Model & \texttt{gemma4:e4b} (9.6\,GB) \\
+        Native SPARQL tool & Workspace $\to$ Tools \\
+        QLever & \texttt{:7030} \\
+        SHMARQL & \texttt{:7032} \\
+        MCPO (OpenWebUI only) & \texttt{:8001} \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{.46\textwidth}
+      \textbf{Data flow:}
+      \medskip
+
+      \scriptsize
+      \texttt{User} $\to$ \texttt{OpenWebUI} $\to$ \texttt{Ollama} \\
+      \hspace{1em}$\to$ \textit{tool call} $\to$ \texttt{sparql\_query.py} \\
+      \hspace{1em}$\to$ SPARQL GET $\to$ \texttt{QLever} \\[4pt]
+      \texttt{User} $\to$ \texttt{SHMARQL} $\to$ \texttt{QLever} \\[4pt]
+      \texttt{Claude Code} $\to$ MCP $\to$ \texttt{QLever}
+
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---- 1.5 Deployment Options ----
+\begin{frame}[shrink=5]{Deployment Options}
+  \small
+  \textbf{Problem:} Two QLever instances needed (DDB-EDM raw + mocho-aligned).
+  At 27M objects, each instance requires $\geq$500\,GB storage;
+  network traffic and public hosting costs are non-trivial.
+
+  \smallskip
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Option A --- goethe-faust corpus only}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item Publish \textbf{115k-object} goethe-faust QLever + SHMARQL (already running locally)
+        \item Offer full DDB corpus as \textbf{.nt download} (Zenodo / w3id)
+        \item Reviewers can query live; full corpus available for bulk use
+      \end{itemize}
+      \smallskip
+      \textit{Pros:} deployable today; low infra cost. \\
+      \textit{Cons:} paper claims 27M --- live endpoint must match or abstract needs revision.
+    \end{column}
+    \begin{column}{.50\textwidth}
+      \textbf{Option B --- full 27M on FIZ infra}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item Deploy on teach03 or FIZ server with public IP
+        \item Both QLever instances exposed via SHMARQL + MCPO
+        \item Persistent URI resolves to live SPARQL endpoint
+      \end{itemize}
+      \smallskip
+      \textit{Pros:} matches paper claim; satisfies ISWC ``resource live at review'' requirement. \\
+      \textit{Cons:} $\geq$1\,TB disk; infra ops burden; network traffic.
+    \end{column}
+  \end{columns}
+  \begin{alertblock}{Open question}
+    \small Can we get a public-facing FIZ server before 2 May?
+    If not, Option A + Zenodo .nt is the fallback.
+  \end{alertblock}
+\end{frame}
+
+% ---- 1.6 Critical Path Before 2 May ----
+% source: roadmap-revised.md §8 Critical path + §9 Checklist
+\begin{frame}{Critical Path --- Before 2 May (Abstract)}
+  \small
+  \begin{enumerate}\setlength{\itemsep}{5pt}
+    \item \textbf{Register persistent URI} (w3id or Zenodo DOI) ---
+          mandatory for Resource Availability Statement; \textbf{single most time-critical item}
+
+    \item \textbf{QLever stats} ---
+          triple/object count per named graph; provider count
+          (\texttt{SELECT (COUNT(*) AS ?n) WHERE \{ ?s ?p ?o \}} per graph)
+
+    \item \textbf{Document mocho PoC} ---
+          subset size, classes produced, triple count, mapping quality notes
+
+    \item \textbf{Adapt SHMARQL + \texttt{setup.sh}} from \texttt{goethe-faust/};
+          point at GeMeA NT files; adjust ports and memory
+
+    \item \textbf{Inventory MCP tools} exposed via \texttt{./setup.sh mcp-add};
+          prepare 2 example agent interactions for §3.4
+
+    \item \textbf{Draft abstract} with real numbers:
+          scale + access methods + testbed framing + mocho PoC
+  \end{enumerate}
+  \begin{alertblock}{}
+    \small SHMARQL screenshots, MCP examples, and §4 Quality prose can follow before 7 May ---
+    but the resource must be live and core numbers real by 2 May.
+  \end{alertblock}
+\end{frame}
+
+
+% =================================================================
+\section{Mocho v1.1}
+% source: mocho/notes/mocho-gatherer-plan.md
+%         mocho/notes/mocho-gatherer-adr.md
+%         mocho/notes/reasoner-change-plan.md
+% =================================================================
+
+% ---- 2.2 Context, current pattern, justification ----
+% source: mocho-gatherer-adr.md §1 Context, §2 Justification, §3 Current pattern
+\begin{frame}{DDB EDM $\to$ mocho: Context \& Current Pattern}
+  \small
+  \textbf{Context (§1):} sector + mediatype determine the \emph{domain} ontology;
+  \texttt{htype} determines the \emph{domain class} within it. \\
+  \texttt{dc:type} is uncontrolled (free-text literals) and varies per institution
+  --- not alignable. Sector and mediatype carry centrally-defined vocnet IRIs:
+  consistent semantics across all providers.
+
+  \smallskip
+  \textbf{Current pattern (v1.0 --- broken for DDB data):}
+  \begin{center}
+  \footnotesize
+  \texttt{SubClassOf(mocho:Manifestation ObjectUnionOf(rdac:C10007 frbr:Manifestation \ldots))}
+  \end{center}
+  \vspace{-4pt}
+  \textbf{Under the open-world assumption the reasoner cannot infer which disjunct holds.}
+  DDB \texttt{edm:ProvidedCHO} objects carry no domain class types --- only \texttt{rdf:type edm:ProvidedCHO}.
+  The union axiom contributes nothing to classification on raw EDM data.
+\end{frame}
+
+% ---- 2.2b Justification ----
+% source: mocho-gatherer-adr.md §2 Justification v1.0 → v1.1
+\begin{frame}{DDB EDM $\to$ mocho: Justification for v1.1}
+  \small
+  \textbf{Why switch from field-value dispatch to sector/mediatype-based restrictions? (§2)}
+  \begin{itemize}\setlength{\itemsep}{4pt}
+    \item Controlled fields (sector, mediatype) have the same semantics across all institutions
+      $\Rightarrow$ safe to use as alignment signal
+    \item \texttt{dc:type} fails this test: same field, different purposes per institution
+    \item \texttt{htype} partially passes: centrally-defined codes map predictably to RiC-O and DoCO
+    \item OWL \texttt{ObjectHasValue} restrictions on \texttt{mocho:sector}/\texttt{mocho:mediatype}
+      serve as machine-readable specifications and SHACL validation rules
+  \end{itemize}
+\end{frame}
+
+% ---- 2.2c Patterns ----
+% source: mocho-gatherer-plan.md §1, Changes 5–7
+\begin{frame}[shrink=5]{v1.1 Solution: Two OWL Patterns}
+  \small
+  % source: mocho-gatherer-plan.md summary table (Changes 5–7)
+  \begin{tabular}{>{\bfseries}p{1.5cm}>{\raggedright\arraybackslash}p{5.5cm}>{\raggedright\arraybackslash}p{4.0cm}}
+    \toprule
+    & OWL construct & What it enables \\
+    \midrule
+    Pattern 1 &
+      \texttt{SubClassOf(rdac:C10007 mocho:Manifestation)} \newline
+      (one axiom per domain class, all WEMI levels) &
+      \texttt{?x rdf:type mocho:Manifestation} returns \texttt{rdac:C10007},
+      \texttt{aco:AudioManifestation}, \texttt{rico:Instantiation}, \ldots
+      without listing each domain class explicitly \\[6pt]
+    Pattern 2 &
+      \texttt{SubObjectPropertyOf(} \newline
+      \texttt{frbr:realization mocho:hasRealization)} \newline
+      (domain props $\to$ mocho hub; Changes 5--6) &
+      \texttt{?w mocho:hasRealization ?e} aggregates \texttt{frbr:realization},
+      \texttt{rdaw:P10078}, \texttt{mo:performed\_in}, \ldots
+      in a single cross-domain query \\
+    \bottomrule
+  \end{tabular}
+
+  \smallskip
+  \footnotesize
+  \textbf{Pattern 1:} Any instance typed as a domain class is automatically inferred to be a mocho WEMI pivot. \\
+  \textbf{Pattern 2:} mocho is the hub --- domain properties must be subproperties \emph{of} mocho properties;
+  wrong direction causes inference to flow away from the hub.
+\end{frame}
+
+% ---- 2.2 Routing Table ----
+% source: mocho-gatherer-adr.md §8 Reference: Sector x mediatype → domain class
+\begin{frame}{Routing Table: Sector $\times$ Mediatype $\to$ Domain Class}
+  \small
+  % source: mocho-gatherer-adr.md §8
+  \begin{center}
+  \begin{tabular}{llll}
+    \toprule
+    Sector & Mediatype & Domain class & mocho pivot \\
+    \midrule
+    sparte002 Library  & any         & \texttt{rdac:C10007} ``Manifestation'' & \texttt{mocho:Manifestation} \\
+    sparte006 Museum   & any         & \texttt{vra:Work}                      & \texttt{mocho:Work} / \texttt{mocho:Manifestation} \\
+    sparte001 Archive  & any         & \texttt{rico:Instantiation}            & \texttt{mocho:Manifestation} \\
+    sparte005 Media    & mt001 Audio & \texttt{aco:AudioManifestation}        & \texttt{mocho:Manifestation} \\
+    sparte005 Media    & mt005 Video & \texttt{ec:MediaResource}              & \texttt{mocho:Manifestation} \\
+    sparte006 Museum   & mt002 Photo & \texttt{vra:Image}                     & \texttt{mocho:Work} \\
+    sparte002 Library  & mt002 Photo & \texttt{rdac:C10007}                   & \texttt{mocho:Manifestation} \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \smallskip
+  \begin{block}{Note}
+    \small Most DDB \texttt{edm:ProvidedCHO} objects land at \texttt{mocho:Manifestation} ---
+    expected, as DDB holds physical/digital objects.
+    Work-level mocho classes are populated separately via GND linking (Phase 0 pipeline).
+  \end{block}
+\end{frame}
+
+% ---- 2.5b Changes Overview ----
+% source: mocho-gatherer-plan.md §3 Summary of changes
+\begin{frame}{Mocho v1.1 --- Changes Overview}
+  \small
+  \begin{tabular}{clp{6.5cm}ll}
+    \toprule
+    \# & & Change & Type & Count \\
+    \midrule
+    1 & & New prefixes (\texttt{vocnet-sparte:}, \texttt{vocnet-mtype:}, \texttt{vocnet-htype:})
+        & ADD & 3 \\
+    2 & & New \texttt{ObjectProperty mocho:sector} + domain/range/annotations
+        & ADD & 1 prop \\
+    3 & & New \texttt{ObjectProperty mocho:mediatype} + domain/range/annotations
+        & ADD & 1 prop \\
+    4 & & New declarations (2 OPs + 13 sparte/mt + 7 htype NamedIndividuals)
+        & ADD & 22 \\
+    5 & & \texttt{ClassAssertion} + bilingual labels for vocnet-htype individuals
+        & ADD & 21 axioms \\
+    6 & & \texttt{SubObjectPropertyOf} direction (FRBR + FaBiO) --- wrong $\to$ correct
+        & REPLACE & 8 axioms \\
+    7 & & New \texttt{SubObjectPropertyOf} (RDA, MO, RiC-O)
+        & ADD & 4 axioms \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+
+
+% =================================================================
+% =================================================================
+\section{NER Annotation}
+% source: rm057; gemea/notes/ner/
+% =================================================================
+
+% ---- 4.1 Status ----
+% source: rm057 §5 Gold Dataset; §6 Training Dataset
+\begin{frame}{NER Annotation --- Status}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.50\textwidth}
+      \textbf{What was decided (RM 057):}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item Gold set: \textbf{395 records}, stratified by era $\times$ tier $\times$ \texttt{dc\_type}
+        \item 4 strata: Pre-1700 / 1700--1800 / 19th-c / Modern
+        \item Oversampled: LP (\textit{Leichenpredigt}) + EB (\textit{Einblattdruck})
+        \item Labels: \texttt{TITLE}, \texttt{OTHER\_TITLE}, \texttt{PERSON}
+        \item Path confirmed: LLM annotation + fine-tune \texttt{xlm-roberta-base}
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \begin{alertblock}{Current status}
+        Annotation \textbf{ongoing}. \\[3pt]
+        Work \textbf{postponed} --- paper deadline (7 May) and mocho v1.1
+        take priority. NER pipeline is \emph{not} in v1 paper scope;
+        deferred to v1.1 (Phase 0).
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---- 4.1b Corpus Reprocessing ----
+% source: gemea/notes/project/reprocess-before-after.md
+%         ADR-02 (pkl → parquet), ADR-03 (corpus migration)
+\begin{frame}{NER Corpus --- Reprocessing: Before / After}
+  \small
+  % source: reprocess-before-after.md §1, §2, §3, §6
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{lll}
+    \toprule
+    & \textbf{Old (pkl)} & \textbf{New (parquet)} \\
+    \midrule
+    Rows          & 4.48M                          & \textbf{9.21M} \\
+    Language filter & \texttt{dc:lang=ger} + \texttt{langid=ger} & \texttt{dc:lang} $\in$ \{ger, gmh, nds, lat\} \\
+    htype filter  & notebook-defined               & ADR-01 BLANKET\_EXCLUDE \\
+    Tokenizer     & spaCy (model unspecified)      & xlm-roberta-large BPE \\
+    Median tokens & 8                              & 15 \\
+    Reproducible  & No (notebook)                  & Yes (scripted) \\
+    \midrule
+    Silver tier-1 (training pool) & 336K (7.5\%)  & \textbf{689K} (7.5\%) \\
+    \texttt{f\_other\_title} rate & 20.2\%         & \textbf{37.5\%} \\
+    \texttt{has\_dot\_dash} rate  & 1.2\%          & 0.4\% \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \smallskip
+  \begin{block}{What is unchanged}
+    \footnotesize
+    Tier proportions (0.1\,/\,7.5\,/\,92.4\%) stable --- ISBD heuristics scale uniformly. \quad
+    SR-08 gold sample (395 records) present in new parquet --- \textbf{no re-sampling needed}.
+  \end{block}
+\end{frame}
+
+% ---- 4.2 Done / Pending ----
+% source: rm057 §5, §8 Next Steps
+\begin{frame}{NER Annotation --- Done / Pending}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Done:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\checkmark$] Gold sampling design (RM 057 §5)
+        \item[$\checkmark$] Title boundary curation rules (\texttt{sr08})
+        \item[$\checkmark$] Silver tier classification (3 tiers; $\sim$340K tier-1/2)
+        \item[$\checkmark$] NuNER Zero ruled out (SR-09: F1\,=\,0.000)
+        \item[$\checkmark$] Stratification rationale + CI sizing ($\pm$10\,pp)
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Pending (after 7 May):}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\square$] LLM annotation of 395-record gold set
+        \item[$\square$] Adjudication per \texttt{sr08\_title-boundary-curation.md}
+        \item[$\square$] Fine-tune \texttt{xlm-roberta-base} on silver + LLM gold
+        \item[$\square$] Evaluate: exact span F1, per label $\times$ per era
+        \item[$\square$] Decision gate: pass $\geq$ targets $\Rightarrow$ integrate
+              into \texttt{link\_gnd\_works.py}; fail $\Rightarrow$ error analysis
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+% =================================================================
+\section{Status \& Deliverables}
+% source: gemea/paper/iswc-2026/
+%         gemea/notes/project/roadmap-revised.md §5, §8, §9
+% =================================================================
+
+% ---- Paper Outline ----
+% source: roadmap-revised.md §5 Paper Structure
+\begin{frame}[shrink=10]{Paper Outline --- ISWC 2026 Resource Track ($\leq$15\,pp)}
+  \footnotesize
+  % source: roadmap-revised.md §5
+  \begin{tabular}{clp{6.5cm}l}
+    \toprule
+    §\, & Section & Content & Status \\
+    \midrule
+    1   & Introduction  & Problem, gap, contributions, testbed framing       & \textcolor{orange}{draft} \\
+    2   & Related Work  & Europeana LOD, ArtKB, BIBFRAME, comparison table   & \textcolor{orange}{mostly done} \\
+    3   & Resource      & EDM schema, QLever stats, named graphs, VoID        & \textcolor{red}{needs stats} \\
+    3.2 & Mocho PoC     & Alignment, subset size, class coverage, output     & \textcolor{red}{needs numbers} \\
+    3.3 & SHMARQL       & Lightweight LD browser; Docker; screenshots         & \textcolor{red}{needs deploy} \\
+    3.4 & MCP/MCPO      & Tools exposed; 2 example agent interactions         & \textcolor{red}{needs deploy} \\
+    4   & Quality       & Triple counts, URI repair, mocho quality, limits    & \textcolor{red}{needs stats} \\
+    5   & Usage         & 4 SPARQL examples; 2 MCP examples; use cases        & \textcolor{orange}{partial} \\
+    6   & Impact        & DH + SW communities; testbed positioning            & \textcolor{green!60!black}{done} \\
+    7   & Sustainability& Versioning, w3id URIs, open source, upstream dep.\  & \textcolor{green!60!black}{done} \\
+    8   & Conclusion    & Summary, v2 directions                              & \textcolor{green!60!black}{draft} \\
+        & Avail.\ Stmt  & Persistent URI + CC BY 4.0 + citation               & \textcolor{red}{needs URI} \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ---- Abstract ----
+% source: gemea/paper/iswc-2026/00-abstract.tex
+\begin{frame}{Abstract (due 2 May)}
+  \small
+  % source: gemea/paper/iswc-2026/00-abstract.tex
+  \begin{block}{}
+    We present GeMeA, a publicly accessible knowledge graph over 23M+ objects from the German
+    Digital Library (DDB), queryable via SPARQL (QLever), browsable via SHMARQL, and accessible
+    to AI agents through an MCP interface --- a combination not previously available for cultural
+    heritage data at this scale. The resource includes a MOCHO-based ontology alignment layer
+    mapping DDB EDM metadata to a domain- and modality-specific ontology, with partial GND entity
+    linking via rule-based ISBD title extraction. GeMeA is released as a research testbed for work
+    on ontology evaluation, agentic KG applications, RML-based declarative mapping, and provenance
+    modelling of LLM-assisted enrichment. Data is licensed CC BY 4.0; the SPARQL endpoint, Linked
+    Data browser, and source code are available at [URI].
+  \end{block}
+  \smallskip
+  \begin{alertblock}{Before submitting}
+    Replace \textbf{23M+} with verified count from QLever stats \quad$\cdot$\quad
+    Replace \textbf{[URI]} with registered persistent URI
+  \end{alertblock}
+\end{frame}
+
+% ---- Open TODOs ----
+% source: roadmap-revised.md §8 Acceptance-critical items (ranked by weight)
+\begin{frame}{Open TODOs --- Blocking Submission}
+  \small
+  % source: roadmap-revised.md §8 Acceptance-critical items (ranked by weight)
+  \begin{enumerate}\setlength{\itemsep}{4pt}
+    \item[$\square$] \textbf{Persistent URI registered} (w3id or Zenodo DOI) ---
+          mandatory for Resource Availability Statement; \textbf{before 2 May}
+
+    \item[$\square$] \textbf{Concrete stats in §3} --- triple counts, object counts,
+          named graph inventory; every \texttt{\textbackslash todo\{\}} placeholder is a red flag
+
+    \item[$\square$] \textbf{Mocho PoC quantified} --- subset size, classes produced,
+          triple count; a PoC without numbers fails the quality criterion
+
+    \item[$\square$] \textbf{SPARQL examples run against live endpoint} --- 4 queries
+          in §5 must work; a SPARQL error poisons all subsequent reading
+
+    \item[$\square$] \textbf{Resource live at review time} --- QLever + SHMARQL browser
+          + persistent URI must all resolve; ISWC reviewers \emph{will} click the URI
+  \end{enumerate}
+\end{frame}
+
+% ---- May 2 Checklist ----
+% source: roadmap-revised.md §9 Before abstract (2 May)
+\begin{frame}{Deliverables --- Before Abstract (2 May)}
+  \small
+  % source: roadmap-revised.md §9 Checklist / Before abstract (2 May)
+  \begin{enumerate}\setlength{\itemsep}{5pt}
+    \item[$\square$] \textbf{Persistent URI registered} (w3id or Zenodo DOI)
+    \item[$\square$] \textbf{QLever stats}: triple/object count per named graph; provider count
+    \item[$\square$] \textbf{Mocho PoC documented}: subset size, classes, triple count, quality
+    \item[$\square$] \textbf{SHMARQL adapted + deployed}: copy from \texttt{goethe-faust/};
+          adjust ports and memory; verify UI accessible
+    \item[$\square$] \textbf{MCP tools inventory}: \texttt{./setup.sh mcp-add};
+          list tools exposed; 2 example agent interactions drafted
+    \item[$\square$] \textbf{SHMARQL screenshots} captured for §3.3 and §5
+    \item[$\square$] \textbf{Abstract drafted} with real numbers:
+          scale + access methods + testbed framing + mocho PoC
+  \end{enumerate}
+  \begin{alertblock}{}
+    \small \textbf{Blocking all of the above:} persistent URI + live QLever endpoint.
+  \end{alertblock}
+\end{frame}
+
+% ---- 5.2 May 7 Checklist ----
+% source: roadmap-revised.md §9 Before full paper (7 May)
+\begin{frame}[shrink=10]{Deliverables --- Before Full Paper (7 May)}
+  \small
+  % source: roadmap-revised.md §9 Before full paper (7 May)
+  \begin{columns}[t]
+    \begin{column}{.50\textwidth}
+      \textbf{Paper sections:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\square$] §1 Introduction
+        \item[$\square$] §2 Related Work --- finalize comparison table
+        \item[$\square$] §3 Resource Description + VoID descriptor
+        \item[$\square$] §3.2 Mocho PoC
+        \item[$\square$] §3.3 SHMARQL --- deployment + screenshots
+        \item[$\square$] §3.4 MCP/MCPO --- tools + 2 example interactions
+        \item[$\square$] §4 Quality \& Validation
+        \item[$\square$] §5 Usage --- 4 SPARQL + 2 MCP examples
+        \item[$\checkmark$] §6 Impact
+        \item[$\checkmark$] §7 Sustainability
+        \item[$\checkmark$] §8 Conclusion (draft)
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Non-section deliverables:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\square$] Resource Availability Statement (URI + CC BY 4.0 + citation)
+        \item[$\square$] Declaration of Use of Generative AI
+        \item[$\square$] SPARQL examples tested on live endpoint
+        \item[$\square$] Abstract finalized with verified numbers
+      \end{itemize}
+      \smallskip
+      \textbf{Milestones:}
+      \footnotesize
+      \begin{tabular}{ll}
+        \toprule
+        Date & Event \\
+        \midrule
+        2 May   & Abstract \\
+        7 May   & Full paper \\
+        11--18 Jun & Rebuttal \\
+        16 Jul  & Notification \\
+        6 Aug   & Camera-ready \\
+        27--29 Oct & ISWC 2026 \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =================================================================
+\end{document}

@@ -18,18 +18,18 @@ Three contributions are described in this paper:
 \begin{enumerate}
     \item \textbf{Resource.} A publicly queryable KG of 26M German cultural heritage objects, served via a QLever SPARQL endpoint~\cite{bast2017qlever} and browsable through a SHMARQL Linked Data interface --- the first open, SPARQL-accessible KG over the DDB corpus.
 
-    \item \textbf{Ontology alignment PoC.} A \texttt{mocho}-based alignment layer mapping DDB EDM metadata to RDA/FRBR-compatible representations, demonstrated on a representative subset, with scope boundaries documented rather than suppressed.
+    \item \textbf{Ontology alignment PoC.} A \textbf{MOCHO}-based alignment layer mapping DDB EDM metadata to RDA/FRBR-compatible representations, demonstrated on a representative subset, with scope boundaries documented rather than suppressed.
 
     \item \textbf{Agentic access layer.} An MCP/MCPO interface on the QLever endpoint, enabling AI agents to query GeMeA programmatically via any MCP-compatible client.
 \end{enumerate}
 
 GeMeA is released as a research testbed for LLM + KG research at cultural heritage scale, including KG-grounded retrieval, entity embedding, explainability, and agentic KG access.
-Ontology evaluation on the \texttt{mocho}-aligned subgraph and provenance modeling of LLM-assisted KG enrichment are also supported.
+Ontology evaluation on the \textbf{MOCHO}-aligned subgraph and provenance modeling of LLM-assisted KG enrichment are also supported.
 Data is licensed CC~BY~4.0; the SPARQL endpoint, Linked Data browser, and source code are available at \todo{[persistent URI]}.
 
 The remainder of this paper is structured as follows.
 Section~\ref{sec:related} surveys related cultural heritage KGs and Linked Data initiatives.
-Section~\ref{sec:resource} describes the GeMeA resource: the EDM knowledge graph, the \texttt{mocho} ontology alignment PoC, the SHMARQL browsing interface, and the MCP access layer.
+Section~\ref{sec:resource} describes the GeMeA resource: the EDM knowledge graph, the \textbf{MOCHO} ontology alignment PoC, the SHMARQL browsing interface, and the MCP access layer.
 Section~\ref{sec:quality} reports on data quality, known scope boundaries, and validation results.
 Section~\ref{sec:usage} illustrates usage through SPARQL examples and downstream research applications.
 Section~\ref{sec:impact} addresses broader impact and FAIR compliance.

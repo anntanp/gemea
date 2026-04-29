@@ -1,0 +1,15 @@
+%% 81-discussion.tex — Discussion / Sustainability (DRAFT — not included in 00-main.tex)
+
+\section{Sustainability}
+\label{sec:sustainability}
+
+Sustaining the resource requires managing the DDB dataset's inherent complexity.
+Certain structural quirks --- such as the indirect encoding of mediatype and sector via opaque codes (\texttt{mt001}--\texttt{mt007}, \texttt{sparte001}--\texttt{sparte007}) rather than typed literals --- are non-obvious and recur across the corpus.
+We surface these patterns explicitly as \emph{dataset context}: structured documentation that records the derivation rules needed to recover interpretable values from raw fields, and maps each pattern to the audience most affected:
+\begin{itemize}
+  \item \textbf{Semantic Web}: provenance of field derivations and named-graph boundaries;
+  \item \textbf{Digital Humanities}: field-level semantics and coverage limitations by sector;
+  \item \textbf{Computer Science}: whether LLMs alone suffice, or whether classical ML methods --- knowledge graph embeddings, entity alignment --- combined with Semantic Web best practices yield better results;
+  \item \textbf{Software Engineering}: end-to-end pipeline architecture from ingestion to agentic access.
+\end{itemize}
+This context is made available as MCP resources, so that LLM-based tooling can ground queries and downstream analyses in authoritative dataset knowledge rather than infer it from incomplete samples.

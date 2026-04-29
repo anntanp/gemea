@@ -8,7 +8,7 @@
 Europeana LOD~\cite{europeana2012lod} is the largest CH Linked Open Data initiative, exposing EDM-compliant metadata for tens of millions of objects aggregated from across Europe.
 Its SPARQL endpoint has been discontinued; data is distributed primarily as bulk download, with no interactive graph browser.
 National counterparts share similar limitations: the Smithsonian Institution\todo{cite here!} and British Museum\todo{cite here!} have published CIDOC-CRM\todo{cite here!}-aligned collections, but interactive SPARQL access and Linked Data browsing remain inconsistent.
-The GND is available as a bulk download~\cite{dnb-opendata}\todo{cite here!} and via a QLever-hosted SPARQL endpoint,\footnote{\url{https://sparql.dnb.de/dnbgnd}} but querying requires SPARQL expertise.
+The GND is available as a bulk download~\footnote{GND Op} and via a QLever-hosted SPARQL endpoint,\footnote{\url{https://sparql.dnb.de/dnbgnd}} but querying requires SPARQL expertise.
 
 Domain-specific CH KGs have been published at ISWC and ESWC.
 ArCo~\cite{carriero2019arco} is an Italian CH KG modeled with CIDOC-CRM and interlinked with DBpedia and the Getty Vocabularies, covering around 820K cultural objects; it provides a SPARQL endpoint but no graph browser.
@@ -27,8 +27,8 @@ The DNB (Deutsche Nationalbibliothek)\todo{cite here!} and OCLC\todo{cite here!}
 Automatic ontology alignment tools, as benchmarked in the OAEI campaigns\todo{cite here!}, operate on ontological structure: lexical and structural similarity between class and property definitions.
 The EDM-to-RDA/FRBR mapping is not a structural similarity problem: distinguishing FRBR levels requires knowledge of cataloguing conventions; splitting \texttt{edm:Agent} into \texttt{frbr:Person} and \texttt{frbr:CorporateBody} requires external authority file lookups (GND); and the semantics of \texttt{dc:type} are sector-dependent and underdetermined by the EDM specification.
 A rule-based, domain-knowledge-driven alignment strategy is therefore appropriate for this class of problem.
-\texttt{mocho}~\cite{mocho} bridges EDM and RDA\todo{cite here!}/FRBR\todo{cite here!}: it maps EDM ProvidedCHOs to FRBR Manifestations, groups them into \texttt{mocho:Work} entities via GND\todo{cite here!} Werk links, and normalizes properties to RDA vocabulary.
-GeMeA's alignment layer is a direct application of \texttt{mocho} to the DDB corpus.
+\textbf{MOCHO}~\cite{mocho} bridges EDM and RDA\todo{cite here!}/FRBR\todo{cite here!}: it maps EDM ProvidedCHOs to FRBR Manifestations, groups them into \texttt{mocho:Work} entities via GND\todo{cite here!} Werk links, and normalizes properties to RDA vocabulary.
+GeMeA's alignment layer is a direct application of \textbf{MOCHO} to the DDB corpus.
 
 \subsection{SPARQL Endpoints and KG Browsers}
 
@@ -51,7 +51,7 @@ The MCP/MCPO agentic access layer has no published precedent in CH KG work.
 \toprule
 \textbf{System} & \textbf{Scale} & \textbf{Ontology} & \textbf{SPARQL} & \textbf{Browser} & \textbf{Self-host} \\
 \midrule
-GeMeA (this work)   & 26M  & EDM + \texttt{mocho} (RDA/FRBR) & \checkmark & SHMARQL  & \checkmark \\
+GeMeA (this work)   & 26M  & EDM + \textbf{MOCHO} (RDA/FRBR) & \checkmark & SHMARQL  & \checkmark \\
 ArtKB~\cite{blanco2026artkb} & 307K & CACAO (CIDOC-CRM) & --     & --       & -- \\
 Europeana LOD~\cite{europeana2012lod} & $\sim$50M & EDM & --  & --       & -- \\
 ArCo~\cite{carriero2019arco}  & 820K & CIDOC-CRM & \checkmark & --   & partial \\

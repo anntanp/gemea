@@ -18,8 +18,7 @@
 | Tokenizer | spaCy (unspecified model) | xlm-roberta-large SentencePiece BPE | — |
 
 #### teach03:[`2023.08.09 DDB Dump.ipynb`](http://10.10.4.14:60002/lab/tree/notebook/2023.08.09%20DDB%20Dump.ipynb)
-`included_htypes = ['monografie', 'kapitel', 'abschnitt', 'handschrift', 'mehrbändiges werk', 'aufsatz', 'band', 'musik', 'rezension']
-`
+`included_htypes = ['monografie', 'kapitel', 'abschnitt', 'handschrift', 'mehrbändiges werk', 'aufsatz', 'band', 'musik', 'rezension']`
 ### 1.2 Pipeline funnel (new parquet)
 
 | Stage | Rows | Notes |
