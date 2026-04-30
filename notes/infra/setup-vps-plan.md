@@ -32,7 +32,85 @@ flowchart LR
 
 ---
 
-## 1. Architecture decision: 1 QLever + named graphs
+## 1. Services
+
+| Service | Hosted on | Role |
+|---|---|---|
+| QLever | VPS | Single SPARQL endpoint, named graphs (EDM + mocho) |
+| SHMARQL | VPS | Linked Data browser + `/sparql` proxy over QLever |
+| MCP/MCPO | VPS | QLever exposed as MCP server (via `mcp-server-qlever`) |
+| **NT dump download** | VPS | Static HTTP file server serving `edm*.nt` + `mocho*.nt` |
+| Ollama | Self-hosted | LLM inference (gemma4:e4b baseline; GPU-optional) |
+| OpenWebUI | Self-hosted | Chat UI + native SPARQL tool |
+
+NT files are served directly from the VPS — the same pattern as the GND service dumps.
+NTs are **permanent on-disk** (not archived to object storage); the VPS is the canonical
+download location referenced in the Resource Availability Statement.
+
+Pattern proven on `goethe-faust/`; adapt `docker-compose.shmarql.yml` and `setup.sh`.
+
+---
+
+## 2. Deployment Plan
+
+### Phase 1 — Pre-Submission (2 May)
+
+| Date | Done | Milestone |
+|---|---|---|
+| 2 May | [x] | goethe-faust NT [dump downloads](https://gemea.ise.fiz-karlsruhe.de) |
+
+### Phase 2 — Submission (7–15 May)
+
+| Date | Done | Milestone |
+|---|---|---|
+| 8 May | [ ] | SHMARQL + QLever (goethe-faust corpus) live on VPS |
+| 8 May | [ ] | Switch `https://gemea.ise.fiz-karlsruhe.de` from teach01 to VPS |
+| 11 May | [ ] | `edm*.nt.gz` dump available for download |
+| 12 May | [ ] | `setup.sh` for self-hosting published |
+| 13–15 May | [ ] | `mocho*.nt.gz` dump available for download |
+
+### Phase 3 — Post-Notification (July 2026)
+
+🔲 Decide minimum VPS subscription length — reviews Jun 2026, notification Jul 2026, camera-ready Aug 2026, conference Oct 2026; minimum to cover reviewer access + conference = **6 months** (May–Nov 2026); permanent deployment beyond that.
+
+If accepted: add Hetzner Cloud GPU instance for Ollama, or migrate to OVHcloud
+Advance-4 (384 GB RAM, 15 TB NVMe) for single-machine ideal spec.
+
+---
+
+## 3. Architecture decisions
+
+### 3.1 OpenWebUI + Ollama: not hosted on VPS
+
+OpenWebUI and Ollama will not be deployed on the VPS. Hosting them would require a
+GPU, which adds significant cost and complexity. Instead:
+
+- A downloadable `setup.sh` will be provided for self-hosting OpenWebUI + Ollama + MCPO
+- An MCP server for Claude Code will be published alongside, pointing at the GeMeA
+  QLever endpoint
+
+Users run the LLM stack locally or on their own infrastructure; the VPS serves only
+the KG layer (QLever, SHMARQL, MCP/MCPO, NT dumps).
+
+### 3.2 Transform pipeline and QLever index build: on teach server
+
+The EDM→mocho transformation (`transform_edm_to_mocho.py`) and the QLever index build
+both run on a teach server (where the DDB source data already lives), not on the VPS.
+
+**What this saves on the VPS:**
+- No build-time CPU load (transform is ~12–24 hrs parallelized; VPS never idles under it)
+- No build-time storage peak — VPS never needs to hold source JSON (~560 GB) alongside
+  a growing index; only the finished index + NTs land on the VPS
+- NVMe floor drops from ~6 TB (build-time peak) to ~4 TB (steady-state only)
+- Cheaper server tier is sufficient: AX162-R base (2× 1.92 TB) + 1 addon drive may suffice
+
+**What gets transferred to VPS:**
+- Pre-built QLever index (~1.3 TB)
+- `edm*.nt.gz` + `mocho*.nt.gz` (~2.5 TB uncompressed; ~600–800 GB compressed)
+
+Transfer via `rsync` or `scp` over ISE network; estimated ~2–4 hrs at 1 Gbps.
+
+### 3.3 1 QLever + named graphs
 
 EDM and mocho data go into **one QLever instance** as separate named graphs, not two
 separate instances.
@@ -63,38 +141,21 @@ needed here.
 | `http://gemea.ddb.de/graph/mocho` | mocho-transformed triples (`mocho*.nt`) | v1 |
 | `http://gemea.ddb.de/graph/work` | GND Werk linking enrichment (`link_gnd_works.py` output) | v1.1 |
 | `http://gemea.ddb.de/graph/provenance` | PROV-O traces for pipeline enrichment steps | v1.1 |
-| `http://gemea.ddb.de/graph/view-field` | Additional CHO properties from `view.item.fields[].field[]` in the DDB JSON (display-layer fields rendered on the DDB item page: `id`, `name`, `value[].content`, `value[].creditline`, `value[].resource`, `value[].rightsinfo`, `georeference`) | v1.1 |
+| `http://gemea.ddb.de/graph/view-field` | Additional CHO properties from `view.item.fields[].field[]` in the DDB JSON (display-layer fields rendered on the DDB item page) | v1.1 |
 
 v1 graphs (EDM + mocho) are the ISWC submission scope. v1.1 graphs load into the same
 QLever instance when ready — no re-indexing of v1 data required, only appending.
 
-## 2. Services
-
-| Service | Role | Port |
-|---|---|---|
-| QLever | Single SPARQL endpoint, two named graphs (EDM + mocho) | 7020 |
-| SHMARQL | Linked Data browser + `/sparql` proxy over QLever | 7032 |
-| MCP/MCPO | QLever exposed as MCP server (via `mcp-server-qlever`) | 8001 |
-| Ollama | LLM inference (gemma4:e4b baseline; GPU-optional) | 11434 |
-| OpenWebUI | Chat UI + native SPARQL tool | 3000 |
-| **NT dump download** | Static HTTP file server serving `edm*.nt` + `mocho*.nt` | 80/443 |
-
-NT files are served directly from the VPS — the same pattern as the GND service dumps.
-NTs are **permanent on-disk** (not archived to object storage); the VPS is the canonical
-download location referenced in the Resource Availability Statement.
-
-Pattern proven on `goethe-faust/`; adapt `docker-compose.shmarql.yml` and `setup.sh`.
-
 ---
 
-## 3. Scale estimates
+## 4. Scale estimates
 
 **Basis**: goethe-faust corpus (115,432 records). Scale factor: 27M / 115,432 = **233×**.
 
 mocho entity types (Agent, Place, Concept) deduplicate by URI and do not scale 233×
 — they scale ~5–20× with corpus breadth. ProvidedCHO + Aggregation scale linearly.
 
-### 3.1 NT file sizes
+### 4.1 NT file sizes
 
 | File | goethe-faust | At 27M records | Triples at scale |
 |---|---|---|---|
@@ -107,7 +168,7 @@ The revised transform plan (`transform-revised-plan.md`) adds WebResource, Agent
 Concept, PhysicalThing, TimeSpan entities. These add ~15–30 GB at scale (not another TB)
 due to URI deduplication.
 
-### 3.2 QLever index size (single instance, two named graphs)
+### 4.2 QLever index size (single instance, two named graphs)
 
 Source: QLever VLDB 2022 benchmarks (Wikidata 6.7B triples → 630 GB index ≈ 94 bytes/triple compressed).
 Named graph column (4th quad field) adds ~10–20% vs a triple-only index.
@@ -118,7 +179,7 @@ Named graph column (4th quad field) adds ~10–20% vs a triple-only index.
 | mocho named graph | ~12B | ~1.1 TB | ~170 GB |
 | **Combined (EDM + mocho)** | **~14B** | **~1.3–1.4 TB** | **~220–240 GB** |
 
-### 3.3 Storage totals
+### 4.3 Storage totals
 
 NTs are permanent (served as downloads from the VPS) — no archiving off-server.
 
@@ -132,135 +193,84 @@ to reclaim ~560 GB, bringing steady state to ~3.4 TB.
 
 ---
 
-## 3. Index build time estimates
-
-Two-stage index build to match the deployment timeline:
-
-**Stage A — pilot corpus (goethe-faust, ~1–2 May)**
-
-| Step | Estimated time |
-|---|---|
-| Upload goethe-faust NTs to VPS (~9.5 GB) | ~5 min |
-| QLever pilot index build (~47M triples) | ~10–30 min |
-| **Pilot endpoint live** | **< 1 hr** |
-
-**Stage B — full corpus (~8–10 May)**
-
-| Step | Estimated time |
-|---|---|
-| Upload full NTs to VPS (1 Gbps, ~2.5 TB) | ~6–8 hrs |
-| QLever full-corpus index build (EDM + mocho, ~14B triples) | ~12–20 hrs |
-| **Full endpoint live** | **~18–28 hrs after upload starts** |
-
-**Transform pipeline on VPS** (alternative if pre-built NTs are unavailable):
-Single-threaded Python: ~3–6 days for 27M records.
-Parallelized per sector (7 sectors): ~12–24 hrs with sector-level multiprocessing.
-
 ---
 
-## 4. Hardware specifications
+## 5. Hardware specifications
 
-### 4.1 Minimum — ISWC review window
+Index build and transform run on teach server (§3.2); only the finished index + NTs
+land on the VPS. Build-time peak no longer applies.
 
-Sufficient for ISWC reviewer load (~2–5 concurrent SPARQL queries). CPU Ollama
-(gemma4:e4b at ~5–15 tok/s on modern server CPU) is acceptable for demos.
+QLever uses **memory-mapped files**: the OS page cache holds hot index pages; RAM and
+CPU scale with query concurrency, not index size.
 
-| Component | Spec | Notes |
-|---|---|---|
-| CPU | 32 cores (AMD EPYC or Xeon) | QLever query parallelism |
-| RAM | **256 GB** | QLever mocho ~170 GB + EDM ~50 GB + Ollama ~8 GB + headroom |
-| NVMe | **6 TB** | Steady state 3.9 TB (NTs permanent); 6 TB leaves build headroom |
-| GPU | None | CPU Ollama; upgrade in Phase 2 |
-| Network | 1 Gbps unmetered | |
-| OS | Ubuntu 24.04 LTS | |
+**Storage**: QLever index ~1.3 TB + `edm*.nt.gz` ~60–100 GB + `mocho*.nt.gz` ~440–730 GB + OS ~100 GB = **~2.0–2.2 TB** (NTs stored compressed; NT files compress 3–5×).
 
-256 GB RAM is the hard floor. 6 TB NVMe is the hard floor (3.9 TB steady state + build headroom).
+### 5.2 Scenario A — QLever + SHMARQL + MCP (no LLM on VPS)
 
-### 4.2 Ideal — permanent public deployment
+Current plan. OpenWebUI and Ollama run self-hosted by users (§3.1).
 
-| Component | Spec | Notes |
-|---|---|---|
-| CPU | 64 cores (AMD EPYC 9554P or equivalent) | |
-| RAM | **384–512 GB** | Both QLever instances fully hot-cached + Ollama GPU offload |
-| NVMe | **8–10 TB** | NTs permanent (download service) + re-indexing headroom |
-| GPU | 24 GB VRAM (NVIDIA A10 or RTX 4090) | Ollama at ~50–100 tok/s |
-| Network | 10 Gbps | |
-
----
-
-## 5. German provider options
-
-Digital sovereignty requirement: server in Germany (GDPR / DSGVO-compliant).
-
-### 5.1 Hetzner Dedicated (Nuremberg / Falkenstein)
-
-Best price/performance. BSI-certified datacenters. **No GPU on dedicated servers** —
-use a separate Hetzner Cloud GPU instance for Ollama if needed.
-
-| Config | RAM | NVMe | Est. price |
+| | Reviewer (2–5) | Moderate public (20–50) | High public (100+) |
 |---|---|---|---|
-| AX162-R | 256 GB | 2× 1.92 TB | ~€240/month |
-| AX162-R + 2 addon drives | 256 GB | ~6 TB total | ~€320/month |
-| Custom root server | 256–512 GB | up to 10 TB | ~€350–500/month |
+| CPU | 4–8 cores | 8–16 cores | 32+ cores |
+| RAM | 32 GB | 128 GB | 256 GB |
+| NVMe | 3 TB | 3 TB | 3 TB |
+| GPU | — | — | — |
+| Network | 1 Gbps | 1 Gbps | 10 Gbps |
 
-Hetzner Object Storage: S3-compatible, ~€0.01/GB/month — use for NT archiving.
+### 5.3 Provider: Hetzner
 
-Hetzner Cloud GPU (Frankfurt): GX2-120 with A40 48 GB VRAM at ~€2.30/hr reserved
-— viable as a separate Ollama-only VM if GPU inference is required before a full
-dedicated GPU server is justified.
+Nuremberg / Falkenstein. BSI-certified datacenters, GDPR-compliant.
+Source: https://www.hetzner.com/dedicated-rootserver/ax102-u/configurator/
 
-### 5.2 OVHcloud (Strasbourg / Frankfurt)
+**Scenario B** (if §3.1 decision is reversed — OpenWebUI + Ollama on VPS) adds GPU requirements on top of Scenario A:
 
-GPU dedicated servers available. More expensive than Hetzner for CPU-only.
+| | Reviewer (2–5) | Moderate public (20–50) | High public (100+) |
+|---|---|---|---|
+| Extra RAM | +8 GB | +8 GB | +8 GB |
+| GPU | 8–12 GB VRAM | 8–12 GB VRAM | 24 GB VRAM |
 
-| Config | RAM | Storage | GPU | Est. price |
+gemma4:e4b (4B params) needs ~6–8 GB VRAM; 24 GB only required for 13B+ models. No Hetzner dedicated server includes GPU — Scenario B requires a Hetzner Cloud GPU node alongside the dedicated server.
+
+### 5.4 Fit matrix
+
+| Server | Sc. A – Reviewer | Sc. A – Moderate | Sc. A – High | Sc. B (any) |
 |---|---|---|---|---|
-| Advance-3 | 192 GB | 4× 3.84 TB NVMe | none | ~€350/month |
-| Advance-4 | 384 GB | 4× 3.84 TB NVMe | none | ~€500/month |
-| GPU-3 | 192 GB | 2× 1.92 TB NVMe | 1× A100 40 GB | ~€1,400/month |
+| **EX44** | ✓ chosen | ✓ chosen | ✗ (14c) | ✗ (no GPU) |
+| AX102-U | ✓ | ✓ | ✓ | ✗ (no GPU) |
+| AX41-NVMe | ✗ (1 TB NVMe) | ✗ (1 TB NVMe) | ✗ | ✗ |
+| EX44 + Cloud GPU | — | — | — | ✓ ~€1,057–1,297/6mo |
 
-Advance-3 RAM (192 GB) is below the 256 GB floor — avoid for this workload.
+AX41-NVMe ruled out: 2×512 GB NVMe = 1 TB, too small for the full-corpus QLever index (~1.3 TB); HDD too slow for mmap queries.
 
-### 5.3 IONOS (Frankfurt — German company, DSGVO-native)
+### 5.5 Server specs
 
-- Dedicated Pro: up to 512 GB RAM, 4–8 TB NVMe, ~€400–600/month
-- GPU cloud instances available separately
-- Good option if DSGVO-native company ownership matters
+| Product | CPU | RAM | Storage | Price/month | Setup | 6-month total |
+|---|---|---|---|---|---|---|
+| AX41-NVMe | AMD Ryzen 5 3600, 6c/12t @ 3.6 GHz | 64 GB DDR4 | 2×512 GB NVMe SSD + 1×16 TB SATA HDD | €67 | €39 | **€441** |
+| **EX44** ← chosen | Intel Core i5-13500 (Raptor Lake-S), 14c/20t @ 2.5 GHz | 128 GB DDR4 | 2×512 GB NVMe SSD + 1×2 TB NVMe SSD = **3 TB** | **€78** | €109 | **€577** |
+| AX102-U | AMD Ryzen 9 7950X3D (SMT) | 128 GB DDR5 | 2×1.92 TB NVMe SSD Datacenter (Gen4), RAID 1 base | €124 | €500 | €1,244 |
 
-### 5.4 Netcup (Karlsruhe)
+AX102-U base config ships with 2×1.92 TB NVMe in **RAID 1** (1.92 TB usable). To reach 3 TB+: reconfigure to RAID 0 (3.84 TB usable) or add drives from the table below. The 7950X3D's 128 MB L3 V-Cache benefits QLever's mmap workload but the €500 setup + €124/month is hard to justify for reviewer-tier load.
 
-Storage-optimized, cheapest bulk NVMe. RAM tops out at 256 GB on standard configs.
-Suitable if cost is the primary constraint and 256 GB RAM is acceptable.
+#### AX102-U addon drive pricing
 
----
+| Drive | Type | Price/month |
+|---|---|---|
+| 960 GB NVMe SSD Datacenter Edition | NVMe | €28 |
+| 1.92 TB NVMe SSD Datacenter Edition | NVMe | €40 |
+| 3.84 TB NVMe SSD Datacenter Edition | NVMe | €49 |
+| 7.68 TB NVMe SSD Datacenter Edition | NVMe | €93 |
+| 15.36 TB NVMe SSD Datacenter Edition | NVMe | €154 |
+| 1 TB SATA SSD | SATA | €8 |
+| 960 GB SATA SSD Datacenter Edition | SATA | €17 |
+| 1.92 TB SATA SSD Datacenter Edition | SATA | €23 |
+| 3.84 TB SATA SSD Datacenter Edition | SATA | €41 |
 
-## 6. Recommended path
-
-### Phase 1 — Provision now (2026-04-30)
-
-**Hetzner AX162-R + 2 additional NVMe addon drives** (~6 TB total, ~€320/month).
-
-Order today: provisioning takes hours, NTs must be on the VPS by **2–3 May**.
-
-| Date | Milestone |
-|---|---|
-| 30 Apr | Order server; begin goethe-faust NT upload as pilot |
-| 1–2 May | VPS live; pilot NTs (goethe-faust `edm*.nt` + `mocho*.nt`) served via HTTP; QLever index on pilot corpus running; SHMARQL accessible |
-| 2 May | **Abstract submitted** — resource URL points to live VPS |
-| 8 May | Full 27M NTs ready; upload to VPS |
-| 9–10 May | QLever full-corpus index build (~18–28 hrs); endpoint updated |
-| Before 7 May paper | SHMARQL screenshots captured, MCP tool inventory done |
-
-CPU Ollama (gemma4:e4b) is adequate for the review window.
-
-### Phase 2 — After ISWC notification (July 2026)
-
-If accepted: add Hetzner Cloud GPU instance for Ollama, or migrate to OVHcloud
-Advance-4 (384 GB RAM, 15 TB NVMe) for single-machine ideal spec.
+Hetzner Object Storage: ~€0.01/GB/month — available for JSON source archiving if needed.
 
 ---
 
-## 7. Open questions
+## 6. Open questions
 
 - [x] Persistent URI: w3id (redirects to VPS) — register before 2 May
 - [x] NT versioning: date-stamped filenames + `latest/` symlink
