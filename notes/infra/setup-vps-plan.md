@@ -5,6 +5,33 @@
 
 ---
 
+## 0. Architecture
+
+```mermaid
+flowchart LR
+    subgraph SH["Self-Hosted*"]
+        User([User]) -->|chat| OW[OpenWebUI]
+        OW -->|inference| OL[Ollama]
+        OL -->|gemma4:e4b| OW
+        OW -->|tool call| T[sparql_query\nPython tool]
+    end
+
+    subgraph VPS["VPS (gemea.ise.fiz-karlsruhe.de)"]
+        QL[QLever\nSPARQL endpoint]
+        SHMARQL[SHMARQL\nLinked Data browser]
+        SHMARQL -->|SPARQL proxy| QL
+    end
+
+    T -->|SPARQL GET| QL
+    QL -->|JSON results| T
+    T --> OW
+    User -->|browse| SHMARQL
+```
+
+\* Downloadable setup script will be provided. ISE hosts this block on a teach server.
+
+---
+
 ## 1. Architecture decision: 1 QLever + named graphs
 
 EDM and mocho data go into **one QLever instance** as separate named graphs, not two
