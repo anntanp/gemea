@@ -240,7 +240,6 @@ gemma4:e4b (4B params) needs ~6–8 GB VRAM; 24 GB only required for 13B+ models
 | **EX44** | ✓ chosen | ✓ chosen | ✗ (14c) | ✗ (no GPU) |
 | AX102-U | ✓ | ✓ | ✓ | ✗ (no GPU) |
 | AX41-NVMe | ✗ (1 TB NVMe) | ✗ (1 TB NVMe) | ✗ | ✗ |
-| EX44 + Cloud GPU | — | — | — | ✓ ~€1,057–1,297/6mo |
 
 AX41-NVMe ruled out: 2×512 GB NVMe = 1 TB, too small for the full-corpus QLever index (~1.3 TB); HDD too slow for mmap queries.
 
