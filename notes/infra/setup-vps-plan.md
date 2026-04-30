@@ -179,17 +179,19 @@ Named graph column (4th quad field) adds ~10–20% vs a triple-only index.
 | mocho named graph | ~12B | ~1.1 TB | ~170 GB |
 | **Combined (EDM + mocho)** | **~14B** | **~1.3–1.4 TB** | **~220–240 GB** |
 
-### 4.3 Storage totals
+### 4.3 Storage totals (VPS)
 
-NTs are permanent (served as downloads from the VPS) — no archiving off-server.
+NTs are permanent on VPS (served as `.nt.gz` downloads). Build and index construction run on teach server (§3.2) — only the finished index and compressed NTs are transferred to VPS; no build-time peak applies.
 
-| Phase | Contents | Total |
-|---|---|---|
-| **Build-time peak** | JSON 560 GB + edm NT 300 GB + mocho NT 2.2 TB + indexes 1.3 TB | **~4.5 TB** |
-| **Steady state** | edm NT 300 GB + mocho NT 2.2 TB + indexes 1.3 TB + models/OS 100 GB | **~3.9 TB** |
+| Item | Size |
+|---|---|
+| QLever index (EDM + mocho) | ~1.3–1.4 TB |
+| `edm*.nt.gz` (3–5× compression) | ~60–100 GB |
+| `mocho*.nt.gz` (3–5× compression) | ~440–730 GB |
+| OS + misc | ~100 GB |
+| **Total (steady state)** | **~2.0–2.2 TB** |
 
-JSON source can be archived to Hetzner Object Storage after indexing (~€0.01/GB/month)
-to reclaim ~560 GB, bringing steady state to ~3.4 TB.
+Fits within 3 TB NVMe (EX44) with ~800 GB headroom. Uncompressed NT sizes (for reference): edm ~300 GB, mocho ~2.2 TB — these never land on the VPS.
 
 ---
 
