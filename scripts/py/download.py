@@ -15,7 +15,8 @@ DB_PATH = os.environ.get("DB_PATH")
 if DB_PATH is None:
     raise Exception("DB_PATH env variable is not defined, please set it")
 
-DDB_URI = "https://api.deutsche-digitale-bibliothek.de/2/items/"
+#DDB_URI = "https://api.deutsche-digitale-bibliothek.de/2/items/"
+DDB_URI = "https://www-q2.deutsche-digitale-bibliothek.de/2/items/"
 BUF_SIZE = int(os.environ.get("BUF_SIZE", 999))
 SELECT_SIZE = int(os.environ.get("SELECT_SIZE", 50000))
 WORKER_COUNT = int(os.environ.get("WORKER_COUNT", 25))
