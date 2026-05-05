@@ -29,3 +29,9 @@ Parallelized per sector (7 sectors): ~12–24 hrs with sector-level multiprocess
 > From Etienne:
 > ```2026-04-21 08:36:56.065 - INFO: QLever index builder b7623fc, compiled on Sun Apr 12 04:30:08 UTC 2026 using git hash b7623f
 2026-04-21 09:02:07.211 - INFO: Text index build completed```
+
+## Decisions
+
+    - D1. may 5, 2026; feature merge; The number of occurrences of the word in the literal is stored in the graph. ; https://github.com/ad-freiburg/qlever/pull/2579
+
+    - D2. date; decision; short-description; url
