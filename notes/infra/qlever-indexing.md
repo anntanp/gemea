@@ -32,6 +32,10 @@ Parallelized per sector (7 sectors): ~12–24 hrs with sector-level multiprocess
 
 ## Decisions
 
-    - D1. may 5, 2026; feature merge; The number of occurrences of the word in the literal is stored in the graph. ; https://github.com/ad-freiburg/qlever/pull/2579
-
-    - D2. date; decision; short-description; url
+| ID | Date | Decision | Justification | Short Description | URLs |
+|----|------|----------|---------------|-------------------|------|
+| D1 | 2026-05-05 | Ann: Ok, makes sense. | feature merge | The number of occurrences of the word in the literal is stored in the graph. | https://github.com/ad-freiburg/qlever/pull/2579 |
+| D2 | | | | | |
+| D3 | | | | | |
+| D4 | | | | | |
+| D5 | | | | | |
