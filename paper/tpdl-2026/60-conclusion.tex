@@ -1,0 +1,35 @@
+%% 60-conclusion.tex — Conclusion
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The semantic diversity of EDM metadata across institutional sectors cannot be
+resolved by schema-level alignment alone.
+Corpus profiling --- analysing the actual field distributions of a deployed
+metadata corpus before constructing any alignment rule --- is a precondition
+for reliable automated mapping.
+The three-layer dispatch architecture presented here operationalises this
+principle: property alignment via a data-derived DC\,$\to$\,RDA table
+(Layer~1), archival hierarchy typing via a DDB hierarchy code lookup
+(Layer~2), and document-type dispatch via a dc:type\,$\times$\,sector\,$\times$\,mediatype
+table (Layer~3).
+
+Applied to 115{,}432 DDB records spanning all seven institutional sectors,
+the pipeline produces 44.4 million RDF triples aligned to \textsc{mocho}'s
+WEMI-level hub ontology, with domain-specific types from RDA, RiC-O, VRA~Core,
+and Music Ontology.
+Known alignment gaps are documented explicitly in the output tables rather
+than suppressed, enabling downstream users to reason about query completeness.
+
+\paragraph{Future work.}
+Three directions are planned.
+First, the pipeline will be applied to the full 65M-record DDB corpus,
+requiring a profiling pass to discover any new (entity type, JSON key) pairs
+not seen in the pilot.
+Second, Layer~1 will be extended to cover EDM-structural and agent authority
+properties currently out of scope, using a PROV-O mapping for provenance
+properties and direct RDA Person properties for agent attributes.
+Third, NER-based enrichment over contributor strings and title fields will
+augment Layer~1 property alignment with entity-level role disambiguation,
+supporting finer-grained RDA sub-property assignment
+(e.g., \texttt{rdaa:P50450} for editors, \texttt{rdaw:P10053} for composers).

@@ -1,0 +1,81 @@
+%% 20-related.tex — Related Work
+
+\section{Related Work}
+\label{sec:related}
+
+\subsection{EDM Alignment and Ontology Mapping in Cultural Heritage}
+
+Early alignment work on DDB-EDM explored mappings to FaBiO~\cite{peroni2012fabio}:
+Tan et al.~\cite{tan2021fabio} showed that the granularity of FaBiO's
+subclass hierarchy (over 60 document type classes) cannot be reliably
+recovered from DDB metadata without per-provider curation, motivating the
+coarser WEMI-level approach adopted in \textsc{mocho}.
+Peroni et al.~\cite{peroni2013edm} analysed the structural assumptions
+embedded in EDM and identified tensions between EDM's flat model and
+work-centric bibliographic models such as FRBR~\cite{ifla1998frbr} and
+IFLA LRM~\cite{riva2017iflalrm}.
+Patricio et al.~\cite{patricio2025weaving} survey bibliographic ontology
+alignment more broadly, documenting the persistent gap between library
+standards (RDA, BIBFRAME) and aggregator models (EDM, schema.org).
+Our work is complementary: we operationalise alignment as a corpus-driven
+pipeline rather than a conceptual mapping exercise.
+
+The DDB's own metadata landscape has been documented by
+Schulze~\cite{schulze2020ddb}, who analysed object-describing metadata
+conventions across sectors, and by Rühle et al.~\cite{ruehle2014ddbedm},
+who describe the DDB-EDM design decisions.
+Neither addresses automated alignment to domain ontologies.
+
+\subsection{Automated Ontology Alignment}
+
+OAEI campaigns benchmark automated alignment systems on structured ontology
+pairs~\todo{cite OAEI}. Systems such as BERTMap~\cite{he2022bertmap} and
+OLaLa~\cite{hertling2023olala} achieve strong results on schema-level
+alignment tasks where both source and target are well-specified OWL ontologies.
+The EDM-to-domain-ontology problem is structurally different: the source is a
+deployed metadata profile whose property semantics are determined by
+institutional practice, not by the specification.
+Automated tools that match \texttt{dc:type} to a target class on the basis of
+lexical similarity will produce a single mapping, missing the sector-specific
+divergence that corpus analysis reveals.
+This does not make automated tools inapplicable in principle, but it requires
+a corpus-first step to partition the alignment problem before any tool is
+applied.
+
+Gustavo et al.~\cite{gustavo2018migration} migrate a library catalogue to RDA
+Linked Open Data using rule-based mapping, reporting challenges similar to
+ours: the source schema (MARC) is well-specified, but the semantics of field
+values are institution-specific.
+Their work validates the rule-based, domain-knowledge-driven approach we adopt
+for DDB-EDM.
+
+%% from mistake in drafting iswc related
+%BIBFRAME~\cite{bibframe}, developed by the Library of Congress, provides an RDA-aligned linked data model for bibliographic description.
+%The DNB (Deutsche Nationalbibliothek)\todo{cite here!} and OCLC\todo{cite here!} have published linked bibliographic data using BIBFRAME and related vocabularies.
+%The EDM-to-RDA/FRBR mapping is not a structural similarity problem: distinguishing FRBR levels requires knowledge of cataloguing conventions; splitting \texttt{edm:Agent} into \texttt{frbr:Person} and \texttt{frbr:CorporateBody} requires external authority file lookups (GND); and the semantics of \texttt{dc:type} are sector-dependent and underdetermined by the EDM specification --- the same property name carries controlled vocabulary in library records, free-text strings in museum records, and structural hierarchy codes in archive records.
+%Automated schema-matching tools, as evaluated in OAEI campaigns\todo{cite here!}, presuppose a stable, well-specified source schema and cannot recover implicit, sector-specific semantic conventions absent from the specification itself.
+%MOCHO~\cite{tan2026navigating} maps \texttt{edm:ProvidedCHO}\footnote{All CH objects in EDM are instances of this class.} to FRBR~\cite{ifla1998frbr} levels via GND\todo{cite here!} Werk links, aligning DDB-EDM to domain- and modality-specific ontologies (RDA\todo{cite here!}/FRBR, RiC-O\todo{cite here!}, MO\todo{cite here!}, ACO~\cite{ceriani2018audio}, VRA\todo{cite here!}) with DC/DCT properties normalized via RDA's full DCT mapping.
+%GeMeA applies MOCHO to the full DDB corpus.
+
+\subsection{Cultural Heritage Knowledge Graphs}
+
+ArCo~\cite{carriero2019arco} is the Italian CH knowledge graph, modelled with
+CIDOC-CRM~\cite{doerr2003crm} and covering approximately 820K cultural
+objects; it provides a SPARQL endpoint.
+The CIDOC-CRM alignment is performed through expert curation rather than
+automated corpus analysis, which is feasible at ArCo's scale but not at
+DDB scale (65M objects across seven sectors).
+Tan et al.~\cite{tan2021ddbkg} report a prior DDB knowledge graph effort
+(DDB-KG) using a simpler alignment; the present work advances the alignment
+layer to a full three-layer corpus-driven pipeline.
+
+\subsection{Bibliographic Linked Data and Standards}
+
+RDA (Resource Description and Access)~\todo{cite RDA Toolkit} and
+BIBFRAME~\todo{cite BIBFRAME} provide linked data models for bibliographic
+description.
+The DNB has published bibliographic linked data aligned to
+RDA~\cite{dnb2022rda}.
+\textsc{mocho}~\cite{tan2026mocho} extends these initiatives to heterogeneous
+cross-domain EDM metadata, where RDA alone is insufficient because museum
+and archive records require VRA~Core and RiC-O respectively.

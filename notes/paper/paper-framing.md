@@ -51,3 +51,42 @@ The new framing adds: *how* the normalization is done (data-driven, domain-speci
 - `- []` Where exactly do LLMs enter the pipeline? Enumerate the specific steps: role disambiguation, language detection, objecttype resolution, NER — confirm which are implemented vs. planned
 - `- [x]` **"Enrichment"** is the right word — LLM passes add new structured triples (role disambiguation, NER, objecttype resolution), not correct existing ones. Update "refinement" → "enrichment" in framing and title direction above.
 - `- []` Reconcile with `paper-outline.md` core argument — update once framing is settled
+
+---
+
+## § Research testbed framing
+
+GeMeA is not a curated benchmark — it is a knowledge graph built from in-use institutional data. This is the source of its research value: the heterogeneity is real, the gaps are real, and the alignment challenges are real. Intended downstream research use cases (not yet demonstrated):
+
+- **Knowledge graph-grounded retrieval** — retrieval over structured cultural heritage metadata
+- **Ontological evaluation** — using the MOCHO-aligned subgraph as an evaluation surface
+- **Knowledge graph embeddings** — entity and relation embeddings over a large, heterogeneous real-world graph; GeMeA's RDA-decomposed title representation enables empirical comparison of *literal granularity* strategies: does one rich `dc:title` literal outperform several typed RDA relations (`titleProper`, `subtitle`, `variantTitle`) for downstream KGE tasks (link prediction, entity alignment)? This structuring question is unaddressed in the KGE-with-literals literature (LiteralE, DKRL, KEPLER)
+- **Explainability** — reasoning over structured provenance and entity links
+- **Agentic knowledge graph access** — LLM agents querying via MCP/MCPO
+- **Continuous MOCHO refinement** — GeMeA as a living evaluation surface for iterative ontology development
+
+Framing note: describe these as *intended* use cases enabled by the resource, not completed experiments.
+
+---
+
+## § Core methodological motivation
+
+Because sectors interpret the semantics of EDM properties and property values differently — `dc:type` carries controlled-vocabulary terms in library records, free-text strings in museum records, and structural hierarchy identifiers in archive records — no schema-level or structure-based alignment tool can recover these conventions from the schema specification alone. Automatic alignment and transformation can therefore only be achieved through corpus-based analysis at two levels: **coarse-grained** (sector × mediatype stratification to determine which signals are available and reliable per stratum) and **fine-grained** (value distribution analysis within each stratum to discover the actual semantics in use). This is the methodological foundation of the GeMeA alignment approach and the principal justification for the data-driven framing.
+
+---
+
+## § Official justification
+
+**Conference scope.** GeMeA is built on W3C Semantic Web standards throughout — RDF/EDM input, OWL ontology (MOCHO), QLever SPARQL triplestore, Linked Data browser (SHMARQL), and ontology alignment to RDA/FRBR, CIDOC-CRM, and RiC-O. The contribution is squarely within the CfP's stated focus: "knowledge representation based on Semantic Web standards to improve the acquisition, processing, and sharing of data on the web."
+
+**Track fit.** The CfP is explicit: "papers describing concrete resources (knowledge graphs, ontologies, etc.) should be submitted to the resources track." GeMeA proposes no new algorithm (not Research) and is not an application of existing SW technology in a practical setting (not In-Use) — it *is* the resource.
+
+**Impact.** The DDB aggregates 65M objects from Germany's archives, libraries, museums, and media libraries, yet provides no public SPARQL endpoint, no Linked Data interface, and no graph-accessible representation. GeMeA fills this gap as the first open, SPARQL-accessible KG over the DDB corpus, and the MOCHO-based alignment layer advances the state of the art for multi-ontology alignment of heterogeneous EDM metadata at scale.
+
+**Reusability & Reproducibility.** Three access modalities serve distinct user groups — SPARQL (SW researchers), Linked Data browser (DH practitioners), MCP/MCPO interface (LLM/agent developers) — each with CC BY 4.0 licensing, a live endpoint, and public source code. Scope boundaries are documented rather than suppressed, and a usage section with SPARQL examples directly addresses reproducibility.
+
+**Design & Technical Quality.** The resource reuses and extends established high-quality artifacts (EDM, RDA/FRBR, CIDOC-CRM, RiC-O, Music Ontology), which the CfP highlights as best practice for ontology contributions. The data-driven alignment methodology — corpus profiling before modeling, not schema projection — reflects sound design discipline.
+
+**Availability.** The resource is publicly accessible via a live SPARQL endpoint and Linked Data browser at `gemea.ise.fiz-karlsruhe.de`, with source code on GitHub and a CC BY 4.0 data license. The three mandatory requirements (persistent URI, canonical citation, license) must be confirmed before the 7 May deadline — ensure a w3id or DOI is in place.
+
+**Risk.** The MCP/MCPO agentic interface is novel enough that a reviewer might ask whether this belongs in the In-Use track. Frame it in the paper as an *access layer of the resource*, not as a standalone application contribution, to keep the submission clearly in Resource Track territory.

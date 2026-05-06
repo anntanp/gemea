@@ -33,12 +33,13 @@
 \usepackage{booktabs}        % \toprule, \midrule, \bottomrule
 \usepackage{listings}        % code listings (SPARQL, Turtle)
 \usepackage{microtype}       % better justification
+\usepackage{amssymb}         % for checkmarks
 
 \begin{document}
 %
-\title{{\texttt{GeMeA}: Knowledge Graph Testbed for 23M+ German Cultural Heritage Objects}}
+\title{{\texttt{GeMeA}: Knowledge Graph Testbed for 27M+ German Cultural Heritage Objects}}
 %
-%\titlerunning{Abbreviated paper title}
+\titlerunning{GEMEA}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %
@@ -52,7 +53,7 @@ Harald Sack\inst{1,2}\orcidID{0000-0001-7069-9804}}
 % If there are more than two authors, 'et al.' is used.
 %
 \institute{FIZ Karlsruhe – Leibniz Institute for Information Infrastructure, Germany 
-\email{\{ann.tan|harald.sack\}@fiz-karlsruhe.de} \and
+\email{\{ann.tan|genet-asefa.gesese|harald.sack\}@fiz-karlsruhe.de} \and
 Karlsruhe Institute of Technology, Institute AIFB, Germany \and
 \email{ep@poz.org}
 }
@@ -79,20 +80,19 @@ Karlsruhe Institute of Technology, Institute AIFB, Germany \and
 \todo{Persistent URI, SPARQL endpoint URL, SHMARQL browser URL, source code repository, CC BY 4.0 licence statement.}
 
 \begin{credits}
-\subsubsection{\ackname} A bold run-in heading in small font size at the end of the paper is
-used for general acknowledgments, for example: This study was funded
-by X (grant number Y).
+\subsubsection{\ackname} The authors thank Christian Nennemann for developing the QLever MCP server. \todo{Funding acknowledgments to be added.}
 
 \subsubsection{\discintname}
-It is now necessary to declare any competing interests or to specifically
-state that the authors have no competing interests. Please place the
-statement with a bold run-in heading in small font size beneath the
-(optional) acknowledgments\footnote{If EquinOCS, our proceedings submission
-system, is used, then the disclaimer can be provided directly in the system.},
-for example: The authors have no competing interests to declare that are
-relevant to the content of this article. Or: Author A has received research
-grants from Company W. Author B has received a speaker honorarium from
-Company X and owns stock in Company Y. Author C is a member of committee Z.
+The authors have no competing interests to declare that are relevant to the content of this article.
+
+\subsubsection*{Declaration on Generative AI.}
+\todo{AI use statement to be added.}
+
+\subsubsection*{CRediT.}
+\textbf{Mary Ann Tan}: Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Resources, Software, Validation, Visualization, Writing -- original draft, Writing -- review \& editing.
+\textbf{Etienne Posthumus}: Software, Writing -- review \& editing.
+\textbf{Genet Asefa Gesese}: Writing -- review \& editing.
+\textbf{Harald Sack}: Project administration, Supervision, Writing -- review \& editing.
 \end{credits}
 %
 % ---- Bibliography ----

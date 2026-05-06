@@ -1,0 +1,89 @@
+%% 50-discussion.tex — Discussion
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Known Alignment Gaps}
+\label{subsec:gaps}
+
+Several field classes remain outside the current pipeline scope.
+These are documented explicitly rather than silently dropped, so that
+downstream users can assess whether a given query will be affected:
+
+\begin{itemize}
+  \item \textbf{EDM-structural properties.}
+        \texttt{edm:isShownAt}, \texttt{edm:aggregatedCHO},
+        \texttt{edm:dataProvider}, and related provenance and access properties
+        have no DC$\to$RDA route and require a separate direct mapping to
+        mocho or PROV-O.
+        They constitute 115{,}432 occurrences for \texttt{edm:isShownAt} and
+        \texttt{edm:aggregatedCHO} alone (one per record).
+
+  \item \textbf{EDM agent authority properties.}
+        \texttt{edm:dateOfBirth}, \texttt{edm:placeOfBirth},
+        \texttt{edm:biographicalInformation}, and \texttt{edm:gender} on Agent
+        entities require direct mapping to RDA Person/Corporate Body
+        properties, not a DC-mediated route.
+        This affects all Agent entities in the corpus.
+
+  \item \textbf{SKOS labels.}
+        \texttt{skos:prefLabel} and \texttt{skos:altLabel} on Agent, Concept,
+        and Place entities have no RDA sub-property in RDA~5.4.9 and are
+        excluded.
+        A SKOS-to-RDA access-point alignment step is required.
+
+  \item \textbf{Identifier and spatial properties.}
+        \texttt{dc:identifier} and \texttt{dcterms:spatial} have no
+        RDA sub-property in the DC\,$\to$\,RDA mapping file; both are
+        documented as known gaps.
+
+  \item \textbf{A DDB API typo.}
+        \texttt{Event.occuredAt} (sic) appears in 102{,}859 records but
+        resolves to no IRI (expected \texttt{edm:occurredAt}).
+        It is excluded pending confirmation from DDB.
+        \todo{File an issue with DDB or cite if already documented.}
+\end{itemize}
+
+\subsection{Corpus Scope and Generalizability}
+
+The pilot corpus is drawn from DDB search results for \textit{Goethe} and
+\textit{Faust}: it is a thematically focused convenience sample, not a
+probability sample of the full DDB corpus.
+The corpus covers all seven sectors and all five mediatypes, so the dispatch
+tables are populated across all structural categories, but sector proportions
+will differ from the full 65M-record corpus.
+Claims about fallback rates and W-slot hit rates should be understood as
+estimates conditional on this corpus composition.
+
+The three-layer dispatch architecture is designed to generalize to any
+DDB-EDM corpus: the dispatch tables are keyed on sector and mediatype codes
+that are stable across the DDB.
+Extension to the full 65M-record corpus requires re-running the corpus
+profiling step and verifying that no new (entity type, JSON key) pairs
+emerge that are not covered by the current alignment table.
+\todo{Check: are there known sector/mediatype combinations absent from the
+  goethe-faust pilot? E.g., sparte003 (Denkmal) may be underrepresented.
+  Report sector distribution table if available from corpus analysis.}
+
+\subsection{Reproducibility}
+
+All dispatch tables are versioned alongside the pipeline script.
+The alignment table is reproducible: re-running the profiling and alignment
+scripts on the same JSONL input produces byte-identical output.
+The mocho OWL import chain pins specific ontology versions; the
+\texttt{in\_mocho} flag in the alignment table therefore reflects a
+specific mocho release \todo{confirm version tag for paper}.
+Downstream users consuming the N-Triples output should be aware that a
+mocho release update may alter which properties are flagged as \texttt{in\_mocho},
+and should re-run the pipeline against the updated import if needed.
+
+\subsection{Relation to Automated Alignment Tools}
+
+The methodology does not replace automated alignment tools; it establishes
+the preconditions under which they can be applied reliably.
+Once the corpus profiling step reveals that \texttt{dc:type} carries three
+distinct semantic regimes, a system such as BERTMap~\cite{he2022bertmap} can
+be applied \emph{per stratum} rather than globally, improving the signal it
+receives.
+The dispatch tables produced in Layer~3 could also serve as training data or
+evaluation benchmarks for automated tools on this domain.

@@ -1,0 +1,174 @@
+%% 30-methodology.tex — Methodology
+
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Corpus-first Principle}
+
+The alignment methodology follows a single governing principle: \emph{profile
+the corpus before constructing any mapping rule}.
+Schema-level alignment presupposes that the source ontology specification
+faithfully describes the semantics of deployed data.
+In the DDB-EDM case it does not: the specification defines \texttt{dc:type}
+as a free-text or controlled-vocabulary property, but says nothing about
+which controlled vocabulary is used in each sector, or how consistently it
+is applied.
+The corpus-first step produces a field profile --- a frequency table of every
+(entity type, JSON key) pair observed in the data --- which reveals which
+fields actually occur, at what coverage, and with what value distributions.
+Alignment rules are constructed against this profile, not against the
+specification.
+
+The pilot corpus used in this study consists of 115{,}432 DDB records
+returned by the DDB API for the search terms \textit{Goethe} and
+\textit{Faust} \todo{confirm exact query and date of retrieval}.
+Despite its thematic focus, the corpus spans all seven DDB institutional
+sectors (Archiv, Bibliothek, Denkmal, Forschung, Mediathek, Museum, Sonstige)
+and all five mediatypes (Audio, Foto, Text, Video, Nicht digitalisiert),
+making it representative of the structural diversity of DDB-EDM data.
+Each record is a JSON-LD document as returned by the DDB Search
+API~\todo{cite DDB API documentation}, structured around the EDM entities
+\texttt{edm:ProvidedCHO}, \texttt{edm:WebResource}, \texttt{edm:Aggregation},
+and \texttt{edm:PhysicalThing}.
+
+\subsection{Overview: Three-Layer Dispatch}
+
+The transformation pipeline
+\texttt{transform\_edm\_to\_mocho.py} applies three independent layers to
+each record, combining their outputs into a single N-Triples stream
+(Figure~\ref{fig:pipeline}).
+
+\begin{figure}[t]
+\centering
+\todo{Pipeline figure: four-box flowchart
+  [JSON-LD record] → [Layer 1: Property alignment]
+  → [Layer 2: htype dispatch] → [Layer 3: dc:type dispatch] → [N-Triples].
+  Suitable for a single-column figure at 0.9\textbackslash textwidth.}
+\caption{Three-layer dispatch pipeline. Layers 2 and 3 are independent and
+  can both fire for the same record.}
+\label{fig:pipeline}
+\end{figure}
+
+\noindent
+The three layers address orthogonal sub-problems:
+Layer~1 maps \emph{property} IRIs (DC $\to$ RDA);
+Layer~2 assigns \emph{archival structural type} from a DDB-specific hierarchy
+code;
+Layer~3 assigns \emph{domain WEMI class} from the free-text or
+controlled-vocabulary document type.
+Layers~2 and~3 are independent: both can fire for the same record, and their
+outputs are unioned in the triple store.
+
+\subsection{Layer 1: Property Alignment}
+
+\noindent
+\textbf{Input.} For each EDM entity in a record (ProvidedCHO, WebResource,
+Aggregation, Agent, Place, TimeSpan), every JSON key is looked up in the
+alignment table \texttt{alignment\_ddbedm\_mocho.csv}.
+
+\noindent
+\textbf{Alignment table construction.}
+The table was built in two steps:
+(1) a corpus profiling script enumerates all (entity type, JSON key) pairs
+observed across the 115{,}432 records, recording occurrence frequency and
+percentage coverage;
+(2) each JSON key is resolved to its EDM/DC IRI, then matched to an RDA
+sub-property IRI via the \texttt{mapping\_dct\_to\_rda.csv} file~\todo{cite
+or describe provenance of this mapping --- derived from RDA Registry
+\texttt{mapElement2DCT.xml}?}.
+Only rows where the \texttt{in\_mocho} flag is \texttt{True} are used;
+rows without an RDA sub-property in the mocho OWL import are documented as
+known gaps (Section~\ref{subsec:gaps}).
+
+\noindent
+\textbf{Special-case keys.}
+Three high-fanout properties bypass the table and receive fixed predicates:
+\texttt{dc:creator} maps to the generic \texttt{rdam:P30263} (has creator
+agent of manifestation, 232 RDA sub-properties);
+\texttt{dc:contributor} maps to \texttt{dc:contributor} (no generic RDA
+equivalent in the current mocho import);
+and \texttt{dcSubject}/\texttt{dcTermsSubject}/\texttt{dcTermSubject} are
+deduplicated before emit, routing URI values to \texttt{dcterms:subject} and
+literals to \texttt{dc:subject}.
+
+\noindent
+\textbf{EDM-structural properties.}
+Properties carrying provenance and access metadata
+(\texttt{edm:isShownAt}, \texttt{edm:aggregatedCHO},
+\texttt{edm:dataProvider}, \texttt{edm:hasView}, \texttt{edm:isShownBy},
+\texttt{edm:provider}) are explicitly classified as out of scope for
+DC\,$\to$\,RDA routing and ignored in Layer~1.
+These properties require a separate EDM-to-mocho direct mapping pass and are
+not emitted in the current pipeline; their exclusion is documented in the
+alignment table rather than silently dropped.
+
+\subsection{Layer 2: Archival Hierarchy Typing}
+
+DDB archival records carry a \texttt{ddb:hierarchyType} code on both
+\texttt{edm:PhysicalThing} (archival containers) and \texttt{edm:ProvidedCHO}
+entities, encoding nine structural levels of an archive finding aid:
+from repository (\textit{Tektonische Sammlung}) down to individual archival
+document (\textit{Archivale}) and its parts (\textit{Teil}).
+
+Layer~2 looks up each observed \texttt{hierarchyType} code in
+\texttt{lookup\_htype\_doco\_rico.csv} and emits two triples:
+an \texttt{rdf:type} assertion using the corresponding RiC-O class
+(\texttt{rico:RecordSet}, \texttt{rico:Record}, or \texttt{rico:RecordPart}),
+and a \texttt{rico:hasRecordSetType} triple pointing to both the standard
+RiC-RST individual (e.g.\ \texttt{ric-rst:Fonds}) and a DDB-specific
+vocabulary term (\texttt{vocnet-htype:ht030}) for the finer-grained level.
+Containment relations between records use \texttt{rico:includesOrIncluded};
+a \texttt{rico:Record} containing a \texttt{rico:RecordPart} uses
+\texttt{rico:hasOrHadConstituent}.
+
+\texttt{PhysicalThing} ancestors receive the RiC-O class only; no
+\texttt{mocho:Manifestation} is emitted for container nodes.
+The \texttt{ProvidedCHO} entity receives both the RiC-O type (from Layer~2)
+and the \texttt{mocho:Manifestation} plus dc:type dispatch (from Layer~3),
+enabling cross-layer queries over the same node.
+
+\subsection{Layer 3: Document-Type Dispatch}
+
+\noindent
+\textbf{Lookup key.}
+The dispatch table \texttt{lookup\_dctype\_to\_class.csv} is keyed on
+(\textit{mediatype}, \textit{sector}, \textit{dc\_type\_de}), where mediatype
+and sector are read from the record's \texttt{Concept[]} array
+(or from \texttt{ProvidedCHO.edmType} as a simpler mediatype path),
+and \texttt{dc\_type\_de} is the German free-text or controlled-vocabulary
+value of \texttt{dc:type} (e.g.\ \textit{Fotografie}, \textit{Zeichnung}).
+
+\noindent
+\textbf{Three-level fallback.}
+The lookup proceeds through three levels:
+(i) exact match on (mediatype, sector, dc\_type\_de);
+(ii) any-sector match on (mediatype, any, dc\_type\_de);
+(iii) any-mediatype match on (any, any, dc\_type\_de).
+If no match is found at any level, the fallback \texttt{mocho:Manifestation}
+is asserted.
+
+\noindent
+\textbf{WEMI-slot semantics.}
+The dispatch table has two class slots per row (W and M):
+\begin{itemize}
+  \item A \textbf{W-slot} match (Work-level class, e.g.\ \texttt{vra:Work}
+        for a museum photograph) is emitted \emph{instead of}
+        \texttt{mocho:Manifestation} for the ProvidedCHO.
+  \item An \textbf{M-slot} match (Manifestation-level class) is emitted
+        \emph{alongside} \texttt{mocho:Manifestation}.
+  \item No match defaults to \texttt{mocho:Manifestation} only.
+\end{itemize}
+
+This mirrors \textsc{mocho}'s \texttt{owl:unionOf} design: the WEMI-level
+class is valid only if it belongs to at least one domain-specific
+class~\cite{tan2026mocho}.
+
+\noindent
+\textbf{WebResource typing (mt002 / Photo).}
+For photo-type records, each \texttt{edm:WebResource} URI additionally
+receives:
+\texttt{mocho:ImageObject}, \texttt{rdac:C10007} (RDA Manifestation),
+\texttt{rdam:P30001 rdact:1018} (carrier type: online resource), and
+\texttt{vra:imageOf} pointing back to the ProvidedCHO URI.
+This makes the digital surrogate independently queryable as a manifestation
+of the physical object.

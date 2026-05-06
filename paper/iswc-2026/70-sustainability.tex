@@ -4,12 +4,11 @@
 \label{sec:sustainability}
 
 \paragraph{Versioning.}
-Each ingestion cycle produces a versioned set of named graphs tagged with the DDB dump date.
-Version metadata is recorded in the VoID descriptor (\texttt{void:Dataset} with \texttt{dcterms:modified} and \texttt{owl:versionInfo}).
-Named graph URIs follow the scheme \texttt{http://gemea.ddb.de/graph/\{provider\_id\}/v\{YYYY-MM\}}, allowing parallel versions to coexist in the triplestore during transition periods.
+Per-item provenance is recorded at ingest time using the W3C PROV Ontology~\cite{Lebo2013PROVO}: each \texttt{edm:ProvidedCHO} carries \texttt{prov:generatedAtTime}, \texttt{dcterms:hasVersion} (DDB revision id), and links to the source dataset and mapping-version agent derived from the DDB JSON metadata.
+Graph-level pipeline provenance --- an Activity record per script run, capturing agent identity, version, timestamps, and an \texttt{inferenceMethod} flag (\texttt{Deterministic} / \texttt{Heuristic} / \texttt{NER}) --- is planned as future work, building on the two-layer PROV-O design developed for the companion goethe-faust corpus.
 
 \paragraph{Update cadence.}
-GeMeA tracks DDB data releases as they become available.
+GEMEA tracks DDB data releases as they become available.
 \todo{Confirm expected update cadence (quarterly/annual) with DDB.}
 
 \paragraph{Persistent URI.}
@@ -17,18 +16,24 @@ The dataset is registered at \todo{[w3id.org/gemea or Zenodo DOI]}, providing a 
 
 \paragraph{Open source.}
 The full pipeline --- rdf2jsonld, \textbf{MOCHO}, QLever configuration, SHMARQL Docker Compose, and MCP setup --- is available at \todo{[GitHub repository URL]} under an open source license.
-The GeMeA index is reproducible from the DDB data dump using the provided scripts.
+The GEMEA index is reproducible from the DDB data dump using the provided scripts.
 
 \paragraph{Institutional support.}
-GeMeA is developed at FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure in collaboration with the Karlsruhe Institute of Technology (AIFB).
+GEMEA is developed at FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure in collaboration with the Karlsruhe Institute of Technology (AIFB).
 The resource is hosted on institutional infrastructure.
 \todo{Confirm hosting arrangement and expected availability period.}
 
 \paragraph{Dependency management.}
 The \textbf{MOCHO} alignment layer depends on \texttt{mocho.owl}, which is under active development.
-Alignment rule changes upstream are tracked in the GeMeA repository and trigger a re-run of the affected named graph.
+Alignment rule changes upstream are tracked in the GEMEA repository and trigger a re-run of the affected named graph.
 Known scope boundaries in the current alignment (Section~\ref{sec:quality}) are documented as versioned issue records.
 
 \paragraph{v2 roadmap.}
 v2 extends the corpus to the full 65M DDB objects, adds an Elasticsearch full-text index for faceted search, replaces SHMARQL with a purpose-built Next.js KG browser, and completes the GND agent and Werk linking pipeline.
 The v1 QLever index and named graph structure are reused without migration.
+
+\paragraph{Outbound URI persistence.}
+The current GEMEA snapshot reflects DDB holdings as of April 2026.
+Outbound links encoded as \texttt{edm:isShownAt} and \texttt{edm:object} values point to \texttt{ddb.de/item/\{id\}} URIs.
+As DDB does not operate under a formal persistent URI policy, objects withdrawn or re-harvested by contributing institutions will render a proportion of these links unreachable over time.
+A URI persistence layer is planned at the FIZ infrastructure level: periodic link-health checks coupled with archival fallbacks would maintain provenance navigability as upstream content evolves.

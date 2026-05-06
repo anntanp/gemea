@@ -59,7 +59,7 @@
 
 | File | Sector | Ingested | IDs | Size (MB) |
 |---|---|---|---|---|
-| `ids_sec_01_digitalisat_20260427.txt` | Archive | [ 1,618,306 ] | 3,637,488 | 114.5 |
+| `ids_sec_01_digitalisat_20260427.txt` | Archive | [ 3,420,560 ] | 3,637,488 | 114.5 |
 | `ids_sec_02_digitalisat.txt` | Library | ✓ | 18,570,245 | 584.4 |
 | `ids_sec_03_digitalisat.txt` | Monument Preservation | [ 83,573 ] | 83,575 | 2.6 |
 | `ids_sec_04_digitalisat_20260427.txt` | Research | ✓ | 1,227,253 | 38.6 |

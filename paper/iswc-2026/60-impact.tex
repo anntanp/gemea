@@ -5,16 +5,16 @@
 
 \subsection{Access to the DDB Corpus}
 
-GeMeA is the first open, SPARQL-accessible knowledge graph over the DDB corpus.
+GEMEA is the first open, SPARQL-accessible knowledge graph over the DDB corpus.
 The DDB corpus has been used in IR benchmarking and cultural heritage analysis research, but was previously inaccessible to KG-based methods.
-GeMeA makes 26 million of those objects queryable by SPARQL, dereferenceable as Linked Data, and accessible to AI agents via MCP.
+GEMEA makes 26 million of those objects queryable by SPARQL, dereferenceable as Linked Data, and accessible to AI agents via MCP.
 
 \subsection{FAIR Compliance}
 
-GeMeA satisfies the FAIR data principles~\cite{wilkinson2016fair}:
+GEMEA satisfies the FAIR data principles~\cite{wilkinson2016fair}:
 
 \begin{itemize}
-    \item \textbf{Findable.} The dataset is registered with a persistent URI (\todo{w3id or Zenodo DOI}) and described by a VoID and DCAT dataset descriptor.
+    \item \textbf{Findable.} The dataset is registered at \url{https://gemea.ise.fiz-karlsruhe.de} and described by a VoID and DCAT dataset descriptor.
     \item \textbf{Accessible.} Data is available via a public SPARQL endpoint, as bulk download (N-Triples per named graph), and through the SHMARQL Linked Data browser.
     \item \textbf{Interoperable.} Standard RDF serializations (N-Triples, Turtle, JSON-LD), established vocabularies (EDM, RDA, FRBR, Dublin Core, GeoNames), and GND authority identifiers for agents and works are used throughout.
     \item \textbf{Reusable.} Data is licensed CC~BY~4.0; software is released under an open source license; the VoID descriptor documents provenance, coverage, and known limitations.
@@ -24,11 +24,17 @@ GeMeA satisfies the FAIR data principles~\cite{wilkinson2016fair}:
 
 \paragraph{Digital humanities and library science.}
 German cultural heritage research has lacked a machine-readable, graph-accessible corpus at this scale.
-GeMeA enables quantitative analysis of DDB metadata --- cross-sector co-occurrence patterns, temporal distribution of holdings, geographic coverage --- that was previously infeasible without custom DDB API scraping.
+GEMEA enables quantitative analysis of DDB metadata --- cross-sector co-occurrence patterns, temporal distribution of holdings, geographic coverage --- that was previously infeasible without custom DDB API scraping.
 
 \paragraph{Semantic Web and KG research.}
-A public SPARQL endpoint, named graph provenance, \textbf{MOCHO} ontology alignment, and MCP agentic access make GeMeA a practical testbed for KG construction methods, ontology evaluation, entity linking, and LLM + KG research (Section~\ref{sec:usage}).
+A public SPARQL endpoint, named graph provenance, \textbf{MOCHO} ontology alignment, and MCP agentic access make GEMEA a practical testbed for KG construction methods, ontology evaluation, entity linking, and LLM + KG research (Section~\ref{sec:usage}).
+
+\paragraph{Knowledge graph embedding research.}
+\todo{Confirm and add bib entries: Kristiadi et al.\ 2019 (LiteralE, \texttt{kristiadi2019literale}); Xie et al.\ 2016 (DKRL, \texttt{xie2016dkrl}); Wang et al.\ 2021 (KEPLER, \texttt{wang2021kepler})}
+GEMEA's \textbf{MOCHO}-aligned representation of bibliographic titles opens a concrete empirical question unaddressed in the KGE-with-literals literature~\cite{kristiadi2019literale,xie2016dkrl,wang2021kepler}: whether entity descriptions yield better embeddings as a single rich literal or as multiple typed relations with shorter values.
+Existing approaches (LiteralE, DKRL, KEPLER) treat literal granularity as a fixed modeling given rather than an experimental variable.
+GEMEA makes this comparison tractable: the \textbf{MOCHO}-aligned subgraph exposes both the decomposed RDA title structure and the source \texttt{dc:title} literals within the same graph, enabling controlled ablation at scale on a real-world cultural heritage corpus.
 
 \paragraph{Cultural heritage institutions.}
-GeMeA provides a self-hostable reference deployment that any cultural heritage aggregator can adapt: the rdf2jsonld + \textbf{MOCHO} + QLever + SHMARQL stack is documented, containerized, and demonstrated at 26M-object scale.
-Institutions that have contributed data to the DDB can use GeMeA to query their own holdings in graph form.
+GEMEA provides a self-hostable reference deployment that any cultural heritage aggregator can adapt: the rdf2jsonld + \textbf{MOCHO} + QLever + SHMARQL stack is documented, containerized, and demonstrated at 26M-object scale.
+Institutions that have contributed data to the DDB can use GEMEA to query their own holdings in graph form.

@@ -3,7 +3,7 @@
 \section{Resource Description}
 \label{sec:resource}
 
-GeMeA is a knowledge graph over 26 million objects from the German Digital Library (DDB), organized into named graphs by provider institution and accessible via a public SPARQL endpoint, a Linked Data browser, and an MCP/MCPO agentic interface.
+GEMEA is a knowledge graph over 26 million objects from the German Digital Library (DDB), organized into named graphs by provider institution and accessible via a public SPARQL endpoint, a Linked Data browser, and an MCP/MCPO agentic interface.
 The resource is built in four layers: (1) an EDM knowledge graph loaded into QLever, (2) a \textbf{MOCHO}-based ontology alignment layer mapping EDM to RDA/FRBR on a representative subset, (3) a SHMARQL Linked Data browsing interface, and (4) an MCP interface on the QLever endpoint.
 
 \subsection{EDM Knowledge Graph}
@@ -39,6 +39,21 @@ The alignment PoC is run on a representative subset of the DDB corpus.
 Real EDM encodings surface scope boundaries in the initial alignment rules --- most notably in \texttt{dc:type} values, which carry locally-defined free-text strings in several sectors rather than the controlled vocabulary terms the rules assumed.
 These boundaries are documented in Section~\ref{sec:quality}.
 
+\paragraph{Corpus-driven dispatch design.}
+A foundational constraint of the alignment methodology is that EDM property semantics are sector-dependent: \texttt{dc:type} carries controlled-vocabulary terms in library records, free-text strings in museum records, and structural hierarchy identifiers in archive records.
+These differences are not declared in the EDM schema specification and are invisible to schema-level or structure-based alignment tools.
+Reliable automated dispatch therefore requires corpus-based analysis at two levels: coarse-grained stratification by sector~$\times$~mediatype to determine which classification signals are available and reliable per stratum, and fine-grained value distribution analysis to discover the actual semantics in use within each stratum.
+Concretely, before dispatch logic is implemented, classification signal coverage is measured per sector~$\times$~mediatype stratum across the Goethe-Faust corpus.
+Two signals are available per record: \texttt{ddb:hierarchyType} (htype) and \texttt{dc:type}.
+Coverage varies substantially by stratum: Archive (sparte001) text records carry both signals in 99.6\% of cases; Library (sparte002) text records are htype-only in 31\%; Museum, Media Library, and Monument sectors (sparte003--006) carry no htype at all.
+This coverage profile determines dispatch priority per stratum --- htype-first for Archive and Library structural classes, dc:type-first for the remaining sectors --- rather than applying a uniform fallback chain across all records.
+The full coverage table is archived in \texttt{output/dispatch\_signal\_ratio.csv} (script: \texttt{scripts/dispatch\_signal\_ratio.py}).
+
+A further constraint shaped the alignment methodology: the target ontology was not fixed before transformation began.
+New \textbf{MOCHO} classes --- \texttt{mocho:ImageWork}, \texttt{mocho:ImmovableWork}, \texttt{mocho:ImageObject} --- were introduced in direct response to patterns surfaced during corpus analysis, making the workflow iterative: corpus inspection identified a gap, the ontology was extended, alignment rules were updated.
+This is characteristic of large-scale cultural heritage transformation, where the correct ontological structure for heterogeneous institutional data is itself a research question that cannot be settled in advance.
+Automated schema-matching tools presuppose a stable target ontology and cannot signal when an ontology gap, rather than a nearest-available substitute, is the correct resolution; manual curation was therefore not a substitute for automation but a methodological requirement.
+
 \subsection{SHMARQL Linked Data Interface}
 \label{sec:resource:shmarql}
 
@@ -46,9 +61,9 @@ SHMARQL~\cite{shmarql} is a lightweight Linked Data publishing layer deployed as
 Entity URIs are dereferenceable, RDF is served with content negotiation (HTML, Turtle, JSON-LD), and a built-in SPARQL query editor is included.
 No custom frontend development is required.
 
-For GeMeA, SHMARQL is deployed as a proxy over the QLever endpoint.
-The deployment pattern was validated on the Goethe-Faust corpus~\cite{goethefaust} before being adapted for GeMeA's larger index.
-The GeMeA SHMARQL instance is available at \todo{[SHMARQL URL]}.
+For GEMEA, SHMARQL is deployed as a proxy over the QLever endpoint.
+The deployment pattern was validated on the Goethe-Faust corpus~\cite{goethefaust} before being adapted for GEMEA's larger index.
+The GEMEA SHMARQL instance is available at \todo{[SHMARQL URL]}.
 
 \todo{Insert 1--2 screenshots of the SHMARQL interface: entity page and SPARQL editor.}
 
@@ -56,10 +71,10 @@ The GeMeA SHMARQL instance is available at \todo{[SHMARQL URL]}.
 \label{sec:resource:mcp}
 
 The Model Context Protocol (MCP)~\cite{mcp2024} is an open standard for exposing tools and data sources to AI agents.
-GeMeA's QLever SPARQL endpoint is registered as an MCP server using \texttt{mcp-server-qlever}~\cite{mcpqlever}, making the KG queryable by any MCP-compatible agent or LLM client without custom integration code.
+GEMEA's QLever SPARQL endpoint is registered as an MCP server using \texttt{mcp-server-qlever}~\cite{mcpqlever}, making the KG queryable by any MCP-compatible agent or LLM client without custom integration code.
 An MCPO~\cite{mcpo} wrapper further exposes the endpoint as an OpenAPI-compatible HTTP interface for frameworks that do not natively support MCP.
 
-The registration is reproducible via \texttt{./setup.sh mcp-add} in the GeMeA Docker Compose stack, following the pattern established in the Goethe-Faust deployment.
+The registration is reproducible via \texttt{./setup.sh mcp-add} in the GEMEA Docker Compose stack, following the pattern established in the Goethe-Faust deployment.
 \todo{Inventory of MCP tools exposed by mcp-server-qlever: list tool names and descriptions.}
 
 \paragraph{Example agent interaction.}

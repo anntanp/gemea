@@ -1,0 +1,107 @@
+%% 40-results.tex — Results
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Overall Pipeline Statistics}
+
+Table~\ref{tab:stats} summarises the pipeline output on the 115{,}432-record
+pilot corpus.
+
+\begin{table}[t]
+\caption{Pipeline statistics on the Goethe-\textit{Faust} pilot corpus
+  (115{,}432 records, all seven DDB sectors).}
+\label{tab:stats}
+\centering
+\begin{tabular}{lr}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Records processed                         & 115{,}432 \\
+Triples emitted                           & 44{,}415{,}392 \\
+Triples per record (mean)                 & 384.7 \\
+\midrule
+Layer 3 — dc:type W-slot matched          & 13{,}392 \,(11.6\%) \\
+Layer 3 — dc:type M-slot matched          & 106 \,(0.09\%) \\
+Layer 3 — fallback (mocho:Manifestation)  & 101{,}934 \,(88.3\%) \\
+Records missing domain-specific type      & 52{,}274 \,(45.3\%) \\
+\midrule
+Layer 2 — WebResources typed (mt002)      & 103{,}496 \\
+\midrule
+Triples ignored (out-of-scope properties) & 3{,}592{,}475 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The 88.3\% Layer~3 fallback rate reflects the real distribution of
+\texttt{dc:type} values in the corpus: the majority of records either carry
+no \texttt{dc:type} value, carry a value not present in the dispatch table,
+or carry a value that maps only to the default Manifestation level.
+This is itself an empirical finding about the corpus: most DDB records do not
+carry enough type information in \texttt{dc:type} alone to resolve a
+domain-specific WEMI class without sector-level heuristics or NER.
+
+The 45.3\% rate of records missing a domain-specific type (i.e., typed as
+\texttt{mocho:Manifestation} only, with no domain class from the dispatch
+table or htype lookup) establishes a concrete target for downstream
+enrichment.
+
+\subsection{Field Profile and Alignment Coverage}
+
+Table~\ref{tab:alignment-summary} summarises alignment coverage by match
+method across all entity types.
+
+\begin{table}[t]
+\caption{Alignment table summary by match method across all
+  (entity type, JSON key) pairs.
+  \emph{in\_mocho}: RDA property present in mocho-full.owl import;
+  \emph{gap}: no RDA sub-property in RDA~5.4.9 release.}
+\label{tab:alignment-summary}
+\centering
+\begin{tabular}{lrr}
+\toprule
+\textbf{Match method} & \textbf{Pairs} & \textbf{In mocho} \\
+\midrule
+\texttt{via\_dct\_map}              & \todo{N} & \todo{N} \\
+\texttt{direct}                     & \todo{N} & \todo{N} \\
+\texttt{via\_dct\_map\_not\_in\_mocho} & \todo{N} & 0 \\
+\texttt{unmatched}                  & \todo{N} & 0 \\
+\midrule
+\textbf{Total}                      & \todo{N} & \todo{N} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\todo{Fill Table 2 from alignment\_ddbedm\_mocho.csv.
+  Group rows by match\_method column, count rows and
+  count rows where in\_mocho = True.
+  Script: grep/pandas one-liner on goethe-faust/output/alignment\_ddbedm\_mocho.csv.}
+
+\subsection{Ignored Properties}
+
+3{,}592{,}475 triples (7.5\% of the total potential output) are explicitly
+withheld because the corresponding properties fall outside the current
+alignment scope.
+The largest excluded groups are EDM-structural properties
+(\texttt{edm:aggregatedCHO}, \texttt{edm:isShownAt},
+\texttt{edm:provider} --- together 345{,}296 occurrences),
+SKOS labels on Agent and Concept entities (844{,}035 occurrences),
+and the DDB-specific \texttt{edm:hasMet} and \texttt{edm:hasType} properties
+(316{,}806 occurrences).
+A full breakdown is available in the \texttt{transform\_stats.json} output
+file distributed with the pipeline.
+
+\todo{Optionally add a small bar chart of top-10 ignored properties
+  (horizontal bars, count on x-axis) — useful visual for the TPDL audience
+  and fits in a half-column figure.}
+
+\subsection{Layer~3 Dispatch Precision (Spot Checks)}
+
+Tan et al.~\cite{tan2026mocho} report spot-check precision for two common
+library-sector dispatch rules on this corpus:
+\texttt{dc:type}\,=\,\textit{Buch} assigns Manifestation-level typing with
+81.6\% precision ($n{=}2{,}153$);
+\texttt{dc:type}\,=\,\textit{Monografie} with 99.4\% precision
+($n{=}1{,}167$).
+A systematic precision evaluation across all 371 \todo{confirm count}
+distinct \texttt{dc:type} values in the corpus is future work.

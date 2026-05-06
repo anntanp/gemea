@@ -58,12 +58,12 @@ SELECT ?p ?o WHERE {
 
 \subsection{Linked Data Browser}
 
-The SHMARQL interface (Section~\ref{sec:resource:shmarql}) provides point-and-click navigation over GeMeA without requiring SPARQL knowledge.
+The SHMARQL interface (Section~\ref{sec:resource:shmarql}) provides point-and-click navigation over GEMEA without requiring SPARQL knowledge.
 Entity URIs for ProvidedCHOs, agents, places, and time spans are dereferenceable: a browser request renders an HTML entity page with outgoing and incoming links; HTTP content negotiation returns Turtle or JSON-LD for machine clients.
 
 \subsection{Research Applications}
 
-GeMeA supports the following LLM + KG research use cases.
+GEMEA supports the following LLM + KG research use cases.
 
 \paragraph{KG-grounded retrieval.}
 The SPARQL endpoint and MCP interface support evaluation of KG-grounded RAG pipelines, entity-linked question answering, and hybrid text + structured query benchmarks over a real-world CH corpus at scale.
@@ -78,7 +78,7 @@ Provenance-tracked named graphs and PROV-O\todo{cite here!} traces on GND-linked
 
 \paragraph{Agentic KG access (\texttt{framework.trails}).}
 The MCP/MCPO interface supports development and evaluation of multi-step KG reasoning agents.
-An agent with access to the GeMeA MCP server can resolve entity queries, explore graph neighborhoods, and compose multi-hop SPARQL queries without manual endpoint configuration.
+An agent with access to the GEMEA MCP server can resolve entity queries, explore graph neighborhoods, and compose multi-hop SPARQL queries without manual endpoint configuration.
 \todo{Insert 2 example MCP agent interactions.}
 
 \paragraph{Ontology evaluation (\texttt{onto-eval}).}
@@ -86,5 +86,5 @@ The \textbf{MOCHO}-aligned subgraph --- with documented alignment coverage and s
 
 \subsection{Self-Hosting}
 
-The full GeMeA stack is deployable via Docker Compose.
+The full GEMEA stack is deployable via Docker Compose.
 \todo{Hardware requirements, stack services (QLever, SHMARQL, MCP proxy), and link to deployment documentation.}

@@ -1,0 +1,27 @@
+%% 00-abstract.tex
+
+The Europeana Data Model (EDM) enables structural interoperability across
+heterogeneous cultural heritage institutions, but its design trades semantic
+precision for breadth: the same property (\texttt{dc:type}) carries
+controlled-vocabulary terms in library records, free-text strings in museum
+records, and structural hierarchy identifiers in archive records.
+Schema-level ontology alignment tools, which operate on lexical and structural
+similarity between ontology definitions, cannot recover these sector-specific
+conventions from the specification alone.
+Corpus-based analysis is therefore a precondition for reliable automated
+alignment of heterogeneous EDM metadata.
+
+We present a corpus-driven three-layer alignment methodology for mapping
+DDB-EDM records to domain ontologies (RDA, RiC-O, VRA Core, Music Ontology),
+mediated through \textsc{mocho}, a mid-level hub ontology for cross-domain
+cultural heritage objects.
+The three layers address distinct alignment challenges: (1) property alignment
+via a data-driven DC\,$\to$\,RDA sub-property mapping table derived from
+corpus profiling; (2) archival hierarchy typing via a lookup from DDB
+\texttt{hierarchyType} codes to RiC-O and DoCO classes; and (3) document-type
+dispatch via a three-level fallback table keyed on \texttt{dc:type} value,
+institutional sector, and mediatype, assigning WEMI-level classes from domain
+ontologies.
+Applied to a cross-domain pilot corpus of 115{,}432 DDB records spanning all
+seven institutional sectors, the pipeline produces 44.4 million RDF triples.
+All scripts and dispatch tables are publicly available \todo{confirm URL}.

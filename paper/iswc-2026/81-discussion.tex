@@ -13,3 +13,9 @@ We surface these patterns explicitly as \emph{dataset context}: structured docum
   \item \textbf{Software Engineering}: end-to-end pipeline architecture from ingestion to agentic access.
 \end{itemize}
 This context is made available as MCP resources, so that LLM-based tooling can ground queries and downstream analyses in authoritative dataset knowledge rather than infer it from incomplete samples.
+
+\paragraph{Outbound URI persistence.}
+The current GEMEA snapshot reflects DDB holdings as of April 2026.
+Outbound links encoded as \texttt{edm:isShownAt} and \texttt{edm:object} values point to \texttt{ddb.de/item/\{id\}} URIs.
+As DDB does not operate under a formal persistent URI policy, objects withdrawn or re-harvested by contributing institutions will render a proportion of these links unreachable over time.
+A URI persistence layer is planned at the FIZ infrastructure level: periodic link-health checks coupled with archival fallbacks would maintain provenance navigability as upstream content evolves.

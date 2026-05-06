@@ -1,0 +1,243 @@
+% 99-bibliography.bib — TPDL 2026 short paper
+% Merged from babel-ddb/paper_3/99-bibliography.bib
+%             gemea/paper/iswc-2026/99-bibliography.bib
+%
+% TODO: add missing entries:
+%   - RDA Toolkit / RDA Steering Committee
+%   - RiC-O (ICA Records in Contexts Ontology)
+%   - OAEI campaign overview paper
+%   - BIBFRAME (Library of Congress)
+%   - VRA Core (Visual Resources Association)
+%   - DDB Search API documentation
+%   - rdf2jsonld tool (if citable separately from the pipeline)
+
+% -----------------------------------------------------------------------
+% EDM and DDB
+
+@techreport{edm2017definition,
+  title       = {Definition of the {{Europeana Data Model}} v5.2.7},
+  author      = {{Europeana}},
+  institution = {{Europeana}},
+  year        = 2016,
+  url         = {https://pro.europeana.eu/files/Europeana_Professional/Share_your_data/Technical_requirements/EDM_Documentation/EDM_Definition_v5.2.7_042016.pdf}
+}
+
+@inproceedings{ruehle2014ddbedm,
+  address      = {Dublin, OH, USA},
+  author       = {R{\"u}hle, Stefanie and Schulze, Francesca and B{\"u}chner, Michael},
+  series       = {Dublin {Core} {Conference}},
+  booktitle    = {Proceedings of the {International} {Conference} on {Dublin} {Core} and {Metadata} {Applications}},
+  doi          = {10.23106/dcmi.952136503},
+  year         = {2014},
+  month        = {oct},
+  organization = {Dublin Core Metadata Initiative},
+  title        = {{Applying a linked data compliant model: The usage of the {Europeana} {Data} {Model} by the {Deutsche} {Digitale} {Bibliothek}}},
+  url          = {https://dcpapers-data.dublincore.org/articles/dc-2014/952136503/files/dcmi-952136503.pdf},
+  volume       = {2014},
+}
+
+@mastersthesis{schulze2020ddb,
+  author  = {Schulze, Francesca},
+  title   = {{Objektbeschreibende Metadaten in der Deutschen Digitalen Bibliothek}},
+  school  = {Humboldt-Universit{\"a}t},
+  address = {Berlin},
+  year    = {2020}
+}
+
+% -----------------------------------------------------------------------
+% FRBR / IFLA LRM / RDA
+
+@book{ifla1998frbr,
+  url       = {https://doi.org/10.1515/9783110962451},
+  author    = {{IFLA Study Group (ISG)}},
+  title     = {{Functional Requirements for Bibliographic Records - Final Report}},
+  editor    = {IFLA Study Group on the Functional Requirements for Bibliographic Records},
+  publisher = {K. G. Saur},
+  address   = {Berlin, Boston},
+  doi       = {doi:10.1515/9783110962451},
+  isbn      = {9783110962451},
+  year      = {1998},
+}
+
+@techreport{riva2017iflalrm,
+  author    = {Riva, Pat and Le Boeuf, Patrick and {\v Z}umer, Maja and
+               Consolidation Editorial Group of the IFLA FRBR Review Group},
+  title     = {{IFLA Library Reference Model: A Conceptual Model for Bibliographic Information}},
+  year      = 2024,
+  month     = 7,
+  publisher = {International Federation of Library Associations and Institutions (IFLA)},
+  version   = 2,
+  note      = {\url{https://repository.ifla.org/handle/20.500.14598/40.2}}
+}
+
+@online{dnb2022rda,
+  author       = {{Deutsche National Bibliothek}},
+  title        = {{RDA at the DNB}},
+  howpublished = {\url{https://www.dnb.de/EN/Professionell/Standardisierung/Standards/_content/rda.html}},
+  note         = {Accessed: 2026-01-26},
+  year         = 2022,
+}
+
+% -----------------------------------------------------------------------
+% CIDOC-CRM
+
+@article{doerr2003crm,
+  author    = {Doerr, Martin},
+  title     = {{The CIDOC conceptual reference module: an ontological approach to
+               semantic interoperability of metadata}},
+  year      = {2003},
+  publisher = {John Wiley \& Sons, Inc.},
+  volume    = {24},
+  number    = {3},
+  issn      = {0738-4602},
+  journal   = {AI Mag.},
+  month     = sep,
+  pages     = {75--92},
+}
+
+% -----------------------------------------------------------------------
+% mocho and DDB-KG
+
+@inproceedings{tan2026mocho,
+  author    = {Tan, Mary Ann and Posthumus, Etienne and Gesese, Genet Asefa and Sack, Harald},
+  title     = {{Babel-DDB: \textsc{mocho}, a Mid-level Ontology for Cross-domain Heritage Objects}},
+  booktitle = {Proceedings of the 3rd International Workshop on Semantic Digital Humanities (SemDH 2026) at ESWC 2026},
+  year      = {2026},
+  note      = {\todo{Confirm final title, venue details, and CEUR-WS volume once published.}}
+}
+
+@inproceedings{tan2021fabio,
+  author    = {Tan, Mary Ann and Tietz, Tabea and Bruns, Oleksandra and
+               Oppenlaender, Jonas and Dessi, Danilo and Sack, Harald},
+  year      = {2021},
+  title     = {{DDB-EDM to FaBiO: The Case of the German Digital Library}},
+  booktitle = {Proc. of the 20th Int. Semantic Web Conference -- Posters and Demos (ISWC 2021)},
+  publisher = {{CEUR-WS.org}},
+  volume    = {2980}
+}
+
+@inproceedings{tan2021ddbkg,
+  author    = {Tan, Mary Ann and Tietz, Tabea and Bruns, Oleksandra and
+               Oppenlaender, Jonas and Dessi, Danilo and Sack, Harald},
+  year      = {2021},
+  title     = {{DDB-KG: The German Bibliographic Heritage in a Knowledge Graph}},
+  booktitle = {{6th Int. Workshop on Computational History at JCDL -- Histoinformatics}},
+  publisher = {{CEUR-WS.org}},
+  volume    = {2981}
+}
+
+% -----------------------------------------------------------------------
+% Music Ontology / domain ontologies
+
+@inproceedings{ceriani2018audio,
+  author    = {Ceriani, Miguel and Fazekas, Gy{\"o}rgy},
+  title     = {Audio Commons Ontology: A Data Model for an Audio Content Ecosystem},
+  booktitle = {The Semantic Web -- ISWC 2018},
+  year      = {2018},
+  publisher = {Springer Int. Publishing},
+  address   = {Cham},
+  pages     = {20--35},
+  doi       = {10.1007/978-3-030-00668-6_2}
+}
+
+@article{peroni2012fabio,
+  author  = {Peroni, Silvio and Shotton, David},
+  year    = {2012},
+  title   = {{FaBiO and CiTO: Ontologies for describing bibliographic resources and citations}},
+  volume  = {17},
+  journal = {Journal of Web Semantics},
+  doi     = {10.2139/ssrn.3198992}
+}
+
+% -----------------------------------------------------------------------
+% EDM analysis and alignment
+
+@inproceedings{peroni2013edm,
+  author    = {Peroni, Silvio and Tomasi, Francesca and Vitali, Fabio},
+  year      = {2012},
+  title     = {{Reflecting on the Europeana Data Model}},
+  booktitle = {IRCDL 2012},
+  pages     = {228--240},
+}
+
+@article{patricio2025weaving,
+  author  = {Patr{\'i}cio, Helena Sim{\~o}es and Ramos, Pedro Nogueira and Cordeiro, Maria In{\^e}s},
+  year    = {2025},
+  title   = {{Weaving the Threads of Bibliographic Ontologies}},
+  volume  = {44},
+  journal = {Information Technology and Libraries},
+  doi     = {10.5860/ital.v44i2.17289}
+}
+
+@article{gustavo2018migration,
+  author    = {Schlieder, Christoph and Candela, Gustavo and Escobar, Pilar and
+               Carrasco, Rafael C. and Marco-Such, Manuel},
+  title     = {Migration of a library catalogue into RDA linked open data},
+  year      = {2018},
+  publisher = {IOS Press},
+  address   = {NLD},
+  volume    = {9},
+  number    = {4},
+  url       = {https://doi.org/10.3233/SW-170274},
+  doi       = {10.3233/SW-170274},
+  journal   = {Semantic Web},
+  pages     = {481--491},
+}
+
+% -----------------------------------------------------------------------
+% Automated ontology alignment
+
+@inproceedings{he2022bertmap,
+  author    = {Yuan He and Jiaoyan Chen and Denvar Antonyrajah and Ian Horrocks},
+  title     = {{BERTMap: {A} BERT-Based Ontology Alignment System}},
+  booktitle = {Thirty-Sixth {AAAI} Conference on Artificial Intelligence, {AAAI} 2022},
+  pages     = {5692--5700},
+  publisher = {{AAAI} Press},
+  year      = {2022},
+  doi       = {10.1609/aaai.v36i5.20510}
+}
+
+@inproceedings{hertling2023olala,
+  author    = {Hertling, Sven and Paulheim, Heiko},
+  title     = {{OLaLa: Ontology Matching with Large Language Models}},
+  year      = {2023},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3587259.3627571},
+  doi       = {10.1145/3587259.3627571},
+  booktitle = {Proceedings of the 12th Knowledge Capture Conference 2023},
+  pages     = {131--139},
+  series    = {K-CAP '23}
+}
+
+% -----------------------------------------------------------------------
+% Cultural heritage knowledge graphs
+
+@article{carriero2019arco,
+  title     = {{ArCo: The Italian Cultural Heritage Knowledge Graph}},
+  isbn      = {9783030307967},
+  issn      = {1611-3349},
+  doi       = {10.1007/978-3-030-30796-7_3},
+  journal   = {The Semantic Web -- ISWC 2019},
+  publisher = {Springer Int. Publishing},
+  author    = {Carriero, Valentina Anita and Gangemi, Aldo and Mancinelli, Maria Letizia and
+               Marinucci, Ludovica and Nuzzolese, Andrea Giovanni and Presutti, Valentina
+               and Veninata, Chiara},
+  year      = {2019},
+  pages     = {36--52}
+}
+
+@inproceedings{tan2026navigating,
+  author    = {Tan, Mary Ann and Gesese, Genet Asefa and Sack, Harald},
+  title     = {{Navigating Babel: A Mid-Level Ontology for Cross-Domain Cultural Heritage Discovery}},
+  booktitle = {Proceedings of the Third International Workshop on Semantic Digital Humanities (SemDH 2026)
+               co-located with the Extended Semantic Web Conference (ESWC 2026)},
+  year      = {2026},
+  month     = {May},
+  address   = {Dubrovnik, Croatia},
+  publisher = {CEUR-WS},
+  series    = {CEUR Workshop Proceedings},
+  url       = {https://ceur-ws.org},
+  %volume   = {},
+  %pages   = {},
+}

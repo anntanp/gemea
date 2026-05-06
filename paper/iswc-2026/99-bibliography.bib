@@ -1,6 +1,15 @@
 % 99-bibliography.bib — GeMeA bibliography
 % ISWC 2026 Resource Track
 
+@inproceedings{bast2025sparqloscope,
+  title     = {Sparqloscope: A generic benchmark for the comprehensive and concise
+               performance evaluation of {SPARQL} engines},
+  author    = {Bast, Hannah and Kalmbach, Johannes and Textor-Falconi, Robin
+               and Ullinger, Christoph},
+  year      = {2025},
+  url       = {https://purl.org/ad-freiburg/sparqloscope}
+}
+
 @inproceedings{blanco2026artkb,
   title     = {{ArtKB}: A Multimodal Art Knowledge Base for Cultural Heritage},
   author    = {Blanco, Giacomo and Monopoli, Tommaso and D'Asaro, Federico and
@@ -11,23 +20,41 @@
   url       = {https://github.com/links-ads/eswc26-artkb}
 }
 
-@inproceedings{bast2025sparqloscope,
-  title     = {Sparqloscope: A generic benchmark for the comprehensive and concise
-               performance evaluation of {SPARQL} engines},
-  author    = {Bast, Hannah and Kalmbach, Johannes and Textor-Falconi, Robin
-               and Ullinger, Christoph},
-  year      = {2025},
-  url       = {https://purl.org/ad-freiburg/sparqloscope}
+@article{carriero2019arco,
+  title     = {{ArCo: The Italian Cultural Heritage Knowledge Graph}},
+  isbn      = {9783030307967},
+  issn      = {1611-3349},
+  doi       = {10.1007/978-3-030-30796-7_3},
+  journal   = {The Semantic Web -- ISWC 2019},
+  publisher = {Springer Int. Publishing},
+  author    = {Carriero, Valentina Anita and Gangemi, Aldo and Mancinelli, Maria Letizia and
+               Marinucci, Ludovica and Nuzzolese, Andrea Giovanni and Presutti, Valentina
+               and Veninata, Chiara},
+  year      = {2019},
+  pages     = {36--52}
 }
 
-@article{motik2009hypertableau,
-  title   = {Hypertableau Reasoning for Description Logics},
-  author  = {Motik, Boris and Shearer, Rob and Horrocks, Ian},
-  journal = {Journal of Artificial Intelligence Research},
-  volume  = {36},
-  pages   = {165--228},
-  year    = {2009},
-  doi     = {10.1613/jair.2811}
+@article{haslhofer2013europeanalod,
+  author  = {Isaac, Antoine and Haslhofer, Bernhard},
+  title   = {{Europeana linked open data -- data.europeana.eu}},
+  journal = {Semantic Web},
+  volume  = {4},
+  number  = {3},
+  pages   = {291--297},
+  year    = {2013},
+  doi     = {10.3233/SW-120092}
+}
+
+@book{ifla1998frbr,
+  author    = {{IFLA Study Group (ISG)}},
+  title     = {{Functional Requirements for Bibliographic Records - Final Report}},
+  editor    = {IFLA Study Group on the Functional Requirements for Bibliographic Records},
+  publisher = {K. G. Saur},
+  address   = {Berlin, Boston},
+  doi       = {10.1515/9783110962451},
+  isbn      = {9783110962451},
+  year      = {1998},
+  url       = {https://doi.org/10.1515/9783110962451}
 }
 
 @article{kazakov2014elk,
@@ -40,8 +67,30 @@
   number    = {1},
   publisher = {Springer},
   year      = {2014},
-  pages     = {1-61},
+  pages     = {1--61},
   doi       = {10.1007/s10817-013-9296-3}
+}
+
+@book{lebo2013provo,
+  author    = {Lebo, Timothy and Sahoo, Satya and McGuinness, Deborah and
+               Belhajjame, Khalid and Cheney, James and Corsar, David and
+               Garijo, Daniel and Soiland-Reyes, Stian and Zednik, Stephan and Zhao, Jun},
+  title     = {{PROV-O: The PROV Ontology}},
+  series    = {W3C Recommendation},
+  publisher = {World Wide Web Consortium},
+  address   = {United States},
+  year      = {2013},
+  month     = apr
+}
+
+@article{motik2009hypertableau,
+  author  = {Motik, Boris and Shearer, Rob and Horrocks, Ian},
+  title   = {Hypertableau Reasoning for Description Logics},
+  journal = {Journal of Artificial Intelligence Research},
+  volume  = {36},
+  pages   = {165--228},
+  year    = {2009},
+  doi     = {10.1613/jair.2811}
 }
 
 @misc{openllet,
@@ -52,6 +101,26 @@
   note         = {Open-source fork of Pellet}
 }
 
+@software{shmarql,
+  author = {Posthumus, Etienne},
+  title  = {{SHMARQL}: A Linked Data Publishing Layer},
+  year   = {2024},
+  url    = {https://github.com/epoz/shmarql},
+  note   = {Accessed: 2026-05-05}
+}
+
+@article{sirin2007pellet,
+  author  = {Sirin, Evren and Parsia, Bijan and Grau, Bernardo Cuenca and
+             Kalyanpur, Aditya and Katz, Yarden},
+  title   = {Pellet: A practical {OWL-DL} reasoner},
+  journal = {Journal of Web Semantics},
+  volume  = {5},
+  number  = {2},
+  pages   = {51--53},
+  year    = {2007},
+  doi     = {10.1016/j.websem.2007.03.004}
+}
+
 @article{steigmiller2014konclude,
   author  = {Steigmiller, Andreas and Liebig, Thorsten and Glimm, Birte},
   title   = {Konclude: System Description},
@@ -59,25 +128,23 @@
   volume  = {27--28},
   pages   = {78--85},
   year    = {2014},
-  doi     = {10.2139/ssrn.3199110},
-  url     = {https://ssrn.com/abstract=3199110}
+  doi     = {10.2139/ssrn.3199110}
 }
 
-@article{sirin2007pellet,
-title = {Pellet: A practical OWL-DL reasoner},
-journal = {Journal of Web Semantics},
-volume = {5},
-number = {2},
-pages = {51-53},
-year = {2007},
-note = {Software Engineering and the Semantic Web},
-issn = {1570-8268},
-doi = {https://doi.org/10.1016/j.websem.2007.03.004},
-url = {https://www.sciencedirect.com/science/article/pii/S1570826807000169},
-author = {Evren Sirin and Bijan Parsia and Bernardo Cuenca Grau and Aditya Kalyanpur and Yarden Katz},
-keywords = {Web Ontology Language, Description logics, Tableau Theorem Proving},
-abstract = {In this paper, we present a brief overview of Pellet: a complete OWL-DL reasoner with acceptable to very good performance, extensive middleware, and a number of unique features. Pellet is the first sound and complete OWL-DL reasoner with extensive support for reasoning with individuals (including nominal support and conjunctive query), user-defined datatypes, and debugging support for ontologies. It implements several extensions to OWL-DL including a combination formalism for OWL-DL ontologies, a non-monotonic operator, and preliminary support for OWL/Rule hybrid reasoning. Pellet is written in Java and is open source.}
+@inproceedings{tan2026navigating,
+  author    = {Tan, Mary Ann and Gesese, Genet Asefa and Sack, Harald},
+  title     = {{Navigating Babel: A Mid-Level Ontology for Cross-Domain Cultural Heritage Discovery}},
+  booktitle = {Proceedings of the Third International Workshop on Semantic Digital Humanities (SemDH 2026)
+               co-located with the Extended Semantic Web Conference (ESWC 2026)},
+  year      = {2026},
+  month     = {May},
+  address   = {Dubrovnik, Croatia},
+  publisher = {CEUR-WS},
+  series    = {CEUR Workshop Proceedings},
+  url       = {https://ceur-ws.org},
+  %volume   = {},
+  %pages    = {},
+}
 
-
-% TODO: add remaining references (Europeana EDM, ArCo, CIDOC-CRM, RDA, FRBR,
-%       BIBFRAME, DDB, mocho, rdf2jsonld, VoID, DCAT, FAIR principles, ...)
+% TODO: add remaining references (CIDOC-CRM, RDA, BIBFRAME, DDB, rdf2jsonld,
+%       VoID, DCAT, FAIR principles, ...)

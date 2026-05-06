@@ -1,0 +1,80 @@
+% TPDL 2026 — Short/Late Breaking Results Paper
+% Template: Springer LNCS (same as gemea/paper/iswc-2026)
+% Copy llncs.cls and splncs04.bst from ../iswc-2026/ before compiling.
+%
+\documentclass[runningheads]{llncs}
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage{hyperref}
+
+% Annotation commands
+\newcommand\todo[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand\hn[1]{\textcolor{cyan}{#1}}
+\newcommand\newtext[1]{\textcolor{violet}{#1}}
+\newcommand\notes[1]{\textcolor{green}{#1}}
+
+\setcounter{secnumdepth}{3}
+
+\begin{document}
+
+\title{Letting the Data Decide: Harmonizing Cross-Domain Metadata Across Germany's Memory Institutions}
+\titlerunning{Letting the Data Decide: Harmonizing Metadata in Germany's Memory Institutions}
+
+\author{%
+  Mary Ann Tan\inst{1,2}\orcidID{0000-0003-3634-3550} \and
+  Harald Sack\inst{1,2}\orcidID{0000-0001-7069-9804}
+}
+
+\authorrunning{M. Tan and H. Sack}
+
+\institute{%
+  FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure, Germany \and
+  Karlsruhe Institute of Technology, Institute AIFB, Germany \\
+  \email{\{ann.tan|harald.sack\}@fiz-karlsruhe.de}
+}
+
+\maketitle
+
+\begin{abstract}
+\input{00-abstract}
+\keywords{%
+  Europeana Data Model \and
+  ontology alignment \and
+  cultural heritage metadata \and
+  knowledge graph construction \and
+  metadata harmonization \and
+  linked data \and
+  bibliographic ontologies
+}
+\end{abstract}
+
+\input{10-intro}
+\input{20-related}
+\input{30-methodology}
+\input{40-results}
+\input{50-discussion}
+\input{60-conclusion}
+
+\subsubsection*{Availability.}
+\todo{GitHub URL for transform\_edm\_to\_mocho.py and dispatch tables.
+Confirm whether goethe-faust corpus is public or private pilot dataset.
+CC BY 4.0 licence statement for pipeline scripts.}
+
+\begin{credits}
+\subsubsection{\ackname}
+\todo{Funding acknowledgements.}
+
+\subsubsection{\discintname}
+The authors have no competing interests to declare.
+\end{credits}
+
+\bibliographystyle{splncs04}
+\bibliography{99-bibliography}
+
+\end{document}

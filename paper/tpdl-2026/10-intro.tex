@@ -1,0 +1,68 @@
+%% 10-intro.tex — Introduction
+
+\section{Introduction}
+\label{sec:introduction}
+
+The Deutsche Digitale Bibliothek (DDB)\footnote{\url{https://www.deutsche-digitale-bibliothek.de}}
+aggregates over 65 million cultural heritage objects from German archives,
+libraries, museums, audiovisual archives, monument conservation offices, and
+research institutions --- seven institutional sectors --- all encoded using the
+DDB profile of the Europeana Data Model
+(DDB-EDM)~\cite{ruehle2014ddbedm,edm2017definition}.
+EDM achieves structural interoperability: every object, regardless of origin,
+is typed as an \texttt{edm:ProvidedCHO} with a common property set drawn from
+Dublin Core, DCMI Metadata Terms, and EDM extensions.
+The cost of this uniformity is semantic flattening: the same property name
+carries divergent semantics across sectors.
+
+The \texttt{dc:type} property exemplifies the problem.
+In the library sector, it holds terms from controlled bibliographic
+vocabularies (e.g.\ \textit{Buch}, \textit{Monografie}); in the museum
+sector, free-text descriptions of object type (e.g.\ \textit{Fotografie},
+\textit{Zeichnung}); and in the archive sector, structural hierarchy
+identifiers such as \textit{Bestand} or \textit{Archivale}.
+A schema-level ontology alignment tool --- one that operates on lexical and
+structural similarity between ontology class and property definitions --- sees
+a single property \texttt{dc:type} and produces a single mapping.
+It cannot recover the three distinct semantic regimes from the ontology
+specification alone.
+Corpus-based analysis, examining the actual value distribution of each
+property stratified by sector and mediatype, is therefore not an optional
+refinement but a precondition for reliable automated alignment.
+
+This paper presents a corpus-driven three-layer methodology for aligning
+DDB-EDM records to domain ontologies, mediated through
+\textsc{mocho}~\cite{tan2026mocho}, a mid-level hub ontology that bridges EDM
+to RDA~\todo{cite RDA}, RiC-O~\todo{cite RiC-O}, VRA~Core, and Music
+Ontology~\cite{ceriani2018audio} via WEMI-level typing.
+Three contributions are reported:
+
+\begin{enumerate}
+  \item \textbf{Corpus-driven methodology.}
+        A three-layer dispatch architecture that profiles field distributions
+        before constructing any alignment rule, and encodes alignment decisions
+        as versioned lookup tables rather than hardcoded logic
+        (Section~\ref{sec:methodology}).
+
+  \item \textbf{Field profile and alignment table.}
+        A data-derived field profile of 115{,}432 DDB records covering all
+        seven sectors, and a corresponding alignment table mapping every
+        observed (entity type, JSON key) pair to its target RDA property,
+        WEMI level, and match method --- with gaps documented explicitly
+        (Section~\ref{sec:results}).
+
+  \item \textbf{Open-source ingest scripts.}
+        A reproducible Python pipeline (\texttt{transform\_edm\_to\_mocho.py})
+        that converts DDB JSON-LD records from the DDB API to N-Triples via
+        the three-layer dispatch, together with all dispatch tables
+        (\texttt{alignment\_ddbedm\_mocho.csv},
+        \texttt{lookup\_htype\_doco\_rico.csv},
+        \texttt{lookup\_dctype\_to\_class.csv}) \todo{confirm GitHub URL and licence}.
+\end{enumerate}
+
+\paragraph{Paper structure.}
+Section~\ref{sec:related} reviews related alignment work.
+Section~\ref{sec:methodology} describes the three-layer dispatch architecture.
+Section~\ref{sec:results} reports coverage statistics on the pilot corpus.
+Section~\ref{sec:discussion} discusses gaps and generalizability.
+Section~\ref{sec:conclusion} concludes.

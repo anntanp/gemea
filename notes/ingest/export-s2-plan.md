@@ -260,23 +260,26 @@ Some entities have bare 32-character DDB IDs instead of HTTP URIs in their `abou
 
 These cross-reference each other within the same record (e.g. `ProvidedCHO.hasMet` → `Event.about`). `px.NamedNode()` rejects bare strings with no scheme — it will raise at construction time.
 
-**Minting rule**: if a value used as a subject or resource reference does not start with `http` or `urn`, mint a URN using the EDM class name as a path segment:
+**Minting rule**: if a value does not start with `http` or `urn`:
 
-```
-urn:edm:<ClassName>:<bare-id>
-```
+- `ProvidedCHO` → `http://www.deutsche-digitale-bibliothek.de/item/<bare-id>`
+- All other entity types → `urn:ddbedm:<ClassName>:<bare-id>`
 
 Examples:
-- `YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG` (Aggregation) → `urn:edm:Aggregation:YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG`
-- `O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN` (Agent) → `urn:edm:Agent:O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN`
-- `UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z` (Event) → `urn:edm:Event:UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z`
+- `YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG` (Aggregation) → `urn:ddbedm:Aggregation:YHCMWESBNVG6HTXITH2LAJTZNQDEXBPG`
+- `O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN` (Agent) → `urn:ddbedm:Agent:O5XUSBA7IPKSXYUTN6EQNWK62BQRF7GN`
+- `UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z` (Event) → `urn:ddbedm:Event:UXK2PKGWLTUIECMOPIMOC5LFYVSG5X2Z`
+- `225LOCJZSZLTA4DCUBFIHG72SPN7JTQZ` (ProvidedCHO) → `http://www.deutsche-digitale-bibliothek.de/item/225LOCJZSZLTA4DCUBFIHG72SPN7JTQZ`
 
 ```python
-DDBEDM = "urn:edm:"
+DDBEDM   = "urn:ddbedm:"
+DDB_ITEM = "http://www.deutsche-digitale-bibliothek.de/item/"
 
 def to_named_node(val: str, entity_type: str) -> px.NamedNode:
     if val.startswith("http") or val.startswith("urn"):
         return px.NamedNode(val)
+    if entity_type == "ProvidedCHO":
+        return px.NamedNode(DDB_ITEM + val)
     return px.NamedNode(DDBEDM + entity_type + ":" + val)
 ```
 

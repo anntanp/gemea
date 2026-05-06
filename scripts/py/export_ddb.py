@@ -59,7 +59,8 @@ DDB     = "https://www.deutsche-digitale-bibliothek.de/ontology#"
 CRM     = "http://www.cidoc-crm.org/cidoc-crm/"
 OWL     = "http://www.w3.org/2002/07/owl#"
 FOAF    = "http://xmlns.com/foaf/0.1/"
-DDBEDM  = "urn:edm:"
+DDBEDM    = "urn:ddbedm:"
+DDB_ITEM  = "http://www.deutsche-digitale-bibliothek.de/item/"
 
 RDF_TYPE_URI = RDF_NS + "type"
 
@@ -266,17 +267,32 @@ PARQUET_SCHEMA = pa.schema([
 # URI helpers
 # ---------------------------------------------------------------------------
 
+# Characters forbidden inside N-Triples IRI references (RFC 3987 + NT spec)
+_IRI_UNSAFE_RE = re.compile(r'[\x00-\x20<>"{}|\\^`\x7f]')
+
+
+def _sanitize_iri(iri: str) -> str:
+    """Percent-encode characters that are illegal inside NT IRI references."""
+    return _IRI_UNSAFE_RE.sub(lambda m: f"%{ord(m.group()):02X}", iri)
+
+
 def to_named_node(val: str, entity_type: str) -> px.NamedNode | None:
-    """Mint a NamedNode, prefixing bare IDs with the GeMeA EDM namespace."""
+    """Mint a NamedNode for a URI or bare DDB ID.
+
+    ProvidedCHO bare IDs → http://www.deutsche-digitale-bibliothek.de/item/<id>
+    All other entity types → urn:ddbedm:<ClassName>:<id>
+    """
     if not val or not isinstance(val, str):
         return None
     if val.startswith("http") or val.startswith("urn"):
         try:
-            return px.NamedNode(val)
+            return px.NamedNode(_sanitize_iri(val))
         except Exception:
             return None
+    if entity_type == "ProvidedCHO":
+        return px.NamedNode(DDB_ITEM + val)
     try:
-        return px.NamedNode(DDBEDM + entity_type + ":" + val)
+        return px.NamedNode(_sanitize_iri(DDBEDM + entity_type + ":" + val))
     except Exception:
         return None
 
