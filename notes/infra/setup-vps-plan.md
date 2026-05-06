@@ -12,8 +12,14 @@ flowchart LR
     subgraph SH["Self-Hosted*"]
         User([User]) -->|chat| OW[OpenWebUI]
         OW -->|inference| OL[Ollama]
-        OL -->|gemma4:e4b| OW
-        OW -->|tool call| T[sparql_query\nPython tool]
+        OL -->|open-source LLM| OW
+        OW -->|tool call| MCPO[MCPO]
+        MCPO -->|MCP| T[sparql_query\nPython tool]
+    end
+
+    subgraph CC["Commercial*"]
+        UserC([User]) -->|chat| CL[Claude]
+        CL -->|MCP| TC[sparql_query\nPython tool]
     end
 
     subgraph VPS["VPS (gemea.ise.fiz-karlsruhe.de)"]
@@ -24,7 +30,9 @@ flowchart LR
 
     T -->|SPARQL GET| QL
     QL -->|JSON results| T
-    T --> OW
+    T --> MCPO
+    TC -->|SPARQL GET| QL
+    QL -->|JSON results| TC
     User -->|browse| SHMARQL
 ```
 

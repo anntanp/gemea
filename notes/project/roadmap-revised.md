@@ -59,14 +59,14 @@
 
 | File | Sector | Ingested | IDs | Size (MB) |
 |---|---|---|---|---|
-| `ids_sec_01_digitalisat_20260427.txt` | Archive | [ 3,420,560 ] | 3,637,488 | 114.5 |
+| `ids_sec_01_digitalisat_20260427.txt` | Archive | [ 3,638,024 ] | 3,637,488 | 114.5 |
 | `ids_sec_02_digitalisat.txt` | Library | ✓ | 18,570,245 | 584.4 |
 | `ids_sec_03_digitalisat.txt` | Monument Preservation | [ 83,573 ] | 83,575 | 2.6 |
 | `ids_sec_04_digitalisat_20260427.txt` | Research | ✓ | 1,227,253 | 38.6 |
 | `ids_sec_05_digitalisat.txt` | Media Library | ✓ | 1,799,840 | 56.6 |
 | `ids_sec_06_digitalisat.txt` | Museum | ✓ | 2,011,737 | 63.3 |
 | `ids_sec_07_digitalisat.txt` | Others | ✓ | 89,904 | 2.8 |
-| **Total** | | | **27,420,042** | |
+| **Total** | | **27,420,039** | **27,420,042** | |
 
 Source: `fetch-ids-by-sector.py` against DDB Solr API (`digitalisat:true`); files on `ise-d-teach03:/data/ddb/data/ids/`. See `notes/project/ddb-27m.md`.
 
