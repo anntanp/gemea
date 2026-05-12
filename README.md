@@ -1,97 +1,226 @@
-# GeMeA — Knowledge Graph Testbed for 23M+ German Digital Library Objects
+# GeMeA — German Memory Atlas
 
-**Track**: ISWC 2026 Resource Track &nbsp;|&nbsp; **License**: CC BY-SA 4.0 &nbsp;|&nbsp; **SPARQL**: _endpoint TBD_
+> ⚠️ **This repository has moved.**
+> The canonical repository is now at **[https://github.com/ISE-FIZKarlsruhe/gemea](https://github.com/ISE-FIZKarlsruhe/gemea)**.
+> Please update your bookmarks and clone from there.
 
----
+GeMeA is a knowledge graph over approximately 26.8 million digitised objects from the [German Digital Library](https://www.deutsche-digitale-bibliothek.de/) (DDB), aligned to the [mocho](https://github.com/ISE-FIZKarlsruhe/mocho) mid-level ontology and indexed in [QLever](https://github.com/ad-freiburg/qlever) for high-performance SPARQL querying.
+The corpus is served through [SHMARQL](https://github.com/epoz/shmarql) as a dereferenceable Linked Data browser and SPARQL endpoint, and is queryable by AI agents via [mcp-server-qlever](https://github.com/xorwell/mcp-server-qlever).
 
-## Abstract
-
-We present GeMeA, a publicly accessible knowledge graph over 23M+ objects from the German Digital Library (DDB), queryable via SPARQL (QLever), browsable via SHMARQL, and accessible to AI agents through an MCP interface — a combination not previously available for cultural heritage data at this scale. The resource includes a mocho-based ontology alignment layer mapping DDB EDM metadata to RDA/FRBR, with partial GND entity linking via rule-based ISBD title extraction. GeMeA is released as a research testbed for work on ontology evaluation, agentic KG applications, RML-based declarative mapping, and provenance modelling of LLM-assisted enrichment. Data is licensed CC BY-SA 4.0; the SPARQL endpoint, Linked Data browser, and source code are available at [URI].
-
----
-
-## Access
-
-| Interface | URL | Description |
-|-----------|-----|-------------|
-| SPARQL endpoint | `http://[host]:42004` | QLever — EDM KG (23M+ objects) |
-| Linked Data browser | `http://[host]:42003` | SHMARQL |
-| MCP interface | `http://[host]:42005` | MCPO — agentic AI access |
-| GND SPARQL | `http://[host]:42006` | QLever — GND Werk / Person / CorporateBody |
+> Supplemental materials for: Mary Ann Tan, Genet Asefa Gesese, Harald Sack. **GeMeA: A Knowledge Graph for the German Digital Library.** *ISWC 2026 Resource Track* (forthcoming).
 
 ---
 
-## Testbed Use Cases
+## Downloads & endpoints
 
-GeMeA is designed as a multi-disciplinary research testbed. Four named research avenues:
+| Resource | URL |
+|---|---|
+| GeMeA N-Quads dump | <https://gemea.ise.fiz-karlsruhe.de/downloads/gemea> |
+| Goethe-Faust corpus (JSONL + N-Quads) | <https://gemea.ise.fiz-karlsruhe.de/downloads/goethe-faust/> |
+| SHMARQL Linked Data browser | <https://gemea.ise.fiz-karlsruhe.de/shmarql> |
 
-1. **Ontology evaluation** — large real-world aligned subgraph via the mocho PoC (EDM → RDA/FRBR); suitable for evaluating alignment quality and completeness on cultural heritage data at scale.
+---
 
-2. **Agentic KG frameworks** — MCP-native access layer, the first of its kind for cultural heritage KGs; supports development of AI agents that query, navigate, and reason over linked cultural heritage data.
+## Resource statistics
 
-3. **RML declarative mapping** — applicability study of RML-based declarative mapping as an alternative to the current procedural pipeline; GeMeA's EDM-to-RDF transformation is a concrete target use case.
+Object and triple counts per sector (as of ISWC 2026 submission).
 
-4. **LLM enrichment provenance** — PROV-O extensions (Prov-LM) for modelling the provenance of LLM-assisted KG enrichment steps; GeMeA's entity linking and alignment pipeline provides the enrichment trace.
+| Sector | Objects | Total triples | DDB-EDM | MOCHO | PROV |
+|---|---:|---:|---:|---:|---:|
+| Library | 18,338,116 | 1,930,178,220 | 1,040,390,087 | 356,952,292 | 532,835,841 |
+| Archive | 3,456,119 | 467,439,123 | 259,483,277 | 61,795,115 | 146,160,731 |
+| Museum | 2,011,841 | 230,484,127 | 123,795,378 | 48,164,578 | 58,524,171 |
+| Media Library | 1,709,846 | 258,176,923 | 145,905,243 | 58,871,240 | 53,400,440 |
+| Research | 1,165,891 | 138,118,201 | 75,842,237 | 24,633,128 | 37,642,836 |
+| Monument Preserv. | 79,393 | 9,020,751 | 4,852,432 | 1,555,297 | 2,613,022 |
+| Others | 85,408 | 9,996,438 | 5,487,618 | 1,958,508 | 2,550,312 |
+| **Total** | **26,846,614** | **3,043,413,783** | **1,655,756,272** | **553,930,158** | **833,727,353** |
+
+The QLever index is organised into four named graphs:
+
+| Named graph | Contents |
+|---|---|
+| `graph/ddbedm` | Verbatim EDM passthrough |
+| `graph/mocho` | mocho-aligned triples |
+| `graph/prov` | PROV-O provenance |
+| `graph/work` | GND work links |
 
 ---
 
 ## Pipeline
 
+**Ingest (build-time)**
+
 ```
-DDB JSON-LD → rdf2jsonld → link_gnd_works.py → mocho (EDM→RDA/FRBR) → QLever + SHMARQL + MCPO
+DDB Search API ──► fetch IDs ──► fetch JSON records
+                                       │
+                                       ▼
+                              SQLite (per sector)
+                                       │
+                         scripts/transform/ (Phase 1)
+                         EDM → mocho alignment
+                                       │
+                                       ▼
+                              N-Quads (named graphs)
+                                       │
+                              qlever index build
 ```
+
+**Access (runtime)**
+
+```mermaid
+flowchart LR
+    subgraph SH["Self-Hosted"]
+        User([User]) -->|chat| OW[OpenWebUI]
+        OW -->|inference| OL[Ollama]
+        OL -->|open-source LLM| OW
+        OW -->|tool call| MCPO[MCPO]
+        MCPO -->|MCP| T[sparql_query\nPython tool]
+    end
+
+    subgraph CC["Commercial"]
+        UserC([User]) -->|chat| CL[Claude]
+        CL -->|MCP| TC[sparql_query\nPython tool]
+    end
+
+    subgraph VPS["VPS (gemea.ise.fiz-karlsruhe.de)"]
+        QL[QLever\nSPARQL endpoint]
+        SHMARQL[SHMARQL\nLinked Data browser]
+        SHMARQL -->|SPARQL proxy| QL
+    end
+
+    T -->|SPARQL GET| QL
+    QL -->|JSON results| T
+    T --> MCPO
+    TC -->|SPARQL GET| QL
+    QL -->|JSON results| TC
+    User -->|browse| SHMARQL
+```
+
+**Goethe-Faust POC.** The alignment and dispatch logic were developed and validated on the [Goethe-Faust corpus](goethe-faust/) — 115,432 DDB records retrieved via the keywords *Goethe* and *Faust* — before scaling to the full 26.8M-object collection. The corpus analysis scripts, outputs, and design decisions are in [`goethe-faust/`](goethe-faust/).
 
 ---
 
-## Repository Layout
+## Directory structure
 
 ```
 gemea/
-├── scripts/        Setup and deployment .sh scripts + sample usage .py scripts
-├── ingest/         QLever load modules (for reproducibility)
-├── data/           Raw inputs tracked via DVC (.dvc pointer files)
-├── docker/         Docker Compose configs (EDM + GND stacks)
-├── docs/           Guides: SPARQL examples, self-hosting setup, MCP access
-├── paper/          Submitted PDF (iswc2026.pdf) — stub README until submission
-└── resource/       VoID descriptor, w3id metadata
+├── docs/adr/                    Architecture Decision Records (transform)
+│   ├── transform-adr.md         Class dispatch and WEMI alignment decisions
+│   ├── transform-props-mapping-adr.md   Property mapping decisions
+│   └── transform-script-adr.md  Transform implementation decisions
+├── scripts/
+│   ├── README.md                Transform → N-Quads → QLever workflow
+│   ├── transform/               EDM → mocho transform package
+│   └── config/                  Lookup tables consumed by transform
+├── goethe-faust/                Goethe-Faust reference corpus
+│   ├── scripts/                 Data acquisition + corpus analysis scripts
+│   ├── output/                  Corpus analysis outputs (CSVs, PNGs, JSONs)
+│   └── data/                    Corpus sample (IDs + 1K-record excerpt)
+├── paper/
+│   └── iswc-2026.pdf            Submitted paper
+├── CITATION.cff
+└── LICENSE                      MIT (code) / CC BY 4.0 (data)
 ```
 
-Research internals (`notes/`, `experiments/`, Python ETL pipeline, `api/`, `frontend/`) live on `develop` — not on `main`.
+---
+
+## Self-hosting
+
+Requires Docker and Docker Compose. The self-hosting setup mirrors the Goethe-Faust deployment (validated before scaling to GeMeA).
+
+**1. Download the N-Quads dump**
+```bash
+wget https://gemea.ise.fiz-karlsruhe.de/downloads/gemea/gemea.nq
+```
+
+**2. Configure**
+```bash
+cp goethe-faust/config.env.example config.env
+# Set NQ_INPUT_DIR, INDEX_DIR, and ports in config.env
+```
+
+**Before running**
+- [ ] `NQ_INPUT_DIR` exists and contains `gemea.nq`
+- [ ] `INDEX_DIR` exists and the Docker user (UID 1000) has write access
+- [ ] Ports `QLEVER_PORT` and `SHMARQL_PORT` are free on the host
+
+**3. Build the QLever index and start SHMARQL**
+```bash
+docker compose --env-file config.env -f goethe-faust/docker-compose.qlever.yml up -d
+```
+
+SPARQL endpoint: `http://localhost:7030` · SHMARQL browser: `http://localhost:7032` (defaults; adjust in `config.env`).
+
+**4. MCP agent access (optional)**
+
+Add to your Claude Code `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "gemea-qlever": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i",
+               "ghcr.io/xorwell/mcp-server-qlever:latest",
+               "-e", "http://<qlever-host>:<QLEVER_PORT>"]
+    }
+  }
+}
+```
 
 ---
 
-## Branches
+## License
 
-| Branch | Purpose |
-|--------|---------|
-| `main` | Stable public record — tagged at each ISWC deadline |
-| `develop` | Active development — code, experiments, research notes |
-| `paper/iswc-2026` | LaTeX source for the ISWC 2026 submission |
-| `releases` | Zenodo snapshots, versioned KG dumps, VoID releases |
-| `hotfix` | Post-submission corrections |
-| `meetings` | Research meeting slides (Beamer) — orphan branch, never merges |
+| Component | License |
+|---|---|
+| Code (scripts, transform) | [MIT](LICENSE) |
+| Data (corpus, KG dump) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
 
 ---
 
-## Resource
+## Troubleshooting
 
-| Field | Value |
-|-------|-------|
-| Persistent URI | TBD — w3id or Zenodo DOI (registered before May 2, 2026) |
-| License | CC BY-SA 4.0 |
-| Paper | ISWC 2026 Resource Track |
-| SPARQL endpoint | TBD |
-| Data download | TBD |
+**T1. `Permission denied` writing to `/data`**
+The Docker user cannot write to `INDEX_DIR`. Check that the directory exists and is writable:
+```bash
+mkdir -p $INDEX_DIR && chmod 777 $INDEX_DIR
+```
+
+**T2. `invalid spec: :/input:ro` — empty section between colons**
+`NQ_INPUT_DIR` is not set. Verify `config.env` contains a valid path.
+
+**T3. `ERROR: no files matched /input/*.nq`**
+No `.nq` file in `NQ_INPUT_DIR`. Confirm `gemea.nq` is in that directory.
+
+**T4. Port already in use**
+Change `QLEVER_PORT` or `SHMARQL_PORT` in `config.env` to a free port.
+
+**T5. `dependency failed to start`**
+Root cause is always in the QLever logs:
+```bash
+docker compose --env-file config.env -f goethe-faust/docker-compose.qlever.yml logs qlever
+```
 
 ---
 
-## ISWC 2026 Deadlines
+## Caveats
 
-| Milestone | Date |
-|-----------|------|
-| Abstract submission | 2 May 2026 |
-| Full paper (8–15 pp) | 7 May 2026 |
-| Rebuttal | 11–18 June 2026 |
-| Notification | 16 July 2026 |
-| Camera-ready | 6 August 2026 |
-| Conference | 27–29 October 2026 |
+- The Goethe-Faust POC covers 115,432 records; the full GeMeA corpus covers 26.8M objects.
+- GND Werk linking (Phase 1b) is partial; the `graph/work` named graph may be incomplete.
+- NER enrichment (Phase 2) is deferred and not included in this release.
+- Resource metadata (VoID descriptor, DCAT record, persistent URI) will be added at camera-ready.
+
+---
+
+## Citation
+
+```bibtex
+@inproceedings{tan2026gemea,
+  author    = {Tan, Mary Ann and Gesese, Genet Asefa and Sack, Harald},
+  title     = {{GeMeA: A Knowledge Graph for the German Digital Library}},
+  booktitle = {{Proceedings of the 23rd International Semantic Web Conference (ISWC 2026)}},
+  year      = {2026},
+  note      = {Resource Track. Forthcoming.},
+}
+```
