@@ -2,7 +2,8 @@
 
 > ⚠️ **This repository has moved.**
 > The canonical repository is now at **[https://github.com/ISE-FIZKarlsruhe/gemea](https://github.com/ISE-FIZKarlsruhe/gemea)**.
-> Please update your bookmarks and clone from there.
+
+---
 
 GeMeA is a knowledge graph over approximately 26.8 million digitised objects from the [German Digital Library](https://www.deutsche-digitale-bibliothek.de/) (DDB), aligned to the [mocho](https://github.com/ISE-FIZKarlsruhe/mocho) mid-level ontology and indexed in [QLever](https://github.com/ad-freiburg/qlever) for high-performance SPARQL querying.
 The corpus is served through [SHMARQL](https://github.com/epoz/shmarql) as a dereferenceable Linked Data browser and SPARQL endpoint, and is queryable by AI agents via [mcp-server-qlever](https://github.com/xorwell/mcp-server-qlever).
@@ -70,31 +71,39 @@ DDB Search API ──► fetch IDs ──► fetch JSON records
 
 ```mermaid
 flowchart LR
-    subgraph SH["Self-Hosted"]
-        User([User]) -->|chat| OW[OpenWebUI]
-        OW -->|inference| OL[Ollama]
-        OL -->|open-source LLM| OW
-        OW -->|tool call| MCPO[MCPO]
-        MCPO -->|MCP| T[sparql_query\nPython tool]
-    end
+    User([User])
 
-    subgraph CC["Commercial"]
-        UserC([User]) -->|chat| CL[Claude]
-        CL -->|MCP| TC[sparql_query\nPython tool]
-    end
-
-    subgraph VPS["VPS (gemea.ise.fiz-karlsruhe.de)"]
+    subgraph SPARQL["SPARQL Backend\n(gemea.ise.fiz-karlsruhe.de)"]
+        direction TB
         QL[QLever\nSPARQL endpoint]
         SHMARQL[SHMARQL\nLinked Data browser]
         SHMARQL -->|SPARQL proxy| QL
     end
 
-    T -->|SPARQL GET| QL
-    QL -->|JSON results| T
-    T --> MCPO
+    subgraph COM["Commercial client"]
+        CL[Claude]
+        TC[mcp-server-qlever]
+        CL -->|MCP| TC
+    end
+
+    subgraph OSS["Open-source client\n(self-hosted)"]
+        OW[OpenWebUI]
+        OL[Ollama]
+        MCPO[MCPO]
+        T[mcp-server-qlever]
+        OW -->|inference| OL
+        OL -->|open-source LLM| OW
+        OW -->|tool call| MCPO
+        MCPO -->|MCP stdio| T
+    end
+
+    User -->|chat| CL
+    User -->|chat| OW
+    User -->|browse| SHMARQL
     TC -->|SPARQL GET| QL
     QL -->|JSON results| TC
-    User -->|browse| SHMARQL
+    T -->|SPARQL GET| QL
+    QL -->|JSON results| T
 ```
 
 **Goethe-Faust POC.** The alignment and dispatch logic were developed and validated on the [Goethe-Faust corpus](goethe-faust/) — 115,432 DDB records retrieved via the keywords *Goethe* and *Faust* — before scaling to the full 26.8M-object collection. The corpus analysis scripts, outputs, and design decisions are in [`goethe-faust/`](goethe-faust/).
@@ -105,6 +114,8 @@ flowchart LR
 
 ```
 gemea/
+├── docker-compose.qlever.yml    QLever + SHMARQL + MCPO (SPARQL backend)
+├── docker-compose.openwebui.yml OpenWebUI chat UI (open-source client)
 ├── docs/adr/                    Architecture Decision Records (transform)
 │   ├── transform-adr.md         Class dispatch and WEMI alignment decisions
 │   ├── transform-props-mapping-adr.md   Property mapping decisions
@@ -127,11 +138,44 @@ gemea/
 
 ## Self-hosting
 
-Requires Docker and Docker Compose. The self-hosting setup mirrors the Goethe-Faust deployment (validated before scaling to GeMeA).
+The Docker Compose setup and MCP integration were developed and validated on the [Goethe-Faust corpus](https://github.com/anntanp/goethe-faust) prior to GeMeA submission. The original design documents — [ollama-qlever-mcp-plan.md](https://github.com/anntanp/goethe-faust/blob/main/notes/ollama-qlever-mcp-plan.md) and [openwebui-ollama-setup.md](https://github.com/anntanp/goethe-faust/blob/main/notes/openwebui-ollama-setup.md) — are preserved in that repository as a timestamped record.
+
+The SPARQL endpoint is available at `https://gemea.ise.fiz-karlsruhe.de/sparql` — no setup required to query it. For the LLM client, choose between a commercial option (Claude) or a fully open-source option (Ollama + OpenWebUI).
+
+### LLM client
+
+**Option A — Commercial (Claude)**
+
+Requires Docker. Add to `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "gemea-qlever": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i",
+               "ghcr.io/xorwell/mcp-server-qlever:latest",
+               "-e", "https://gemea.ise.fiz-karlsruhe.de/sparql"]
+    }
+  }
+}
+```
+
+**Option B — Open-source (Ollama + OpenWebUI)**
+
+Requires Docker. Ollama must run natively on macOS — Docker Desktop does not expose Apple Silicon GPU (Metal) to containers.
+
+1. Install [Ollama](https://ollama.com/download) and pull a model: `ollama pull gemma4:e4b`
+2. Start OpenWebUI: `docker compose -f docker-compose.openwebui.yml up -d`
+3. Open `http://localhost:3000` and create an admin account
+4. Go to **Admin → Settings → Tools** and add the MCPO tool server URL: `https://gemea.ise.fiz-karlsruhe.de/sparql`
+
+### Running everything locally (test)
+
+To run QLever, SHMARQL, and MCPO on your own machine instead of using the hosted endpoint, download the N-Quads dump and use [`docker-compose.qlever.yml`](https://github.com/ISE-FIZKarlsruhe/gemea/blob/main/docker-compose.qlever.yml).
 
 **1. Download the N-Quads dump**
 ```bash
-wget https://gemea.ise.fiz-karlsruhe.de/downloads/gemea/gemea.nq
+wget https://gemea.ise.fiz-karlsruhe.de/downloads/gemea/{yyyymmdd}/nq/*.nq
 ```
 
 **2. Configure**
@@ -143,30 +187,14 @@ cp goethe-faust/config.env.example config.env
 **Before running**
 - [ ] `NQ_INPUT_DIR` exists and contains `gemea.nq`
 - [ ] `INDEX_DIR` exists and the Docker user (UID 1000) has write access
-- [ ] Ports `QLEVER_PORT` and `SHMARQL_PORT` are free on the host
+- [ ] Ports `QLEVER_PORT`, `SHMARQL_PORT`, and `MCPO_PORT` are free on the host
 
-**3. Build the QLever index and start SHMARQL**
+**3. Start**
 ```bash
-docker compose --env-file config.env -f goethe-faust/docker-compose.qlever.yml up -d
+docker compose --env-file config.env -f docker-compose.qlever.yml up -d --wait
 ```
 
-SPARQL endpoint: `http://localhost:7030` · SHMARQL browser: `http://localhost:7032` (defaults; adjust in `config.env`).
-
-**4. MCP agent access (optional)**
-
-Add to your Claude Code `.claude/settings.json`:
-```json
-{
-  "mcpServers": {
-    "gemea-qlever": {
-      "command": "docker",
-      "args": ["run", "--rm", "-i",
-               "ghcr.io/xorwell/mcp-server-qlever:latest",
-               "-e", "http://<qlever-host>:<QLEVER_PORT>"]
-    }
-  }
-}
-```
+SPARQL endpoint: `http://localhost:2343` · SHMARQL browser: `http://localhost:2342` · MCPO: `http://localhost:2344` (defaults; adjust in `config.env`).
 
 ---
 
@@ -175,7 +203,7 @@ Add to your Claude Code `.claude/settings.json`:
 | Component | License |
 |---|---|
 | Code (scripts, transform) | [MIT](LICENSE) |
-| Data (corpus, KG dump) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
+| Data (corpus, KG dump) | Per object — queryable via `dcterms:rights` |
 
 ---
 
