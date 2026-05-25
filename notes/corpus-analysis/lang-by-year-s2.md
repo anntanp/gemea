@@ -1,8 +1,10 @@
-# Language × Year Analysis — Plan and Findings
+# Language × Year Analysis — Sector 2 (Library)
+
+> **Superseded by** [lang-by-year-all.md](lang-by-year-all.md) for the full corpus. This note covers the initial s2-only analysis on the old parquet schema (`data/out/s2/s2_meta.parquet`).
 
 ## 1. Goal
 
-Visualise how the language distribution of DDB Sector 2 objects changes over time, to understand the temporal scope of each language in the corpus.
+Visualise how the language distribution of DDB Sector 2 (Library) objects changes over time, to understand the temporal scope of each language in the corpus.
 
 ---
 

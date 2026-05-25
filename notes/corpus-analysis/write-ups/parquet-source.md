@@ -1,8 +1,8 @@
 # Parquet File Provenance
 
-Script: [export_ddb.py](https://github.com/anntanp/gemea/blob/main/scripts/py/export_ddb.py), [export_batch_remote.sh](https://github.com/anntanp/gemea/blob/main/scripts/sh/export_batch_remote.sh)
+Script: [prescan.py](https://github.com/anntanp/goethe-faust/blob/main/scripts/transform/prescan.py), [run_gemea_transform.sh](https://github.com/anntanp/goethe-faust/blob/main/scripts/run_gemea_transform.sh)
 Schema: [parquet_schema.json](https://github.com/anntanp/gemea/blob/main/data/schema/parquet_schema.json)
-Export plan: [ddb-all-sectors-export-plan.md](https://github.com/anntanp/gemea/blob/main/notes/infra/ddb-all-sectors-export-plan.md)
+Export plan: [transform-prescan-plan.md](https://github.com/anntanp/goethe-faust/blob/main/notes/transform-prescan-plan.md) §2
 
 ---
 
@@ -24,17 +24,18 @@ Sector s2 (Library) was exported first, producing `s2_meta.parquet` (18,570,245 
 
 ## 2. Export pipeline
 
-`export_ddb.py` reads rows from `objs` in `rowid` order and distributes them across `MAX_WORKERS` worker processes via a shared queue. Each worker decompresses the `bufgz` blob, parses the cortex JSON, and produces two outputs in parallel: batched N-Triple files (`ddbedm-<stem>_<worker>_<batch>.nt`) and a stream of metadata rows forwarded to a dedicated `meta_writer` process. The meta writer accumulates rows in memory and flushes them to Parquet in chunks of 500,000. The final file is written atomically via a `.tmp` rename.
+`prescan.py` is Pass 1 of the two-pass transform pipeline. It performs a single sequential scan of the sector SQLite file: for each record it decompresses the `bufgz` blob, parses the cortex JSON, accumulates PROV-O entity descriptors (`mapping-version`, `dataset-id`, `provider-id`), `concept_labels` and `agent_labels` entries, and a Parquet metadata row — all in memory.
 
-Default configuration used for the batch run:
+After the scan, three sequential write phases commit shared state (each guarded by `fcntl.flock`): `prov.duckdb` + `prov-shared.nq`, `concept_labels.duckdb`, `agent_labels.duckdb`. The Parquet writer is flushed last; each sector writes its own file, so no locking is needed.
 
-| Parameter | Default | Notes |
-|-----------|---------|-------|
-| `BATCH_SIZE` | 100,000 | NT records per file |
-| `PARQUET_CHUNK` | 500,000 | Rows per Parquet write |
-| `MAX_WORKERS` | `nproc − 2` | Passed as env override |
+| Input / output | Path |
+|---|---|
+| SQLite input | `s<n>.sqlite` (`objs` table, `bufgz` column) |
+| Parquet output | `s<n>_meta.parquet` (per-sector, flushed after scan) |
+| Shared prov DB | `prov.duckdb` + `prov-shared.nq` (flock-guarded) |
+| Shared label DBs | `concept_labels.duckdb`, `agent_labels.duckdb` (flock-guarded) |
 
-The script supports resumable export via a `.export_progress.json` checkpoint: if a run is interrupted, the next invocation queries `objs WHERE rowid > last_rowid` and writes a separate Parquet file for the resumed segment. The batch driver (`export_batch_remote.sh`) skips a sector if `<stem>_meta.parquet` already exists and no checkpoint file is present.
+Sectors run in parallel (one background process per sector launched by `run_gemea_transform.sh`). Lock contention is negligible — each write batch covers only one sector's unique URIs (typically tens to low hundreds of rows). There is no checkpoint/resume mechanism; prescan is fast enough to re-run from scratch. `run_gemea_transform.sh` skips a sector's prescan if `<stem>_meta.parquet` already exists and `--replace-dbs` is not set.
 
 ## 3. Schema
 
