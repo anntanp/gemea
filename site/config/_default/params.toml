@@ -1,0 +1,38 @@
+colorScheme         = "gemea"
+copyright           = "© { year } Mary Ann Tan"
+defaultAppearance   = "light"
+autoSwitchAppearance = false
+
+enableSearch        = true
+enableCodeCopy      = true
+disableTextInHeader = false
+
+[header]
+  layout = "fixed"
+
+[footer]
+  showMenu              = true
+  showCopyright         = true
+  showThemeAttribution  = false
+  showAppearanceSwitcher = false
+  showScrollToTop       = true
+
+[homepage]
+  layout      = "profile"
+  showRecent  = false
+  cardView    = false
+
+[article]
+  showDate         = true
+  showAuthor       = false
+  showReadingTime  = true
+  showTableOfContents = true
+  showHeadingAnchors  = true
+  showTaxonomies      = true
+  showTags            = true
+
+[list]
+  showSummary  = true
+  showCards    = true
+  groupByYear  = false
+  cardView     = true

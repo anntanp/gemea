@@ -1,0 +1,88 @@
+/* GeMeA custom styles */
+
+/* CRediT author tooltips */
+abbr[title] {
+  text-decoration: underline dotted rgb(var(--color-primary-500));
+  cursor: help;
+  font-style: normal;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+body, html {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Stat badge row on home page */
+.gemea-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.gemea-stat {
+  background: rgb(var(--color-primary-50));
+  border: 1px solid rgb(var(--color-primary-200));
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  text-align: center;
+  min-width: 7rem;
+}
+
+.gemea-stat .num {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: rgb(var(--color-primary-700));
+  line-height: 1.2;
+}
+
+.gemea-stat .label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgb(var(--color-neutral-500));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.15rem;
+}
+
+/* CTA button row on home page */
+.gemea-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.gemea-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.gemea-btn:hover { opacity: 0.85; text-decoration: none; }
+
+.gemea-btn-primary {
+  background: rgb(var(--color-primary-500));
+  color: #fff;
+}
+
+.gemea-btn-secondary {
+  background: rgb(var(--color-secondary-500));
+  color: #fff;
+}
+
+.gemea-btn-outline {
+  background: transparent;
+  border: 1.5px solid rgb(var(--color-primary-500));
+  color: rgb(var(--color-primary-700));
+}
