@@ -42,3 +42,63 @@ Where *htype* is populated, Archive and Library use non-overlapping vocabularies
 ### 2.4 Consequence for anchor field selection
 
 Only `mediatype` — five coarse values, populated for > 99.99% of all objects — provides a reliable cross-sector type anchor without gap-filling. `dc:type` adds richer semantics but requires separate URI and literal handling. `hierarchy_type` is suitable only within Library and Archive. The corpus analysis converted these latent risks into quantified trade-offs that inform each alignment decision in mocho.
+
+---
+
+## 3. Language and temporal coverage
+
+Source: [lang-by-year-write-up.md](lang-by-year-write-up.md).
+
+### 3.1 Language coverage
+
+| Metric | Count | % |
+|--------|------:|--:|
+| Total rows (all sectors) | 27,526,560 | 100.0% |
+| Resolved `(none)` | 2,254,502 | 8.2% |
+| Distinct language codes (excl. `none`/`und`/`zxx`) | 251 | — |
+
+Language is resolved from `lang_obj` (object-level ISO 639-2 from `ProvidedCHO.language`) with fallback to `lang_title` (title language tag). Both fields are nominally non-null — `prescan.py` writes an empty string rather than NULL — so the 8.2% `(none)` figure reflects objects where both fields are empty strings.
+
+**Top 10 languages by object count:** `ger`, `lat`, `eng`, `spa`, `fre`, `ita`, `dut`, `grc`, `chi`, `mul`. German dominates strongly across all sectors.
+
+### 3.2 Temporal coverage
+
+Year is extracted from the `dates` column (`DATE_STRUCT` list) using the following priority: `type = "creation"` → `"publication"` → others; within a struct, `begin` before `value`; first four characters parsed as integer, accepted range 1400–2026.
+
+| Metric | Count | % |
+|--------|------:|--:|
+| Valid year extracted | 19,669,829 | 71.5% |
+| No valid year (excluded) | 7,856,731 | 28.5% |
+
+Date-type composition varies strongly by sector:
+
+| date_type | s1 Archive | s2 Library | s3 Monument | s4 Research | s5 Media | s6 Museum | s7 Other |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `creation` | 31,854 | 0 | 24,444 | 437,904 | 141,475 | 0 | 63,170 |
+| `publication` | 213,132 | 16,014,337 | 0 | 521,720 | 192 | 6,256 | 14,414 |
+| `unknown_event` | 2,213,722 | 37,948 | 22,068 | 189,515 | 1,109,988 | 43,257 | 6,325 |
+| **% objects with any date** | 67.6% | 85.6% | 52.5% | 89.9% | 66.6% | **2.2%** | 75.4% |
+
+Notable: s6 (Museum) has only 2.2% date coverage — it contributes negligibly to the temporal analysis. s2 (Library) is dominated by `publication` dates; s1 (Archive) by `unknown_event` (LIDO event chains with unrecognised type).
+
+### 3.3 Charts
+
+**Language distribution — all sectors (top 10 languages)**
+
+![Language distribution by decade, all sectors](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/lang_by_year_all.png)
+
+**Language distribution — German excluded**
+
+![Language distribution by decade, German excluded](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/lang_by_year_all_no_top1.png)
+
+**Language diversity by decade**
+
+![Distinct language codes per decade vs object count](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_lang_diversity_decade.png)
+
+**Date coverage by sector**
+
+![Date coverage per sector](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_date_coverage_sector.png)
+
+**Date-type composition by sector**
+
+![Date-type composition per sector](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_date_types_sector.png)
