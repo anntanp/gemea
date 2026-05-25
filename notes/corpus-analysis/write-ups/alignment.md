@@ -31,13 +31,21 @@ The alignment target — mocho, which maps DDB EDM to RDA/FRBR — requires deci
 
 `hierarchy_type` (*htype*) — the DDB's structural and bibliographic type classification — has zero coverage in Monument, Media Library, and Museum, and is 84% null in Other. Any alignment rule that treats *htype* as a reliable type signal silently excludes 5.9 million objects (21.4% of the digitized corpus). See [mediatype-htype-write-up.md](mediatype-htype-write-up.md) §3.
 
+![htype coverage by sector](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_htype_coverage.png)
+
 ### 2.2 Field semantics are sector-local, not corpus-wide
 
 Where *htype* is populated, Archive and Library use non-overlapping vocabularies: Archive is dominated by EAD-derived codes (Archivale/Findbuch File), while Library distributes across 25 MARC-derived bibliographic types (Heft, Aufsatz, Kapitel, Monografie, Abschnitt). A single alignment rule across both sectors would conflate archival arrangement with bibliographic granularity. The split was only visible after cross-tabulating type distributions per sector. See [mediatype-htype-write-up.md](mediatype-htype-write-up.md) §4.
 
+![Top htypes per covered sector](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_htype_distribution.png)
+
 ### 2.3 Authority linking is heterogeneous
 
 `dc:type`, the primary object-type field, carries either a controlled-vocabulary URI or a free-text literal depending on the contributing institution. Authority-linking rates range from 9% (Archive) to 85% (Media Library) — a nine-fold spread that reflects cataloguing practice, not data quality variation. Museum presents 48,484 distinct literal values, 21 times more than any other sector. The alignment cannot treat `dc:type` uniformly; it must handle URI-linked and literal entries separately, and must know per-sector which share of entries is URI-linked before deciding whether literal normalization is worth the cost. See [dc-type-write-up.md](dc-type-write-up.md) §2–§4.
+
+![URI vs Literal share by sector](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_dctype_sector_bars.png)
+
+![Heterogeneity space: URI% × distinct literals, sized by entry count](https://raw.githubusercontent.com/anntanp/gemea/develop/notes/images/fig_dctype_sector_bubble.png)
 
 ### 2.4 Consequence for anchor field selection
 
