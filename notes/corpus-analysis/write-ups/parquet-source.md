@@ -1,7 +1,7 @@
 # Parquet File Provenance
 
 Script: [prescan.py](https://github.com/anntanp/goethe-faust/blob/main/scripts/transform/prescan.py), [run_gemea_transform.sh](https://github.com/anntanp/goethe-faust/blob/main/scripts/run_gemea_transform.sh)
-Schema: [parquet_schema.json](https://github.com/anntanp/gemea/blob/main/data/schema/parquet_schema.json)
+Schema: [parquet_schema.json](https://github.com/anntanp/gemea/blob/develop/data/schema/parquet_schema.json)
 Export plan: [transform-prescan-plan.md](https://github.com/anntanp/goethe-faust/blob/main/notes/transform-prescan-plan.md) §2
 
 ---
