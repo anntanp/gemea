@@ -73,11 +73,13 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 | `analysis/sample_htype_titles.py` | Random sample of titles for specified htypes with DDB item links |
 | `analysis/filter_content_titles.py` | Classify all titles into work_title / section_label / physical_label (Option C hybrid); outputs `data/processed/title_class_counts.csv`, `title_class_sample.csv`, `notes/images/title_class_breakdown.png` |
 | `analysis/count_lang.py` | Count objects by `lang` code (explodes multi-value entries); outputs `data/processed/lang_counts.csv` and `notes/images/lang_counts.png` |
+| `py/german_lang_variants.py` | Identify ISO 639 tags for German variants (ger, nds, gmh, goh, gsw) and their share of the dataset; outputs `data/processed/german_variant_lang_counts.csv` |
 | `analysis/lang_by_year.py` | Count objects by language × year/decade (year from `dc_issued`); outputs `data/processed/lang_by_year.csv` and `notes/images/lang_by_year.png` |
 | `analysis/wordcloud_book.py` | Word cloud of "book" in each DDB language, sized by object count; outputs `notes/images/wordcloud_book.png` |
 | `analysis/detect_lang_titles.py` | Detect title language with fasttext lid.176, compare against dc:language annotation; outputs `data/processed/lang_detect_titles.csv` and `lang_detect_summary.csv` |
 | `analysis/filter_de_content.py` | Filter s2_meta.parquet to German + Latin content titles (removes BLANKET_EXCLUDE htypes + non-ger/gmh/nds/lat lang); outputs `data/out/s2/s2_meta_de_content.parquet` and `data/processed/filter_de_content_summary.csv` |
 | `analysis/tokenize_de_titles.py` | Tokenize titles in s2_meta_de_content.parquet with xlm-roberta-large; computes `all_tokens` and `content_tokens` per title; outputs `data/processed/de_titles_tokenized.parquet` |
+| `analysis/dc_type_analysis.py` | Count dc_type URI entries, literal entries, and distinct literal values per provider and per sector across all sector parquets; outputs `data/processed/dc_type_by_provider.csv` and `dc_type_by_sector.csv` |
 
 ### `utils/` — shared utilities
 

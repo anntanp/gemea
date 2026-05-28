@@ -1,19 +1,21 @@
 # Purpose:      Load title data and plot title-length distribution per year bucket.
-#               Length is taken from the pre-computed 'all_tokens' and 'content_tokens'
-#               columns; both are shown together on the median panel. Year is taken
-#               from the 'dates' column; titles with no 'dates' value fall back to a
-#               regex extraction from the title string.
+#               Default mode: length from pre-computed 'all_tokens'/'content_tokens' (BPE).
+#               Word-token mode (--word-tokens): whitespace split on 'title' string.
+#               Year is taken from 'dates'; fallback to regex on title string.
 # Usage:        python scripts/ner/sr10_analyse_title_lengths.py
 #               python scripts/ner/sr10_analyse_title_lengths.py \
 #                   --data data/processed/de_titles_tokenized.parquet \
 #                   --output-dir notes/images --suffix _v2
+#               python scripts/ner/sr10_analyse_title_lengths.py --word-tokens \
+#                   --suffix _words
 # Inputs:       data/DF_DE_TITLES_20240125b.pkl  OR  data/processed/de_titles_tokenized.parquet
-# Outputs:      notes/images/fig_title_lengths{suffix}.png — stacked bar + dual median chart
+# Outputs:      notes/images/fig_title_lengths{suffix}.png — stacked bar + median chart
 #               notes/images/title-length-analysis{suffix}.json — bucketed counts and medians
 # Dependencies: pandas, pyarrow, matplotlib
 # Assumptions:  'dates' column is a string year (e.g. '1931') or NaN.
 #               'all_tokens' is the xlm-roberta subword count incl. stopwords.
 #               'content_tokens' is the count with stopwords removed.
+#               Word-token mode uses str.split() (whitespace); thresholds ≤3 / 4–12 / >12.
 
 import re
 import json
@@ -34,8 +36,15 @@ ROOT       = Path(__file__).resolve().parent.parent
 DATA_PATH  = ROOT / "data" / "DF_DE_TITLES_20240125b.pkl"
 OUTPUT_DIR = ROOT / "notes" / "images"
 
-SHORT_MAX  = 4   # ≤ 4 tokens  → short   (p25)
-MEDIUM_MAX = 14  # 5–14 tokens → medium  (p25–p75)  |  >14 → long
+SHORT_MAX  = 4   # ≤ 4 tokens  → short   (p25, BPE mode)
+MEDIUM_MAX = 14  # 5–14 tokens → medium  (p25–p75)  |  >14 → long  (BPE mode)
+
+# Word-token mode thresholds (whitespace split; p25≈3, p75≈13 on 9.21M parquet)
+WORD_SHORT_MAX  = 3   # ≤ 3 words
+WORD_MEDIUM_MAX = 12  # 4–12 words  |  >12 → long
+
+# NLTK stopwords data lives in the project venv to avoid system-path permission issues
+NLTK_DATA_DIR = ROOT / ".venv" / "nltk_data"
 
 # Fallback: extract year from title string (1400–2029)
 YEAR_RE = re.compile(r"\b(?:1[4-9]\d{2}|20[012]\d)\b")
@@ -51,7 +60,7 @@ def year_from_title(title: str):
     return int(m[-1].group()) if m else None
 
 
-def bucket_data(year_map, size, year_min, year_max):
+def bucket_data(year_map, size, year_min, year_max, short_max, medium_max):
     """
     year_map: year (int) → {"all": [int, ...], "content": [int, ...]}
     Returns ordered list of (label, dict) with short/medium/long counts
@@ -68,9 +77,9 @@ def bucket_data(year_map, size, year_min, year_max):
                 all_t.extend(year_map[y]["all"])
                 con_t.extend(year_map[y]["content"])
         bins[label] = {
-            "short":   sum(1 for t in all_t if t <= SHORT_MAX),
-            "medium":  sum(1 for t in all_t if SHORT_MAX < t <= MEDIUM_MAX),
-            "long":    sum(1 for t in all_t if t > MEDIUM_MAX),
+            "short":   sum(1 for t in all_t if t <= short_max),
+            "medium":  sum(1 for t in all_t if short_max < t <= medium_max),
+            "long":    sum(1 for t in all_t if t > medium_max),
             "all_t":   all_t,
             "con_t":   con_t,
         }
@@ -97,22 +106,46 @@ def median(lst):
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def load_data(path: Path) -> pd.DataFrame:
+def _get_de_stopwords() -> set:
+    import nltk
+    nltk.data.path.insert(0, str(NLTK_DATA_DIR))
+    from nltk.corpus import stopwords
+    return set(stopwords.words("german"))
+
+
+def load_data(path: Path, word_tokens: bool = False) -> pd.DataFrame:
     if path.suffix == ".parquet":
-        return pd.read_parquet(
+        df = pd.read_parquet(
             path, columns=["title", "all_tokens", "content_tokens", "dates"]
         )
-    with open(path, "rb") as f:
-        return pickle.load(f)
+    else:
+        with open(path, "rb") as f:
+            df = pickle.load(f)
+    if word_tokens:
+        stopwords_de = _get_de_stopwords()
+        words_series = df["title"].str.lower().str.split()
+        df["all_tokens"]     = words_series.str.len()
+        df["content_tokens"] = words_series.apply(
+            lambda ws: sum(
+                1 for w in (ws or [])
+                if w.strip(".,;:!?\"'()[]{}–-/\\") not in stopwords_de
+                and re.search(r"[a-zA-ZäöüÄÖÜß]", w)
+            )
+        )
+    return df
 
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
-def main(data_path: Path, output_dir: Path, suffix: str) -> None:
+def main(data_path: Path, output_dir: Path, suffix: str, word_tokens: bool = False) -> None:
+    short_max  = WORD_SHORT_MAX  if word_tokens else SHORT_MAX
+    medium_max = WORD_MEDIUM_MAX if word_tokens else MEDIUM_MAX
+    unit_label = "words" if word_tokens else "tokens"
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading {data_path} ...")
-    df = load_data(data_path)
+    df = load_data(data_path, word_tokens=word_tokens)
     total = len(df)
     print(f"Shape: {df.shape}")
 
@@ -160,25 +193,25 @@ def main(data_path: Path, output_dir: Path, suffix: str) -> None:
     all_all  = df["all_tokens"].tolist()
     all_con  = df["content_tokens"].tolist()
 
-    short_n  = sum(1 for t in all_all if t <= SHORT_MAX)
-    medium_n = sum(1 for t in all_all if SHORT_MAX < t <= MEDIUM_MAX)
-    long_n   = sum(1 for t in all_all if t > MEDIUM_MAX)
+    short_n  = sum(1 for t in all_all if t <= short_max)
+    medium_n = sum(1 for t in all_all if short_max < t <= medium_max)
+    long_n   = sum(1 for t in all_all if t > medium_max)
 
     print(f"\nTotal titles        : {total:,}")
     print(f"Year from 'dates'   : {dates_source:,}  ({100*dates_source/total:.1f}%)")
     print(f"Year from title     : {title_source:,}  ({100*title_source/total:.1f}%)")
     print(f"No year             : {no_year:,}  ({100*no_year/total:.1f}%)")
     print(f"Year range          : {year_min}–{year_max}")
-    print(f"\nOverall (all_tokens):")
-    print(f"  Short  (≤{SHORT_MAX})   : {short_n:>7,}  ({100*short_n/total:.1f}%)")
-    print(f"  Medium ({SHORT_MAX+1}–{MEDIUM_MAX}) : {medium_n:>7,}  ({100*medium_n/total:.1f}%)")
-    print(f"  Long   (>{MEDIUM_MAX})  : {long_n:>7,}  ({100*long_n/total:.1f}%)")
-    print(f"  Median all_tokens     : {median(all_all)}")
-    print(f"  Median content_tokens : {median(all_con)}")
+    print(f"\nOverall ({unit_label}):")
+    print(f"  Short  (≤{short_max})   : {short_n:>7,}  ({100*short_n/total:.1f}%)")
+    print(f"  Medium ({short_max+1}–{medium_max}) : {medium_n:>7,}  ({100*medium_n/total:.1f}%)")
+    print(f"  Long   (>{medium_max})  : {long_n:>7,}  ({100*long_n/total:.1f}%)")
+    print(f"  Median all_{unit_label}     : {median(all_all)}")
+    print(f"  Median content_{unit_label} : {median(all_con)}")
 
     # ── bucketing ─────────────────────────────────────────────────────────────
     size = choose_bucket(year_min, year_max, year_map)
-    bins = bucket_data(year_map, size, year_min, year_max)
+    bins = bucket_data(year_map, size, year_min, year_max, short_max, medium_max)
 
     non_empty = [
         (lbl, d) for lbl, d in bins.items()
@@ -319,9 +352,9 @@ def main(data_path: Path, output_dir: Path, suffix: str) -> None:
                 bottom=d["short"] + d["medium"])
 
     legend_elements = [
-        Patch(facecolor=COLOR_SHORT,  label=f"Short (≤{SHORT_MAX} tokens)"),
-        Patch(facecolor=COLOR_MEDIUM, label=f"Medium ({SHORT_MAX+1}–{MEDIUM_MAX} tokens)"),
-        Patch(facecolor=COLOR_LONG,   label=f"Long (>{MEDIUM_MAX} tokens)"),
+        Patch(facecolor=COLOR_SHORT,  label=f"Short (≤{short_max} {unit_label})"),
+        Patch(facecolor=COLOR_MEDIUM, label=f"Medium ({short_max+1}–{medium_max} {unit_label})"),
+        Patch(facecolor=COLOR_LONG,   label=f"Long (>{medium_max} {unit_label})"),
     ]
     ax1.legend(handles=legend_elements, frameon=False, fontsize=9, loc="upper right",
                title="Shade = deviation from corpus avg\n(darker → above avg, lighter → below)",
@@ -357,13 +390,21 @@ def main(data_path: Path, output_dir: Path, suffix: str) -> None:
                  rotation=90, linespacing=1.3)
 
     # Bottom: median all_tokens vs median content_tokens
-    ax2.plot(x, med_all, color=COLOR_ALL, marker="o", linewidth=1.5, markersize=4,
-             label="median all_tokens (incl. stopwords + punct.)")
-    ax2.plot(x, med_con, color=COLOR_CON, marker="s", linewidth=1.5, markersize=4,
-             linestyle="--", label="median content_tokens (stopwords removed)")
-    ax2.fill_between(x, med_con, med_all, alpha=0.15, color="0.5",
-                     label="stopword + punct. overhead")
-    ax2.set_ylabel("Median\ntokens", fontsize=9)
+    if word_tokens:
+        ax2.plot(x, med_all, color=COLOR_ALL, marker="o", linewidth=1.5, markersize=4,
+                 label="median all words (whitespace split)")
+        ax2.plot(x, med_con, color=COLOR_CON, marker="s", linewidth=1.5, markersize=4,
+                 linestyle="--", label="median content words (stopwords removed)")
+        ax2.fill_between(x, med_con, med_all, alpha=0.15, color="0.5",
+                         label="stopword overhead")
+    else:
+        ax2.plot(x, med_all, color=COLOR_ALL, marker="o", linewidth=1.5, markersize=4,
+                 label="median all_tokens (incl. stopwords + punct.)")
+        ax2.plot(x, med_con, color=COLOR_CON, marker="s", linewidth=1.5, markersize=4,
+                 linestyle="--", label="median content_tokens (stopwords removed)")
+        ax2.fill_between(x, med_con, med_all, alpha=0.15, color="0.5",
+                         label="stopword + punct. overhead")
+    ax2.set_ylabel(f"Median\n{unit_label}", fontsize=9)
     ax2.set_xticks(x)
     ax2.set_xticklabels(xlabels, rotation=60, ha="right", fontsize=8)
     ax2.grid(axis="y", alpha=0.3)
@@ -381,9 +422,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Analyse title-length distribution in DF_DE_TITLES"
     )
-    parser.add_argument("--data",       type=Path, default=DATA_PATH)
-    parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
-    parser.add_argument("--suffix",     type=str,  default="",
+    parser.add_argument("--data",        type=Path, default=DATA_PATH)
+    parser.add_argument("--output-dir",  type=Path, default=OUTPUT_DIR)
+    parser.add_argument("--suffix",      type=str,  default="",
                         help="Suffix appended to output filenames, e.g. '_v2'")
+    parser.add_argument("--word-tokens", action="store_true",
+                        help="Use whitespace word count instead of BPE all_tokens")
     args = parser.parse_args()
-    main(args.data, args.output_dir, args.suffix)
+    main(args.data, args.output_dir, args.suffix, word_tokens=args.word_tokens)

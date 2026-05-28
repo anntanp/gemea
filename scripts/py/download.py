@@ -1,3 +1,5 @@
+# Author: Etienne Posthumus
+
 import sqlite3, os, time, gzip, multiprocessing, queue, sys
 import httpx
 import logging

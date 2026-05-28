@@ -242,25 +242,40 @@ LIDO_ISSUED = {
 # Parquet schema
 # ---------------------------------------------------------------------------
 
-AGENT_STRUCT = pa.struct([pa.field("label", pa.string()), pa.field("uri", pa.string())])
+AGENT_STRUCT = pa.struct([
+    pa.field("name",       pa.string()),
+    pa.field("type",       pa.string()),
+    pa.field("is_ext_uri", pa.bool_()),
+])
+
+DATE_STRUCT = pa.struct([
+    pa.field("value", pa.string()),
+    pa.field("begin", pa.string()),
+    pa.field("end",   pa.string()),
+    pa.field("type",  pa.string()),
+])
+
+CONCEPT_STRUCT = pa.struct([
+    pa.field("name",       pa.string()),
+    pa.field("is_ext_uri", pa.bool_()),
+])
 
 PARQUET_SCHEMA = pa.schema([
-    ("obj_id",           pa.string()),
-    ("lang",             pa.string()),
-    ("title",            pa.string()),
-    ("dc_type",          pa.string()),
-    ("dc_creator",       pa.list_(AGENT_STRUCT)),
-    ("dc_contributor",   pa.list_(AGENT_STRUCT)),
-    ("dc_publisher",     pa.list_(AGENT_STRUCT)),
-    ("dc_subject",       pa.list_(pa.string())),
-    ("dc_subject_uris",  pa.list_(pa.string())),
-    ("dc_date",          pa.string()),
-    ("dc_date_qualifier", pa.string()),
-    ("dc_issued",        pa.list_(pa.string())),
-    ("dc_created",       pa.list_(pa.string())),
-    ("agents",           pa.list_(pa.string())),
-    ("hierarchy_type",   pa.string()),
-    ("is_part_of",       pa.bool_()),
+    ("obj_id",         pa.string()),
+    ("title",          pa.string()),
+    ("lang_title",     pa.string()),
+    ("lang_obj",       pa.string()),
+    ("description",    pa.list_(pa.string())),
+    ("provider_id",    pa.string()),
+    ("dataset_id",     pa.string()),
+    ("dc_type",        pa.list_(CONCEPT_STRUCT)),
+    ("agents",         pa.list_(AGENT_STRUCT)),
+    ("dates",          pa.list_(DATE_STRUCT)),
+    ("dc_subject",     pa.list_(CONCEPT_STRUCT)),
+    ("hierarchy_type", pa.int16()),
+    ("mediatype",      pa.int16()),
+    ("sector",         pa.int16()),
+    ("is_part_of",     pa.bool_()),
 ])
 
 # ---------------------------------------------------------------------------
@@ -501,14 +516,95 @@ def _agent_structs(field_val, entity_type: str) -> list[dict]:
     return []
 
 
+_DDB_VOCNET = "http://ddb.vocnet.org/"
+_BARE_ID_RE = re.compile(r'^[A-Z0-9]{32}$')
+_QUALIFIER_RE = re.compile(r'\([^)]*\)')
+
+
+def _is_ext_uri(resource: str) -> bool:
+    return bool(resource) and resource.startswith("http") and not _BARE_ID_RE.match(resource)
+
+
+def _parse_dc_date(raw: str) -> str | None:
+    if not raw:
+        return None
+    clean = _QUALIFIER_RE.sub("", raw).strip().strip("[]").strip()
+    if not clean:
+        return None
+    m = re.match(r'^(\d{8})$', clean)
+    if m:
+        s = m.group(1)
+        return f"{s[:4]}-{s[4:6]}-{s[6:]}"
+    if clean and clean[0].isdigit():
+        return clean
+    m2 = re.search(r'\d{4}', clean)
+    return m2.group(0) if m2 else None
+
+
+def _build_concept_labels_map(rdf: dict) -> dict[str, str]:
+    result: dict[str, str] = {}
+    concepts = rdf.get("Concept") or []
+    if isinstance(concepts, dict):
+        concepts = [concepts]
+    for c in concepts:
+        if not isinstance(c, dict):
+            continue
+        about = (c.get("about") or "").strip()
+        if not about:
+            continue
+        pref = c.get("prefLabel")
+        if isinstance(pref, list):
+            pref = pref[0] if pref else None
+        if isinstance(pref, dict):
+            label = pref.get("$") or ""
+        elif isinstance(pref, str):
+            label = pref
+        else:
+            continue
+        if label:
+            result[about] = label
+    return result
+
+
+def _new_agent_list(field_val, agent_type: str) -> list[dict]:
+    """Convert creator/contributor/publisher field to {name, type, is_ext_uri} structs."""
+    out: list[dict] = []
+    items = field_val if isinstance(field_val, list) else ([field_val] if field_val else [])
+    for v in items:
+        if isinstance(v, dict):
+            name = v.get("$") or ""
+            res  = v.get("resource") or ""
+            ext  = _is_ext_uri(res)
+            if name or res:
+                out.append({"name": name, "type": agent_type, "is_ext_uri": ext})
+        elif isinstance(v, str) and v:
+            out.append({"name": v, "type": agent_type, "is_ext_uri": False})
+    return out
+
+
+def _timespan_to_date(ts: dict, date_type: str) -> dict | None:
+    def sv(f):
+        vals = _scalar_values(ts.get(f))
+        return vals[0] if vals else None
+    ts_begin = sv("begin")
+    ts_end   = sv("end")
+    if ts_begin is None and ts_end is None:
+        pref = sv("prefLabel")
+        return {"value": pref, "begin": None, "end": None, "type": date_type} if pref else None
+    if ts_begin and ts_end and ts_begin == ts_end:
+        return {"value": ts_begin, "begin": None, "end": None, "type": date_type}
+    return {"value": None, "begin": ts_begin, "end": ts_end, "type": date_type}
+
+
 def extract_meta(data: dict) -> dict:
     """Extract ProvidedCHO metadata for the Parquet row."""
-    props = data.get("properties", {})
-    rdf   = data.get("edm", {}).get("RDF") or {}
-    cho   = rdf.get("ProvidedCHO") or {}
-    agg   = rdf.get("Aggregation") or {}
+    props     = data.get("properties", {})
+    prov_info = data.get("provider-info") or {}
+    rdf       = data.get("edm", {}).get("RDF") or {}
+    cho       = rdf.get("ProvidedCHO") or {}
+    if isinstance(cho, list):
+        cho = cho[0] if cho else {}
 
-    # build Event and TimeSpan lookup for date extraction
     events    = rdf.get("Event") or []
     if isinstance(events, dict):
         events = [events]
@@ -517,57 +613,71 @@ def extract_meta(data: dict) -> dict:
         timespans = [timespans]
     ts_map = {t["about"]: t for t in timespans if isinstance(t, dict) and t.get("about")}
 
-    # dc:date (normalised)
-    dc_date_raw = _scalar_values(cho.get("date"))
-    dc_date, dc_date_qualifier = (None, None)
-    if dc_date_raw:
-        dc_date, dc_date_qualifier = parse_dc_date(dc_date_raw[0])
+    concept_labels = _build_concept_labels_map(rdf)
 
-    # dc_created via event chain
-    dc_created = []
-    for ev in events:
-        if not isinstance(ev, dict):
-            continue
-        ht = (ev.get("hasType") or {})
-        ht_uri = ht.get("resource") if isinstance(ht, dict) else None
-        if ht_uri not in LIDO_CREATED:
-            continue
-        oc = ev.get("occuredAt")
-        if not oc:
-            continue
-        ts_ref = oc.get("resource") if isinstance(oc, dict) else oc
-        ts = ts_map.get(ts_ref, {}) if isinstance(ts_ref, str) else {}
-        for key in ("begin", "end"):
-            vals = _scalar_values(ts.get(key))
-            dc_created.extend(vals)
+    # -- title + lang_title --
+    title_raw  = cho.get("title")
+    title_str  = ""
+    lang_title = ""
+    if isinstance(title_raw, list):
+        title_raw = title_raw[0] if title_raw else None
+    if isinstance(title_raw, dict):
+        title_str  = title_raw.get("$") or ""
+        lang_title = title_raw.get("lang") or ""
+    elif isinstance(title_raw, str):
+        title_str = title_raw
 
-    # dc_issued via event chain + ProvidedCHO.issued
-    dc_issued = _scalar_values(cho.get("issued"))
-    for ev in events:
-        if not isinstance(ev, dict):
-            continue
-        ht = (ev.get("hasType") or {})
-        ht_uri = ht.get("resource") if isinstance(ht, dict) else None
-        if ht_uri not in LIDO_ISSUED:
-            continue
-        oc = ev.get("occuredAt")
-        if not oc:
-            continue
-        ts_ref = oc.get("resource") if isinstance(oc, dict) else oc
-        ts = ts_map.get(ts_ref, {}) if isinstance(ts_ref, str) else {}
-        for key in ("begin", "end"):
-            vals = _scalar_values(ts.get(key))
-            dc_issued.extend(vals)
+    # -- lang_obj --
+    lang_obj_raw = cho.get("language") or cho.get("dcTermsLanguage")
+    lang_obj = (_scalar_values(lang_obj_raw) or [""])[0]
 
-    # agents via hasMet → Event.P11_had_participant
-    agents = []
+    # -- description --
+    description = _scalar_values(cho.get("description"))
+
+    # -- dc_type structs --
+    dc_type: list[dict] = []
+    dc_type_raw = cho.get("dcType") or []
+    if not isinstance(dc_type_raw, list):
+        dc_type_raw = [dc_type_raw]
+    for v in dc_type_raw:
+        if isinstance(v, dict):
+            lit = v.get("$") or ""
+            res = v.get("resource") or ""
+            if lit:
+                dc_type.append({"name": lit, "is_ext_uri": False})
+            elif res and not res.startswith(_DDB_VOCNET) and _is_ext_uri(res):
+                label = concept_labels.get(res)
+                if label:
+                    dc_type.append({"name": label, "is_ext_uri": True})
+        elif isinstance(v, str) and v:
+            dc_type.append({"name": v, "is_ext_uri": False})
+
+    # -- dc_subject structs --
+    dc_subj: list[dict] = []
+    for key in ("dcSubject", "dcTermsSubject", "dcTermSubject"):
+        items = cho.get(key) or []
+        if not isinstance(items, list):
+            items = [items]
+        for v in items:
+            if isinstance(v, dict):
+                lit = v.get("$") or ""
+                res = v.get("resource") or ""
+                if lit:
+                    dc_subj.append({"name": lit, "is_ext_uri": False})
+                elif res and _is_ext_uri(res) and not res.startswith(_DDB_VOCNET):
+                    label = concept_labels.get(res)
+                    if label:
+                        dc_subj.append({"name": label, "is_ext_uri": True})
+            elif isinstance(v, str) and v and not _BARE_ID_RE.match(v):
+                dc_subj.append({"name": v, "is_ext_uri": False})
+
+    # -- agents unified --
+    # LIDO participants
+    lido_agents: list[dict] = []
     hasMet = cho.get("hasMet") or []
     if isinstance(hasMet, dict):
         hasMet = [hasMet]
-    event_map = {
-        e["about"]: e for e in events
-        if isinstance(e, dict) and e.get("about")
-    }
+    event_map = {e["about"]: e for e in events if isinstance(e, dict) and e.get("about")}
     about_type_map = build_about_type_map(rdf)
     for hm in hasMet:
         if not isinstance(hm, dict):
@@ -582,40 +692,96 @@ def extract_meta(data: dict) -> dict:
         for p in participants:
             if not isinstance(p, dict):
                 continue
-            r = p.get("resource")
+            r = p.get("resource") or ""
+            lit = p.get("$") or ""
             if r:
                 et = about_type_map.get(r, "Agent")
                 node = to_named_node(r, et)
-                if node:
-                    agents.append(node.value)
+                name = lit or (node.value if node else "")
+                ext  = _is_ext_uri(r)
+                lido_agents.append({"name": name, "type": "unknown_event", "is_ext_uri": ext})
 
-    # dc_publisher: ProvidedCHO.publisher + Aggregation.dataProvider
-    # dataProvider entries may be separate label/URI dicts in the same list, not paired
-    dp = agg.get("dataProvider") or []
-    if isinstance(dp, dict):
-        dp = [dp]
-    publisher_structs = (
-        _agent_structs(cho.get("publisher"), "Agent")
-        + _agent_structs(dp, "Organization")
+    agents = (
+        _new_agent_list(cho.get("creator"),     "creation")
+        + _new_agent_list(cho.get("publisher"), "publication")
+        + _new_agent_list(cho.get("contributor"), "contribution")
+        + lido_agents
     )
 
+    # -- dates unified --
+    dates: list[dict] = []
+    dc_date_raw2 = _scalar_values(cho.get("date"))
+    if dc_date_raw2:
+        normed = _parse_dc_date(dc_date_raw2[0])
+        if normed:
+            dates.append({"value": normed, "begin": None, "end": None, "type": "unknown_event"})
+    for val in _scalar_values(cho.get("created")):
+        dates.append({"value": val, "begin": None, "end": None, "type": "creation"})
+    for val in _scalar_values(cho.get("issued")):
+        dates.append({"value": val, "begin": None, "end": None, "type": "publication"})
+    for ev in events:
+        if not isinstance(ev, dict):
+            continue
+        ht = (ev.get("hasType") or {})
+        ht_uri = ht.get("resource") if isinstance(ht, dict) else None
+        for lido_set, dtype in ((LIDO_CREATED, "creation"), (LIDO_ISSUED, "publication")):
+            if ht_uri not in lido_set:
+                continue
+            oc = ev.get("occuredAt") or ev.get("occurredAt")
+            if not oc:
+                continue
+            ts_ref = oc.get("resource") if isinstance(oc, dict) else oc
+            ts = ts_map.get(ts_ref, {}) if isinstance(ts_ref, str) else {}
+            d = _timespan_to_date(ts, dtype)
+            if d:
+                dates.append(d)
+
+    # -- mediatype / sector (int16) --
+    mediatype: int | None = None
+    sector:    int | None = None
+    concepts_list = rdf.get("Concept") or []
+    if isinstance(concepts_list, dict):
+        concepts_list = [concepts_list]
+    for c in concepts_list:
+        if not isinstance(c, dict):
+            continue
+        about = c.get("about") or ""
+        if mediatype is None and "/medientyp/mt" in about:
+            try:
+                mediatype = int(about.rsplit("/mt", 1)[-1])
+            except ValueError:
+                pass
+        if sector is None and "/sparte/sparte" in about:
+            try:
+                sector = int(about.rsplit("/sparte", 1)[-1])
+            except ValueError:
+                pass
+
+    # -- hierarchy_type (int16) --
+    raw_ht = (_scalar_values(cho.get("hierarchyType")) or [None])[0]
+    htype: int | None = None
+    if raw_ht:
+        try:
+            htype = int(raw_ht.replace("htype_", ""))
+        except ValueError:
+            pass
+
     return {
-        "obj_id":        props.get("item-id", ""),
-        "lang":          cho.get("language") or "",
-        "title":         (_scalar_values(cho.get("title")) or [""])[0],
-        "dc_type":       (_scalar_values(cho.get("dcType")) or [""])[0],
-        "dc_creator":    _agent_structs(cho.get("creator"), "Agent"),
-        "dc_contributor": _agent_structs(cho.get("contributor"), "Agent"),
-        "dc_publisher":  publisher_structs,
-        "dc_subject":       _scalar_values(cho.get("dcSubject")),
-        "dc_subject_uris":  _resource_values(cho.get("dcTermsSubject"), "Concept"),
-        "dc_date":          dc_date,
-        "dc_date_qualifier": dc_date_qualifier,
-        "dc_issued":        dc_issued,
-        "dc_created":       dc_created,
-        "agents":           agents,
-        "hierarchy_type":   (_scalar_values(cho.get("hierarchyType")) or [None])[0],
-        "is_part_of":       bool(cho.get("isPartOf")),
+        "obj_id":         props.get("item-id", ""),
+        "title":          title_str,
+        "lang_title":     lang_title,
+        "lang_obj":       lang_obj,
+        "description":    description,
+        "provider_id":    prov_info.get("provider-ddb-id", ""),
+        "dataset_id":     props.get("dataset-id", ""),
+        "dc_type":        dc_type,
+        "agents":         agents,
+        "dates":          dates,
+        "dc_subject":     dc_subj,
+        "hierarchy_type": htype,
+        "mediatype":      mediatype,
+        "sector":         sector,
+        "is_part_of":     bool(cho.get("isPartOf")),
     }
 
 
