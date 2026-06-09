@@ -1,0 +1,81 @@
+{
+  "run": {
+    "shards": 20,
+    "elapsed_s": 11257.7,
+    "stats_level": "dispatch",
+    "interrupted": false
+  },
+  "records": {
+    "processed": 3638021,
+    "skipped_not_in_ids": 0,
+    "by_mediatype": {
+      "mt002": 2479304,
+      "mt003": 1145030,
+      "mt001": 12641,
+      "mt005": 578,
+      "mt007": 468
+    },
+    "by_htype": {
+      "ht034": 3028126,
+      "ht035": 165812,
+      "ht014": 152722,
+      "ht026": 46147,
+      "ht018": 11497,
+      "ht021": 1428,
+      "ht001": 676,
+      "ht016": 298,
+      "ht013": 212,
+      "ht007": 184,
+      "ht031": 40,
+      "ht028": 2,
+      "ht032": 1
+    },
+    "uri_sanitized": 886,
+    "uri_split": 7607834,
+    "uri_about_split": 2987601,
+    "errors": {
+      "json_parse": 0,
+      "transform": 0
+    }
+  },
+  "triples": {
+    "total": 501431917,
+    "by_graph": {
+      "ddbedm": 271272035,
+      "mocho": 76478457,
+      "prov": 153681414
+    }
+  },
+  "werk_staging": {
+    "rows": 0,
+    "by_class": {}
+  },
+  "dispatch": {
+    "htype_hits": 3406677,
+    "mediatype_hits": 230876,
+    "fallback_d9": 0,
+    "skipped_mt007": 468,
+    "work_classes": {
+      "rdac:C10001": 1640,
+      "ec:EditorialWork": 578
+    },
+    "expression_classes": {},
+    "manifestation_classes": {
+      "mocho:ImageManifestation": 216721,
+      "rdac:C10007": 152722,
+      "doco:TextChunk": 46147,
+      "aco:AudioManifestation": 12237,
+      "doco:Chapter": 11497,
+      "mocho:Manifestation": 1340,
+      "doco:Section": 676,
+      "doco:Index": 298,
+      "doco:Part": 184,
+      "doco:Preface": 2
+    },
+    "rico_classes": {
+      "rico:Record": 3027658,
+      "rico:RecordPart": 165812,
+      "rico:RecordSet": 41
+    }
+  }
+}

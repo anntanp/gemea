@@ -28,6 +28,21 @@
 | After language filter (`s2_meta_de_content.parquet`) | 9,213,339 | −31.5% of remaining |
 | Tokenized (`de_titles_tokenized.parquet`) | 9,213,339 | 779.3 MB |
 
+### 1.2a German-variant language tags (full raw parquet, 18.57M records)
+
+Source: [`data/processed/german_variant_lang_counts.csv`](https://github.com/anntanp/gemea/blob/main/data/processed/german_variant_lang_counts.csv) · produced by [`scripts/py/german_lang_variants.py`](https://github.com/anntanp/gemea/blob/main/scripts/py/german_lang_variants.py)
+
+| Code | Variant | Count | % of dataset |
+|---|---|---:|---:|
+| `ger` | German (modern standard) | 12,082,238 | 65.06% |
+| `nds` | Low German / Low Saxon | 9,870 | 0.05% |
+| `gmh` | Middle High German | 3,661 | 0.02% |
+| `goh` | Old High German | 397 | <0.01% |
+| `gsw` | Alemannic / Swiss German | 38 | <0.01% |
+| **TOTAL** | **All German variants** | **12,096,204** | **65.14%** |
+
+Excluded: `gem` (289 records, collective code for all Germanic languages) and `got` (6 records, Gothic — ancestral but not a German variant).
+
 ### 1.3 Language breakdown (new parquet only)
 
 | Language | N | % |

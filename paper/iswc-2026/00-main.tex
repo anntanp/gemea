@@ -20,7 +20,7 @@
 %\urlstyle{rm}
 %
 
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{caption}
 %\newcommand{\edits}[1]{\textcolor{red}{#1}}
 %\newcommand\boldblue[1]{\textcolor{blue}{\textbf{#1}}}
@@ -30,14 +30,17 @@
 \newcommand\notes[1]{\textcolor{green}{#1}}
 \setcounter{secnumdepth}{3}
 %% ceurart loads most packages. Add only what is genuinely needed.
+\usepackage{float}           % [H] exact figure placement
 \usepackage{booktabs}        % \toprule, \midrule, \bottomrule
+\usepackage{multirow}        % \multirow for multi-row table cells
 \usepackage{listings}        % code listings (SPARQL, Turtle)
 \usepackage{microtype}       % better justification
 \usepackage{amssymb}         % for checkmarks
+\usepackage[hyphens]{url}    % allow line breaks at existing hyphens in URLs
 
 \begin{document}
 %
-\title{{\texttt{GeMeA}: Knowledge Graph Testbed for 27M+ German Cultural Heritage Objects}}
+\title{{\texttt{GeMeA}: An Open Knowledge Graph over 26M+ German Cultural Heritage Objects}}
 %
 \titlerunning{GEMEA}
 % If the paper title is too long for the running head, you can set
@@ -77,16 +80,24 @@ Karlsruhe Institute of Technology, Institute AIFB, Germany \and
 \input{80-conclusion}
 
 \subsubsection*{Resource Availability Statement.}
-\todo{Persistent URI, SPARQL endpoint URL, SHMARQL browser URL, source code repository, CC BY 4.0 licence statement.}
+\begin{sloppypar}
+The GEMEA dataset is available for download at
+\url{https://gemea.ise.fiz-karlsruhe.de/downloads}. % TODO on acceptance: set up w3id redirect or Zenodo DOI and replace this URL
+The SPARQL endpoint and Linked Data browser are served at
+\url{https://gemea.ise.fiz-karlsruhe.de/shmarql/}.
+Source code, pipeline scripts, and MCP setup are released at \url{https://github.com/anntanp/gemea/} under the MIT licence.
+Individual object rights are as declared by the contributing institution
+(typically CC~1.0) and are queryable via \texttt{dcterms:rights} in the graph.
+\end{sloppypar}
 
 \begin{credits}
-\subsubsection{\ackname} The authors thank Christian Nennemann for developing the QLever MCP server. \todo{Funding acknowledgments to be added.}
+\subsubsection{\ackname} The authors thank Christian Nennemann for developing the QLever MCP server.
 
 \subsubsection{\discintname}
 The authors have no competing interests to declare that are relevant to the content of this article.
 
 \subsubsection*{Declaration on Generative AI.}
-\todo{AI use statement to be added.}
+The authors used AI tools (Claude, Claude Code) for drafting and scripting under substantial human review and editorial oversight.
 
 \subsubsection*{CRediT.}
 \textbf{Mary Ann Tan}: Conceptualization, Data curation, Formal analysis, Investigation, Methodology, Resources, Software, Validation, Visualization, Writing -- original draft, Writing -- review \& editing.

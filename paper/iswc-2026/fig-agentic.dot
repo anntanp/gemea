@@ -1,0 +1,59 @@
+digraph GeMeA {
+    rankdir=LR;
+    graph [fontname="Helvetica", fontsize=9, compound=true, nodesep=0.4, ranksep=0.5];
+    node  [fontname="Helvetica", fontsize=8, shape=box, style="filled,rounded", fillcolor=white, margin="0.1,0.05"];
+    edge  [fontname="Helvetica", fontsize=7];
+
+    subgraph cluster_SH {
+        label="Self-Hosted";
+        style=dashed;
+        color="#888888";
+        bgcolor="#f0f4ff";
+
+        USH  [label="User", shape=ellipse, fillcolor="#cce0ff"];
+        OW   [label="OpenWebUI"];
+        OL   [label="Ollama"];
+        MCPO [label="MCPO"];
+        TSH  [label="sparql_query\l(Python tool)\l", shape=box];
+
+        USH  -> OW   [label="chat"];
+        OW   -> OL   [label="inference"];
+        OL   -> OW   [label="open-source LLM"];
+        OW   -> MCPO [label="tool call"];
+        MCPO -> TSH  [label="MCP"];
+        TSH  -> MCPO [label="results", style=dashed];
+    }
+
+    subgraph cluster_CC {
+        label="Commercial";
+        style=dashed;
+        color="#888888";
+        bgcolor="#fff8ee";
+
+        UCC [label="User", shape=ellipse, fillcolor="#cce0ff"];
+        CL  [label="Claude"];
+        TCC [label="sparql_query\l(Python tool)\l", shape=box];
+
+        UCC -> CL  [label="chat"];
+        CL  -> TCC [label="MCP"];
+        TCC -> CL  [label="results", style=dashed];
+    }
+
+    subgraph cluster_VPS {
+        label="VPS (gemea.ise.fiz-karlsruhe.de)";
+        style=filled;
+        fillcolor="#eef7ee";
+        color="#555555";
+
+        QL      [label="QLever\nSPARQL endpoint", fillcolor="#c8e6c9"];
+        SHMARQL [label="SHMARQL\nLinked Data browser", fillcolor="#c8e6c9"];
+
+        SHMARQL -> QL [label="SPARQL proxy"];
+    }
+
+    TSH -> QL      [label="SPARQL GET"];
+    QL  -> TSH     [label="JSON results", style=dashed];
+    TCC -> QL      [label="SPARQL GET"];
+    QL  -> TCC     [label="JSON results", style=dashed];
+    USH -> SHMARQL [label="browse"];
+}

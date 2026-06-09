@@ -41,26 +41,30 @@ Scripts use `argparse` for CLI arguments. Place all scripts here; document them 
 
 ### `ner/` — NER study-round scripts (SR-01 – SR-11)
 
-| Script | Purpose |
-|--------|---------|
-| `ner/sr01_check_isbd_titles.py` | SR-01: analyse ISBD punctuation patterns in DF_DE_TITLES; reports per-pattern counts and sample titles |
-| `ner/sr01_rate_isbd_fields.py` | SR-01: rate all 4.47M DF_DE_TITLES records for ISBD field presence; assigns silver_tier; optionally writes per-pattern examples with DDB links |
-| `ner/sr03_validate_heuristic_fields.py` | SR-03: sample 200 heuristic-tier records from sr01_isbd_field_ratings.csv for manual false-positive review; writes a review sheet CSV |
-| `ner/sr03_fp_review.py` | SR-03: apply automated regex rules + per-row manual overrides to classify each heuristic flag as TP or FP |
-| `ner/sr03_validate_fp_review.py` | SR-03: validate FP review output — checks row count, field name validity, and referential integrity |
-| `ner/sr03_extract_fp_examples.py` | SR-03: extract DDB links and field flags from sr03_heuristic_validation_sample.csv |
-| `ner/sr04_validate_translator_disambiguation.py` | SR-04: sample 100 heuristic `f_person` records and classify SoR text as TRANSLATOR / EDITOR / PERSON |
-| `ner/sr04_evaluate_translator_heuristic.py` | SR-04: evaluate keyword heuristic against manual `true_class` annotations; prints precision/recall/F1, confusion matrix, FN detail |
-| `ner/sr05_validate_trailing_period.py` | SR-05: sample 200 titles ending with `.`; applies heuristic classifier (ISBD_CLOSE / ABBREV / ORDINAL / NATURAL / NOISE) |
-| `ner/sr05_trailing_period_review.py` | SR-05: annotate `sr05_trailing_period_sample.csv` with refined `true_class` and `notes`; prints FP rate summary |
-| `ner/sr08_sample_gold.py` | SR-08: draw ~500-record stratified NER gold sample by era × silver_tier × dc_type |
-| `ner/sr08_prefill_spans.py` | SR-08: pre-fill TITLE / OTHER_TITLE / PERSON spans for tier-1 and tier-2 records using ISBD rules |
-| `ner/sr08_verify_spans.py` | SR-08: verify character offset integrity of pre-filled spans; prints spot-check records |
-| `ner/sr08_gold_dctype_breakdown.py` | SR-08: dc_type × era breakdown of the gold sample; writes `data/processed/sr08_gold_dctype_breakdown.csv` |
-| `ner/sr09_eval_nuner_tier2.py` | SR-09: NuNER tier-2 sanity check — compare to ISBD silver spans, report P/R/F1 per label |
-| `ner/sr11_dctype_by_era.py` | SR-11: count and rank dc_type values per era stratum; writes `data/processed/sr11_dctype_by_era.csv` |
-| `ner/sr11_sample_validation.py` | SR-11 T11.1a: sample 50 pre-1750 tier-0 records for manual prompt validation |
-| `ner/sr11_annotate.py` | SR-11 T11.1b: interactive span annotation helper; resolves character offsets, writes back in place |
+| Script | Purpose | Note |
+|--------|---------|------|
+| `ner/sr01_check_isbd_titles.py` | SR-01: analyse ISBD punctuation patterns in DF_DE_TITLES; reports per-pattern counts and sample titles | - |
+| `ner/sr01_rate_isbd_fields.py` | SR-01: rate all 4.47M DF_DE_TITLES records for ISBD field presence; assigns silver_tier; optionally writes per-pattern examples with DDB links | - |
+| `ner/sr03_validate_heuristic_fields.py` | SR-03: sample 200 heuristic-tier records from sr01_isbd_field_ratings.csv for manual false-positive review; writes a review sheet CSV | - |
+| `ner/sr03_fp_review.py` | SR-03: apply automated regex rules + per-row manual overrides to classify each heuristic flag as TP or FP | - |
+| `ner/sr03_validate_fp_review.py` | SR-03: validate FP review output — checks row count, field name validity, and referential integrity | - |
+| `ner/sr03_extract_fp_examples.py` | SR-03: extract DDB links and field flags from sr03_heuristic_validation_sample.csv | - |
+| `ner/sr04_validate_translator_disambiguation.py` | SR-04: sample 100 heuristic `f_person` records and classify SoR text as TRANSLATOR / EDITOR / PERSON | - |
+| `ner/sr04_evaluate_translator_heuristic.py` | SR-04: evaluate keyword heuristic against manual `true_class` annotations; prints precision/recall/F1, confusion matrix, FN detail | - |
+| `ner/sr05_validate_trailing_period.py` | SR-05: sample 200 titles ending with `.`; applies heuristic classifier (ISBD_CLOSE / ABBREV / ORDINAL / NATURAL / NOISE) | - |
+| `ner/sr05_trailing_period_review.py` | SR-05: annotate `sr05_trailing_period_sample.csv` with refined `true_class` and `notes`; prints FP rate summary | - |
+| `ner/sr08_sample_gold.py` | SR-08: draw ~500-record stratified NER gold sample by era × silver_tier × dc_type | - |
+| `ner/sr08_prefill_spans.py` | SR-08: pre-fill TITLE / OTHER_TITLE / PERSON spans for tier-1 and tier-2 records using ISBD rules | - |
+| `ner/sr08_verify_spans.py` | SR-08: verify character offset integrity of pre-filled spans; prints spot-check records | - |
+| `ner/sr08_gold_dctype_breakdown.py` | SR-08: dc_type × era breakdown of the gold sample; writes `data/processed/sr08_gold_dctype_breakdown.csv` | - |
+| `ner/sr08_make_meta_sample.py` | SR-08: generate 11-record Doccano import sample with `meta` (htype + URL) for UI verification | `notes/ner/sr08_doccano-meta.md` |
+| `ner/sr08_add_meta_to_export.py` | SR-08: inject `meta` (htype + URL) into any annotator JSONL export (enrich mode); POST assignments to Doccano API after import (--assign mode); or PATCH meta onto an existing project without re-importing (--patch-meta mode — run once with any annotator's JSONL, meta is per-document not per-annotator) | `notes/ner/sr08_doccano-meta.md` |
+| `ner/sr08_verify_meta_export.py` | SR-08: verify that enriched JSONL preserved all annotations and comments exactly; exits 1 on any discrepancy | `notes/ner/sr08_doccano-meta.md` |
+| `ner/sr08_count_comments.py` | SR-08: count and list all annotator comments in a Doccano export directory; writes per-comment CSV to `data/processed/ner/` | `notes/ner/sr08_doccano-meta.md` |
+| `ner/sr09_eval_nuner_tier2.py` | SR-09: NuNER tier-2 sanity check — compare to ISBD silver spans, report P/R/F1 per label | - |
+| `ner/sr11_dctype_by_era.py` | SR-11: count and rank dc_type values per era stratum; writes `data/processed/sr11_dctype_by_era.csv` | - |
+| `ner/sr11_sample_validation.py` | SR-11 T11.1a: sample 50 pre-1750 tier-0 records for manual prompt validation | - |
+| `ner/sr11_annotate.py` | SR-11 T11.1b: interactive span annotation helper; resolves character offsets, writes back in place | - |
 
 ### `analysis/` — DDB corpus analysis scripts
 

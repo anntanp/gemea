@@ -1,0 +1,55 @@
+{
+  "run": {
+    "shards": 15,
+    "elapsed_s": 4589.5,
+    "stats_level": "dispatch",
+    "interrupted": false
+  },
+  "records": {
+    "processed": 1799838,
+    "skipped_not_in_ids": 0,
+    "by_mediatype": {
+      "mt002": 1778580,
+      "mt001": 14134,
+      "mt005": 5462,
+      "mt003": 1657,
+      "any": 5
+    },
+    "by_htype": {},
+    "uri_sanitized": 0,
+    "uri_split": 5326,
+    "uri_about_split": 1757,
+    "errors": {
+      "json_parse": 0,
+      "transform": 0
+    }
+  },
+  "triples": {
+    "total": 263104795,
+    "by_graph": {
+      "ddbedm": 142865860,
+      "mocho": 64023886,
+      "prov": 56215049
+    }
+  },
+  "werk_staging": {
+    "rows": 0,
+    "by_class": {}
+  },
+  "dispatch": {
+    "htype_hits": 0,
+    "mediatype_hits": 1799838,
+    "fallback_d9": 0,
+    "skipped_mt007": 0,
+    "work_classes": {
+      "mocho:ImageWork": 1778580,
+      "ec:EditorialWork": 5462
+    },
+    "expression_classes": {},
+    "manifestation_classes": {
+      "aco:AudioManifestation": 14134,
+      "mocho:Manifestation": 1662
+    },
+    "rico_classes": {}
+  }
+}

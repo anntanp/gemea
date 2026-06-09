@@ -4,37 +4,26 @@
 \label{sec:introduction}
 
 The German Digital Library (Deutsche Digitale Bibliothek, DDB)\footnote{DDB, \url{https://www.deutsche-digitale-bibliothek.de}} aggregates over 65M objects\footnote{of which 27M are digitized} from German memory institutions --- archives, libraries, museums, media libraries, and monument preservation offices, referred to hereafter as \emph{sectors} --- all described using the Europeana Data Model (EDM)\footnote{EDM, \url{https://pro.europeana.eu/page/edm-documentation}}.
-The corpus has no public SPARQL endpoint, no Linked Data browser, and no machine-readable interface for KG-based research; access is through the DDB's own search UI, which supports neither graph traversal nor structured querying.
+The corpus has no public SPARQL endpoint, no Linked Data browser, and no machine-readable interface for KG-based research.
 
 Converting DDB-EDM records to a queryable knowledge graph (KG) is complicated by sector-specific metadata conventions that diverge across institutional traditions.
 Each sector applies locally-specific field interpretations and carries cataloging practices into every record; no cross-sector authority governs how EDM properties are instantiated.
-The \texttt{dc:type} field illustrates the scope of this variation: it holds controlled-vocabulary terms in library records, free-text strings in museum records, and structural hierarchy identifiers in archives.
 This variation is invisible to schema-level or structure-based alignment tools; corpus-based analysis is therefore a precondition for reliable automated alignment.
 
 %GEMEA (German Memory Atlas) is a publicly accessible KG over 27 million digitized objects from these institutions, and the first open, SPARQL-queryable structured access layer over the DDB corpus.
 Three contributions are described in this paper:
 
 \begin{enumerate}
-    \item \textbf{Resource.} GEMEA (German Memory Atlas), a publicly queryable KG of 27M German cultural heritage objects, served via a QLever SPARQL endpoint~\cite{bast2017qlever} and browsable through a SHMARQL~\cite{shmarql} Linked Data interface\footnote{\url{https://github.com/epoz/shmarql}} --- the first open, SPARQL-accessible KG over the DDB corpus.
+    \item \textbf{Resource.} GEMEA /\textipa{g@"meI.j@}/
+(\textbf{Ge}rman \textbf{Me}mory \textbf{A}tlas), a publicly queryable KG of 27M German cultural heritage objects, served via a QLever SPARQL endpoint~\cite{bast2017qlever} and browsable through a SHMARQL~\cite{shmarql} Linked Data interface\footnote{\url{https://github.com/epoz/shmarql}} --- the first open, SPARQL-accessible KG over the DDB corpus.
 
-    \item \textbf{Ontology alignment Layer.} A \textbf{MOCHO}\footnote{Middle Ontology for Cultural Heritage Objects-}-based\cite{tan2026navigating} alignment layer mapping DDB-EDM metadata to RDA/FRBR-compatible representations, demonstrated on a representative subset, with alignment gaps documented as findings rather than omitted.
+    \item \textbf{Ontology alignment Layer.} A \textbf{MOCHO} \footnote{Middle Ontology for Cultural Heritage Objects-}-based\cite{tan2026navigating} /\textipa{"mo.tSo}/ alignment layer mapping DDB-EDM metadata to RDA/FRBR-compatible representations, demonstrated on a representative subset, with alignment gaps documented as findings rather than omitted.
 
     \item \textbf{Agentic access layer.} An MCP/MCPO interface on the QLever endpoint, enabling LLM-based agents to issue SPARQL queries, retrieve entity descriptions, and integrate GEMEA into multi-step reasoning workflows.
 \end{enumerate}
 
-As a KG derived from in-use institutional data, GEMEA is intended as a research testbed for studies that require a large, heterogeneous, real-world corpus: KG-grounded retrieval, ontological evaluation, KG embeddings, explainability, and agentic KG access.
-The MOCHO-aligned subgraph further supports iterative ontology development, with GEMEA serving as a continuous evaluation surface for MOCHO refinement.
+As a KG derived from in-use institutional data, GEMEA is intended as a research testbed; Section~\ref{sec:usage} details supported use cases and downstream research scenarios.
 Data is licensed CC~BY~4.0; the SPARQL endpoint, Linked Data browser, and source code are available at \url{https://gemea.ise.fiz-karlsruhe.de}.
 
 \paragraph{Paper structure.}
-Section~\ref{sec:related} reviews related cultural heritage KGs and Linked Data initiatives.
-%
-This is followed by a full description of the GEMEA resource in Section~\ref{sec:resource}: the EDM KG, the MOCHO alignment layer, the SHMARQL~\cite{shmarql} browsing interface, and the MCP access layer.
-%
-Subsequently, Section~\ref{sec:quality} reports on data quality and documents known alignment gaps.
-%
-To illustrate the resource in practice, Section~\ref{sec:usage} presents SPARQL examples and downstream research scenarios.
-%
-Broader impact, FAIR compliance, and long-term sustainability are then addressed in Sections~\ref{sec:impact} and~\ref{sec:sustainability}.
-%
-Finally, Section~\ref{sec:conclusion} concludes.
+Sections~\ref{sec:related}--\ref{sec:sustainability} cover related work, resource description, quality, usage, impact, and sustainability in turn.

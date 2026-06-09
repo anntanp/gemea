@@ -12,9 +12,7 @@ ArCo~\cite{carriero2019arco} is an Italian CH KG modeled with CIDOC-CRM and inte
 PHAROS\footnote{\url{https://artresearch.net/sparql}} is an international consortium of photo archives exposing millions of art-historical photographs via a public SPARQL endpoint and discovery interface; coverage is limited to visual art photography.
 
 \textbf{ArtKB~\cite{blanco2026artkb} (ESWC 2026).}
-ArtKB is a multimodal knowledge base for art objects built using the CACAO ontology (a CIDOC-CRM extension), combining a GraphDB RDF store with a Qdrant vector database, MinIO object storage, and an API gateway.
-It supports Text2SPARQL, neural image retrieval, AI metadata suggestion, and Text2RDF.
-ArtKB covers 307K curated art objects from Wikidata, exposes an API gateway without a public SPARQL endpoint, and does not document self-hosting or include a Linked Data browser.
+ArtKB is a multimodal knowledge base for art objects using the CACAO ontology (a CIDOC-CRM extension), supporting Text2SPARQL and neural image retrieval over 307K curated objects from Wikidata; it exposes no public SPARQL endpoint, includes no Linked Data browser, and does not document self-hosting.
 
 \textbf{Ontology alignment.}
 MOCHO~\cite{tan2026navigating} maps \texttt{edm:ProvidedCHO}\footnote{All CH objects in EDM are instances of this class.} to FRBR~\cite{ifla1998frbr} levels via GND Werk links, aligning DDB-EDM to domain- and modality-specific ontologies. GEMEA applies MOCHO to the full DDB corpus.
@@ -22,30 +20,28 @@ MOCHO~\cite{tan2026navigating} maps \texttt{edm:ProvidedCHO}\footnote{All CH obj
 \textbf{SPARQL endpoints and KG browsers.}
 Public SPARQL endpoints such as the Wikidata Query Service are domain-general; generic LOD browsers support triple dereferencing but not faceted search or collection navigation.
 SHMARQL~\cite{shmarql} provides a Linked Data browser and SPARQL proxy deployable via Docker over any existing endpoint.
-The DDB's own interface supports keyword search but provides no SPARQL access, graph navigation, or open data export.
 
-Only GEMEA combines national-scale cross-domain coverage with a public SPARQL endpoint, an interactive Linked Data browser, and self-hostable deployment (Table~\ref{tab:related}).
-The MCP/MCPO agentic access layer has no published precedent in cultural heritage KG work.
+To the best of our knowledge, GEMEA is the first to combine national-scale cross-domain coverage with a public SPARQL endpoint, an interactive Linked Data browser, and self-hostable deployment (Table~\ref{tab:related}).
+%Only GEMEA combines national-scale cross-domain coverage with a public SPARQL endpoint, an interactive Linked Data browser, and self-hostable deployment (Table~\ref{tab:related}).
+The MCP/MCPO agentic access layer is not documented in prior cultural heritage KG work.
 
 \begin{table}[t]
 \caption{Comparison of GEMEA with related cultural heritage knowledge graphs and interfaces. \emph{Scale} = approximate object count; \emph{SPARQL} = public SPARQL endpoint; \emph{Browser} = interactive Linked Data or graph browser; \emph{Self-host} = self-hostable deployment documented.}
 \label{tab:related}
 \centering
-\begin{tabular}{|l|r|p{2.5cm}|c|l|c|}
+\begin{tabular}{|l|r|p{2.5cm}|c|c|c|}
 \hline
 \textbf{System} & \textbf{Scale} & \textbf{Ontology} & \textbf{SPARQL} & \textbf{Browser} & \textbf{Self-host} \\
 \hline
-GEMEA (this work)   & 26M  & DDB-EDM + \textbf{MOCHO}\newline(RDA/FRBR) & $\checkmark$ & SHMARQL  & $\checkmark$ \\
+GEMEA (this work)   & 27M  & DDB-EDM + \textbf{MOCHO}\newline(RDA/FRBR) & $\checkmark$ & SHMARQL  & $\checkmark$ \\
 \hline
 ArtKB~\cite{blanco2026artkb} & 307K & CACAO\newline(CIDOC-CRM) & --     & --       & -- \\
 \hline
-PHAROS & $>$1M & -- & $\checkmark$ & artresearch.net & -- \\
+PHAROS & $>$1M & \multicolumn{1}{c|}{--} & $\checkmark$ & artresearch.net & -- \\
 \hline
 Europeana LOD~\cite{haslhofer2013europeanalod} & $\sim$50M & EDM & --  & --       & -- \\
 \hline
-ArCo~\cite{carriero2019arco}  & 820K & CIDOC-CRM & $\checkmark$ & --   & partial \\
-\hline
-DDB native UI       & 65M  & DDB-EDM\newline+ Proprietary & --     & search only & -- \\
+ArCo~\cite{carriero2019arco} & 820K & CIDOC-CRM & $\checkmark$ & --       & -- \\
 \hline
 \end{tabular}
 \end{table}

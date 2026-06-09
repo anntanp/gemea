@@ -1,0 +1,62 @@
+{
+  "file_pattern": "<sector>_meta.parquet",
+  "path_pattern": "gemea/data/out/<sector>/<sector>_meta.parquet",
+  "produced_by": "goethe-faust/scripts/transform/prescan.py (Pass 1 of two-pass GeMeA transform)",
+  "known_instances": [
+    {
+      "file": "s2_meta.parquet",
+      "path": "gemea/data/out/s2/s2_meta.parquet",
+      "sector": "sparte002 (Library)",
+      "row_count": 18570245
+    },
+    {
+      "file": "s2_meta_de_content.parquet",
+      "path": "gemea/data/out/s2/s2_meta_de_content.parquet",
+      "sector": "sparte002 (Library)",
+      "row_count": 9213339,
+      "notes": "Filtered subset of s2_meta.parquet; German-content records only"
+    }
+  ],
+  "schema": {
+    "columns": {
+      "obj_id":         "string",
+      "title":          "string",
+      "lang_title":     "string",
+      "lang_obj":       "string",
+      "description":    "list<string>",
+      "provider_id":    "string",
+      "dataset_id":     "string",
+      "dc_type":        "list<CONCEPT_STRUCT>",
+      "agents":         "list<AGENT_STRUCT>",
+      "dates":          "list<DATE_STRUCT>",
+      "dc_subject":     "list<CONCEPT_STRUCT>",
+      "hierarchy_type": "int16",
+      "mediatype":      "int16",
+      "sector":         "int16",
+      "is_part_of":     "bool"
+    },
+    "nested_types": {
+      "AGENT_STRUCT": {
+        "name":       "string",
+        "type":       "string",
+        "is_ext_uri": "bool"
+      },
+      "DATE_STRUCT": {
+        "value": "string",
+        "begin": "string",
+        "end":   "string",
+        "type":  "string"
+      },
+      "CONCEPT_STRUCT": {
+        "name":       "string",
+        "is_ext_uri": "bool"
+      }
+    }
+  },
+  "enum_columns": {
+    "hierarchy_type": "int16 flag; semantics TBD",
+    "mediatype":      "mt001=Audio, mt002=Photo, mt003=Text, mt005=Video, mt007=Not Digitized (stored as 1–7)",
+    "sector":         "sparte001=Archive, sparte002=Library, sparte003=Monument, sparte004=Research, sparte005=Media, sparte006=Museum, sparte007=Other (stored as 1–7)"
+  },
+  "notes": "One file per DDB sector; rows are per ProvidedCHO object. is_ext_uri=true means name is a resolvable URI (GND, Wikidata, etc.) rather than a literal label. Parallel to the SQLite objs table — same obj_id keys."
+}

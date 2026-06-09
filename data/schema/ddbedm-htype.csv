@@ -1,0 +1,61 @@
+htype_code,label_de,label_en,vocnet_uri
+htype_001,Abschnitt,Section,http://ddb.vocnet.org/hierarchietyp/ht001
+htype_002,Anhang,Appendix,http://ddb.vocnet.org/hierarchietyp/ht002
+htype_003,Beigefügtes oder enthaltenes Werk,Contained Work,http://ddb.vocnet.org/hierarchietyp/ht003
+htype_004,Annotation,Annotation,http://ddb.vocnet.org/hierarchietyp/ht004
+htype_005,Anrede,Address,http://ddb.vocnet.org/hierarchietyp/ht005
+htype_006,Aufsatz,Article,http://ddb.vocnet.org/hierarchietyp/ht006
+htype_007,Band,Volume,http://ddb.vocnet.org/hierarchietyp/ht007
+htype_008,Beilage,Additional,http://ddb.vocnet.org/hierarchietyp/ht008
+htype_009,Einleitung,Intro,http://ddb.vocnet.org/hierarchietyp/ht009
+htype_010,Eintrag,Entry,http://ddb.vocnet.org/hierarchietyp/ht010
+htype_011,Faszikel,Fascile,http://ddb.vocnet.org/hierarchietyp/ht011
+htype_012,Fragment,Fragment,http://ddb.vocnet.org/hierarchietyp/ht012
+htype_013,Handschrift,Manuscript,http://ddb.vocnet.org/hierarchietyp/ht013
+htype_014,Heft,Issue,http://ddb.vocnet.org/hierarchietyp/ht014
+htype_015,Illustration,Illustration,http://ddb.vocnet.org/hierarchietyp/ht015
+htype_016,Index,Index,http://ddb.vocnet.org/hierarchietyp/ht016
+htype_017,Inhaltsverzeichnis,Table of Contents,http://ddb.vocnet.org/hierarchietyp/ht017
+htype_018,Kapitel,Chapter,http://ddb.vocnet.org/hierarchietyp/ht018
+htype_019,Karte,Map,http://ddb.vocnet.org/hierarchietyp/ht019
+htype_020,Mehrbändiges Werk,Multivolume Work,http://ddb.vocnet.org/hierarchietyp/ht020
+htype_021,Monografie,Monograph,http://ddb.vocnet.org/hierarchietyp/ht021
+htype_022,Musik,Music,http://ddb.vocnet.org/hierarchietyp/ht022
+htype_023,Fortlaufendes Sammelwerk,Serial,http://ddb.vocnet.org/hierarchietyp/ht023
+htype_024,Privilegie,Charter,http://ddb.vocnet.org/hierarchietyp/ht024
+htype_025,Rezension,Review,http://ddb.vocnet.org/hierarchietyp/ht025
+htype_026,Text,Text,http://ddb.vocnet.org/hierarchietyp/ht026
+htype_027,Vers,Verse,http://ddb.vocnet.org/hierarchietyp/ht027
+htype_028,Vorwort,Preface,http://ddb.vocnet.org/hierarchietyp/ht028
+htype_029,Widmung,Dedication,http://ddb.vocnet.org/hierarchietyp/ht029
+htype_030,"Bestand
+Findbuch Collection*","Holding
+Tektonik File*",http://ddb.vocnet.org/hierarchietyp/ht030
+htype_031,"Gliederung
+Findbuch Class",Classification,http://ddb.vocnet.org/hierarchietyp/ht031
+htype_032,"Serie
+Findbuch Serie",Series,http://ddb.vocnet.org/hierarchietyp/ht032
+htype_033,Unterserie,Subseries,http://ddb.vocnet.org/hierarchietyp/ht033
+htype_034,"Archivale
+Findbuch File",File,http://ddb.vocnet.org/hierarchietyp/ht034
+htype_035,"Teil
+Findbuch Item",Part,http://ddb.vocnet.org/hierarchietyp/ht035
+htype_036,Bestandsserie,"Holding Series
+Tektonik Series",http://ddb.vocnet.org/hierarchietyp/ht036
+htype_037,Bestandsklassifikation,Holding Classification,http://ddb.vocnet.org/hierarchietyp/ht037
+htype_038,Brief,Letter,http://ddb.vocnet.org/hierarchietyp/ht038
+htype_039,Konvolut,Bundle,http://ddb.vocnet.org/hierarchietyp/ht039
+htype_040,Mappe,Folder,http://ddb.vocnet.org/hierarchietyp/ht040
+htype_041,Archiv,Archive,http://ddb.vocnet.org/hierarchietyp/ht041
+htype_044,Zeitung,Newspaper,http://ddb.vocnet.org/hierarchietyp/ht044
+htype_045,Jahrgang,Year,http://ddb.vocnet.org/hierarchietyp/ht045
+htype_046,Monat,Month,http://ddb.vocnet.org/hierarchietyp/ht046
+htype_047,Tag,Day,http://ddb.vocnet.org/hierarchietyp/ht047
+htype_048,Tektonik,Tektonik,http://ddb.vocnet.org/hierarchietyp/ht048
+htype_049,Druckermarke,Printers Mark,http://ddb.vocnet.org/hierarchietyp/ht049
+htype_050,Einband,Binding,http://ddb.vocnet.org/hierarchietyp/ht050
+htype_051,Exlibris,Ex Libris,http://ddb.vocnet.org/hierarchietyp/ht051
+htype_052,Noten,Musical Notes,http://ddb.vocnet.org/hierarchietyp/ht052
+htype_053,Stempel,Stamp,http://ddb.vocnet.org/hierarchietyp/ht053
+htype_054,Titelblatt,Title Page,http://ddb.vocnet.org/hierarchietyp/ht054
+htype_056,Zeitungsausgabe,Newspaper Issue,http://ddb.vocnet.org/hierarchietyp/ht056

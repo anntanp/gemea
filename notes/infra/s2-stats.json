@@ -1,0 +1,90 @@
+{
+  "run": {
+    "shards": 50,
+    "elapsed_s": 55041.6,
+    "stats_level": "dispatch",
+    "interrupted": false
+  },
+  "records": {
+    "processed": 18570245,
+    "skipped_not_in_ids": 0,
+    "by_mediatype": {
+      "mt003": 17951709,
+      "mt002": 583563,
+      "mt005": 34231,
+      "mt001": 674,
+      "any": 60,
+      "mt007": 7,
+      "mt010": 1
+    },
+    "by_htype": {
+      "ht014": 5620537,
+      "ht006": 3098229,
+      "ht018": 2664050,
+      "ht021": 2416560,
+      "ht001": 2246940,
+      "ht007": 704941,
+      "ht015": 241546,
+      "ht013": 139618,
+      "ht008": 134291,
+      "ht017": 64380,
+      "ht028": 61256,
+      "ht016": 59158,
+      "ht026": 53318,
+      "ht038": 45131,
+      "ht003": 44593,
+      "ht020": 31120,
+      "ht023": 30936,
+      "ht019": 26644,
+      "ht029": 13237,
+      "ht011": 3992,
+      "ht027": 2484,
+      "ht004": 1772,
+      "ht010": 1327,
+      "ht012": 686,
+      "ht040": 64,
+      "ht022": 24,
+      "ht007 ht020": 6,
+      "ht024": 2,
+      "ht020 ht021": 1,
+      "ht007 ht021": 1
+    },
+    "uri_sanitized": 9,
+    "uri_split": 189992,
+    "uri_about_split": 111990,
+    "errors": {
+      "json_parse": 0,
+      "transform": 0
+    }
+  },
+  "triples": {
+    "total": 1981590317,
+    "by_graph": {
+      "ddbedm": 1043156260,
+      "mocho": 398850679,
+      "prov": 539583378
+    }
+  },
+  "werk_staging": {
+    "rows": 0,
+    "by_class": {}
+  },
+  "dispatch": {
+    "htype_hits": 304387,
+    "mediatype_hits": 18265851,
+    "fallback_d9": 0,
+    "skipped_mt007": 7,
+    "work_classes": {
+      "rdac:C10001": 36197,
+      "ec:EditorialWork": 23
+    },
+    "expression_classes": {},
+    "manifestation_classes": {
+      "mocho:Manifestation": 17951770,
+      "mocho:ImageManifestation": 313390,
+      "doco:Figure": 268190,
+      "aco:AudioManifestation": 668
+    },
+    "rico_classes": {}
+  }
+}

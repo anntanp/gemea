@@ -1,0 +1,81 @@
+{
+  "run": {
+    "shards": 10,
+    "elapsed_s": 2379.8,
+    "stats_level": "dispatch",
+    "interrupted": false
+  },
+  "records": {
+    "processed": 1227252,
+    "skipped_not_in_ids": 0,
+    "by_mediatype": {
+      "mt002": 787336,
+      "mt003": 439036,
+      "mt001": 764,
+      "mt005": 116
+    },
+    "by_htype": {
+      "ht001": 352274,
+      "ht015": 73343,
+      "ht018": 47671,
+      "ht007": 13416,
+      "ht014": 7713,
+      "ht021": 6610,
+      "ht017": 3194,
+      "ht034": 1469,
+      "ht003": 1334,
+      "ht019": 759,
+      "ht023": 512,
+      "ht020": 293,
+      "ht029": 260,
+      "ht008": 176,
+      "ht035": 168,
+      "ht016": 148,
+      "ht010": 112,
+      "ht028": 12,
+      "ht006": 1
+    },
+    "uri_sanitized": 2,
+    "uri_split": 291203,
+    "uri_about_split": 145589,
+    "errors": {
+      "json_parse": 0,
+      "transform": 0
+    }
+  },
+  "triples": {
+    "total": 146191553,
+    "by_graph": {
+      "ddbedm": 78275686,
+      "mocho": 28281400,
+      "prov": 39634464
+    }
+  },
+  "werk_staging": {
+    "rows": 0,
+    "by_class": {}
+  },
+  "dispatch": {
+    "htype_hits": 433726,
+    "mediatype_hits": 793526,
+    "fallback_d9": 0,
+    "skipped_mt007": 0,
+    "work_classes": {
+      "rdac:C10001": 8750
+    },
+    "expression_classes": {},
+    "manifestation_classes": {
+      "mocho:ImageManifestation": 787336,
+      "doco:Section": 352274,
+      "doco:Chapter": 47671,
+      "rdac:C10007": 13571,
+      "doco:Part": 13416,
+      "doco:TableOfContents": 3194,
+      "aco:AudioManifestation": 764,
+      "ec:MediaResource": 116,
+      "doco:Index": 148,
+      "doco:Preface": 12
+    },
+    "rico_classes": {}
+  }
+}

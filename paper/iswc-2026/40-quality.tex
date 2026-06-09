@@ -1,42 +1,81 @@
 \section{Quality and Validation}
 \label{sec:quality}
 
-% TODO (~1–2 pages)
-% - Completeness: coverage of DDB corpus (% of total objects loaded)
-% - URI well-formedness: results from rdf2jsonld URI validator (repair rate, drop rate)
-% - mocho mapping quality: direct vs. approximate matches; coverage per ontology
-% - mocho was built with ODK and reasoned with HermiT~\cite{motik2009hypertableau}
-% - SHACL constraints / SPARQL ASK validation queries
-% - Consistency checks: duplicate detection, dangling references
-% - Known limitations: unresolved entities, sparse geographic data, temporal gaps
-% - Metrics table
-\textbf{MOCHO} was built with the Ontology Development Kit (ODK).
+MOCHO was built with the Ontology Development Kit (ODK).
 The ontology requires OWL~2~DL expressivity: it makes use of universal restrictions
 (\texttt{owl:allValuesFrom}), cardinality constraints, complement and disjointness axioms,
-and property chains, which collectively place it outside the OWL~2~EL profile and preclude
-the use of consequence-based reasoners such as ELK~\cite{kazakov2014elk}.
+and property chains, which collectively place it outside the OWL~2~EL profile.
 
-In \textbf{MOCHO}~1.0, classification was performed with
-HermiT~\cite{motik2009hypertableau}, whose hypertableau algorithm provides complete
-OWL~2~DL reasoning but proved slow for our ontology.
-Subsequent versions use \textbf{Openllet}~\cite{sirin2007pellet}\footnote{\url{https://github.com/Galigator/openllet}}, the actively maintained
-open-source fork of Pellet, for the following reasons:
-%
+OWL~2~DL consistency is verified by HermiT~\cite{motik2009hypertableau} as part of the
+ODK build; materialized inferences are exported as RDF triples and loaded into QLever
+alongside the DDB corpus, so no runtime reasoning is performed by the triplestore.
+The ontology and its documentation are published through the ODK and
+Widoco~\cite{garijo2017widoco} pipeline, producing both the machine-readable artifact and
+human-readable HTML documentation from a single build step.
+The EDM-to-MOCHO property mappings are validated by a suite of unit tests that assert
+correct predicate assignment per \texttt{(target\_class,~ddb-edm\_prop)} pair against
+gold-standard triples derived from the Goethe-Faust corpus.
+
+\subsection{Completeness}
+\label{sec:quality:completeness}
+
+GEMEA is a snapshot exported between late March and early April~2026, covering
+97.7\,\% of the digitized DDB corpus at time of writing (Table~\ref{tab:scale}).
+The remaining gap reflects objects added to the DDB after the snapshot window
+and a small number of transient API search failures during the export run.
+
+\subsection{Scope of Validation}
+\label{sec:quality:scope}
+
+Comprehensive metadata quality evaluation of a cultural heritage
+knowledge graph at this scale presents a structural bootstrapping problem: rigorous evaluation requires
+the dataset to be published and accessible, yet conducting and reporting such an evaluation
+prior to publication is itself impractical at this scale.
+GEMEA is released to enable this evaluation; the SPARQL endpoint, Linked Data browser,
+and downloadable dump provide the infrastructure for systematic quality studies at corpus
+scale.
+
+\subsection{Known Limitations}
+\label{sec:quality:limitations}
+
 \begin{itemize}
-  \item \textbf{ROBOT integration.} Openllet is supported natively by
-        \texttt{robot reason -{}-reasoner Openllet}, fitting directly into the ODK
-        build pipeline without additional server infrastructure.
-  \item \textbf{Explanation support.} Openllet can produce justifications for
-        entailments and inconsistencies, which is essential for debugging alignment
-        axioms across the RDA, EDM, and CIDOC-CRM vocabularies imported by \textbf{MOCHO}.
-  \item \textbf{Active maintenance.} Konclude~\cite{steigmiller2014konclude} offers
-        faster parallel tableau classification but has not been updated since 2020;
-        Openllet receives ongoing releases. At \textbf{MOCHO}'s current scale
-        (334 classes, 456 object properties) the parallelism advantage of Konclude
-        does not outweigh the tooling and maintenance cost.
-\end{itemize}
-%
-Materialised inferences are exported as RDF triples and loaded into QLever alongside
-the DDB corpus; no runtime reasoning is performed by the triplestore.
+  \item \textbf{Snapshot currency.} The dataset reflects the DDB as of late March to
+        early April~2026. Records added, updated, or deleted after the export window
+        are not reflected; no incremental update mechanism is currently implemented.
 
-\todo{Quality and Validation.}
+  \item \textbf{Partial GND linking.} Werk linking covers literary and musical works but achieves low recall due to
+        inconsistent encoding of \texttt{dc:title} values across contributing institutions:
+        corpus analysis of the Goethe-Faust reference corpus shows 71\,\% of titles
+        carry no ISBD punctuation~\cite{ifla2012isbd}, with the dominant signal being
+        the subtitle separator `\,:\,' (18\,\%) rather than the statement-of-responsibility
+        separator `\,/\,' (2.1\,\%) used for work-title extraction; corpus-wide figures
+        for 9.2M German-language DDB titles show 92.4\,\% without any ISBD marker.
+        Future work will apply ISBD punctuation heuristics and a planned NER model
+        fine-tuned on a DDB subset to improve coverage; authority linking for images
+        of artworks and architecture via Wikidata,
+        Bildindex\footnote{\url{https://www.bildindex.de}}, and artresearch.net's
+        PHAROS infrastructure
+        is also planned.
+
+  \item \textbf{Alignment coverage at scale.} The EDM-to-MOCHO mapping was developed
+        and validated against the Goethe-Faust corpus (115,432 library records).
+        Sector-specific edge cases, particularly in the Library sector at 18M records,
+        may produce fallback or underspecified type assignments.
+
+  \item \textbf{Rights metadata.} Each object retains the \texttt{dcterms:rights}
+        value as declared by the contributing institution; rights statements are not
+        normalized, verified, or mapped to a controlled vocabulary.
+
+  \item \textbf{Entity resolution for bare DDB identifiers.} Agents, places, concepts,
+        and time spans that lack a GND or other authority URI are assigned
+        DDB-internal bare identifiers, which are record-scoped and not shared across
+        contributing institutions. The same real-world entity may therefore appear as
+        multiple distinct nodes in the graph. Authority-based entity resolution for
+        bare-identifier entities is left as future work.
+
+  \item \textbf{Geographic and temporal sparsity.} Corpus analysis of the Goethe-Faust
+        reference corpus shows that only 45\,\% of objects carry any
+        date value (\texttt{dc:date}, \texttt{dcterms:date}, or \texttt{dcterms:created})
+        and only 7.1\,\% carry a place value (\texttt{dc:coverage} or
+        \texttt{dcterms:spatial}).
+\end{itemize}

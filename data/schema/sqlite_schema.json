@@ -1,0 +1,41 @@
+{
+  "file": "s2.sqlite",
+  "path": "gemea/data/sqlite/s2.sqlite",
+  "tables": {
+    "objs": {
+      "columns": {
+        "uid": "TEXT PRIMARY KEY",
+        "download_timestamp": "TEXT",
+        "bufgz": "BLOB"
+      },
+      "row_count": 18570245,
+      "notes": "bufgz is gzip-compressed JSON; decompresses to the same top-level structure as goethe-faust JSONL records"
+    },
+    "srcs": {
+      "columns": {
+        "uid": "TEXT PRIMARY KEY",
+        "download_timestamp": "TEXT",
+        "bufgz": "BLOB"
+      },
+      "row_count": 18570245,
+      "notes": "Parallel table to objs; same uid keys"
+    }
+  },
+  "record_top_level_keys": [
+    "properties",
+    "provider-info",
+    "edm",
+    "indexing-profile",
+    "preview",
+    "view",
+    "source",
+    "aggregator-info",
+    "binaries",
+    "wgs84-position",
+    "ddbObject"
+  ],
+  "sample_uid": "22222G7MCFV667CKZLOK6DHL3SUWYQ4G",
+  "companion_files": {
+    "ids_sec_02_digitalisat.txt": "ID allowlist for sector-2 digitised objects"
+  }
+}

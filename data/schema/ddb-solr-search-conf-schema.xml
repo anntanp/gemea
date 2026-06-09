@@ -1,0 +1,483 @@
+<schema name="ddb" version="1.2">
+    <types>
+        <!-- Create a fieldtype suggest_type which is used for autocompletion/suggestion
+        Applied index:
+            PatternTokenizerFactory
+            LowerCaseFilterFactory
+            TrimFilterFactory
+            StopFilterFactory
+            
+            ShingleFilterFactory
+            LengthTrimFilterFactory
+        Applied query:
+            PatternTokenizerFactory
+            LowerCaseFilterFactory
+            TrimFilterFactory
+            StopFilterFactory
+            
+            TokenConcatenatingTokenFilterFactory
+        Used by:
+            *_suggest
+        -->
+        <fieldType name="suggest_type" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>       
+                <tokenizer class="solr.PatternTokenizerFactory" pattern="[!&quot;#$%&amp;()*+,/:;&lt;=&gt;?@[\\]^_`{|}~\s]" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.ShingleFilterFactory" maxShingleSize="4" outputUnigrams="true" />
+            </analyzer>            
+        </fieldType>
+        
+        <!-- create a fieldtype autocomplete_type which is used for autocompletion/suggestion
+        Applied index:
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            LowerCaseFilterFactory
+            TrimFilterFactory
+            
+            EdgeNGramFilterFactory
+            LengthTrimFilterFactory length="32766"
+        Applied query: 
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            LowerCaseFilterFactory
+            TrimFilterFactory
+                        
+            LengthTrimFilterFactory length="15"
+        Used by:
+            "*_autocomplete"
+        -->        
+        <fieldType name="autocomplete_type" class="solr.TextField" positionIncrementGap="100">   
+            <analyzer type="index">              
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping_sortfield.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.TrimFilterFactory" />            
+                <!-- Different for query and index -->              
+                 <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="15" />            
+                 <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766" />   
+            </analyzer>
+            <analyzer type="query">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping_sortfield.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.TrimFilterFactory" />
+                <!-- Different for query and index -->  
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="15" />
+            </analyzer>
+          </fieldType>  
+
+        
+        
+         <!-- create a fieldtype spellcheck_type, which is used for performing spellcheckings
+        Applied index:
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            WordDelimiterFilterFactory generateWordParts="1" generateNumberParts="1"
+            LowerCaseFilterFactory
+            TrimFilterFactory                   
+            LengthTrimFilterFactory     
+        Applied query: 
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            WordDelimiterFilterFactory generateWordParts="0" generateNumberParts="0"
+            LowerCaseFilterFactory
+            TrimFilterFactory
+            LengthTrimFilterFactory
+        Used by:
+            spell_check
+            searchComponent name="spellcheck"
+        -->        
+        <fieldType name="spellcheck_type" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent_spellcheck.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" /> 
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1" splitOnNumerics="0" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.TrimFilterFactory" />                
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766" />
+            </analyzer>
+            <analyzer type="query">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent_spellcheck.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1" splitOnNumerics="0" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.TrimFilterFactory" />
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766" />              
+            </analyzer>
+        </fieldType>   
+    
+
+        <!-- Create a fieldtype string
+        Applied:
+            KeywordTokenizerFactory
+            LengthTrimFilterFactory
+        Used by: 
+            id
+            provider_id, ingest_id, mapping_version, last_update, category, license, license_group, context, md_format, source_format, supplier_id, dataset_id, dataset_label, aggregator_id
+            affiliate_fct, type_fct, provider_fct, language_fct, place_fct, keywords_fct, topic_fct, objecttype_fct, sector_fct, state_fct
+            apd_material_fct, apd_level_of_description_fct, apd_document_type_fct, apd_reference_number_fct, apd_provenance_fct
+            apd_xml_sort
+            *_normdata
+            *_role
+            *_preprocessed
+            unknown_*
+            signature
+            *_sort
+            time_begin_fct, time_end_fct, affiliate_fct_subject, affiliate_fct_involved
+        -->     
+        <fieldType name="string" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <tokenizer class="solr.KeywordTokenizerFactory" />
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766" />
+            </analyzer>
+        </fieldType>
+        
+        <fieldType name="keyword" class="solr.StrField" />
+
+        <!-- Create a fieldtype long
+        No filters applied
+        Used by:
+            _version_
+            nb_visits           
+            avg_time_on_page    
+        -->
+        <fieldType name="long" class="solr.TrieLongField" docValues="true" precisionStep="0" positionIncrementGap="0" />
+        
+        <!-- Create a fieldtype text
+        Applied index: 
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            WordDelimiterFilterFactory - generateWordParts = 1; generateNumberParts = 1
+            LowerCaseFilterFactory
+            SynonymFilterFactory
+            TrimFilterFactory
+            LengthTrimFilterFactory
+        Applied query:
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            WordDelimiterFilterFactory - generateWordParts = 0; generateNumberParts = 0
+            LowerCaseFilterFactory
+            SynonymFilterFactory
+            TrimFilterFactory
+            LengthTrimFilterFactory
+        Used by:
+            description, title, preview, view
+            digitalisat, ranking
+            apd_material, apd_level_of_description, apd_document_type, apd_context, apd_reference_number, apd_abstracts, apd_provenance, apd_keywords
+            affiliate, type, provider, language, place, keywords, topic, objecttype, time, sector, state
+            content
+            fulltext, fulltext_search            
+        -->
+        <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />                
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1"
+                    catenateAll="0" splitOnCaseChange="1" splitOnNumerics="0" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.SynonymFilterFactory" synonyms="lemma_replaced_umlaute_lower_case.txt"/>
+                <filter class="solr.TrimFilterFactory" />
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766"/>
+            </analyzer>
+            <analyzer type="query">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />                
+                <filter class="solr.WordDelimiterFilterFactory" generateWordParts="0" generateNumberParts="0" catenateWords="1" catenateNumbers="1"
+                    catenateAll="0" splitOnCaseChange="1" splitOnNumerics="0" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.SynonymFilterFactory" synonyms="lemma_replaced_umlaute_lower_case.txt"/>
+                <filter class="solr.TrimFilterFactory" />
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766"/>
+            </analyzer>
+        </fieldType>
+
+        <!-- field type used only for fields that need to be highlighted. Fields that need to be highlighted must be tokenized and stored @see http://wiki.apache.org/solr/FieldOptionsByUseCase 
+        Applied:
+            HTMLStripCharFilterFactory
+            MappingCharFilterFactory
+            WhitespaceTokenizerFactory
+            WordDelimiterFilterFactory            
+            LowerCaseTokenizerFactory
+            SynonymFilterFactory
+            TrimFilterFactory
+            LengthTrimFilterFactory
+        Used by:
+            preview_store
+        -->
+        <fieldType name="highlighting_type" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <charFilter class="solr.HTMLStripCharFilterFactory" />                
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter class="solr.WordDelimiterGraphFilterFactory" generateWordParts="1" generateNumberParts="0" catenateWords="1" catenateNumbers="1"
+                    catenateAll="0" splitOnCaseChange="1" splitOnNumerics="0" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.SynonymFilterFactory" synonyms="lemma_replaced_umlaute_lower_case.txt"/>
+                <filter class="solr.TrimFilterFactory" />
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766"/>
+            </analyzer>
+        </fieldType>
+        
+        <!-- Sort field
+        No filters applied
+        Used by:
+            random_*
+        -->
+        <fieldType name="random" class="solr.RandomSortField" />
+        
+        <!-- Sort field
+        Applied index:
+            MappingCharFilterFactory
+            KeywordTokenizerFactory
+            LowerCaseFilterFactory
+            TrimFilterFactory
+            
+            LengthTrimFilterFactory
+        Applied query:
+            MappingCharFilterFactory
+            KeywordTokenizerFactory
+            LowerCaseFilterFactory
+            TrimFilterFactory
+        Used by:
+            sort_field
+        -->
+        <fieldType name="sort_type" class="solr.TextField" positionIncrementGap="100">
+            <analyzer type="index">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping_sortfield.txt" />
+                <tokenizer class="solr.KeywordTokenizerFactory" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.TrimFilterFactory" />
+                <!-- Different for query and index -->  
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766" />
+            </analyzer>
+            <analyzer type="ingest">
+                <charFilter class="solr.MappingCharFilterFactory" mapping="mapping_sortfield.txt" />
+                <tokenizer class="solr.KeywordTokenizerFactory" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.TrimFilterFactory" />
+            </analyzer>
+        </fieldType>
+
+        
+        <!-- Wildcard field
+        Applied:
+            WhitespaceTokenizerFactory
+            LowerCaseFilterFactory
+            LengthTrimFilterFactory
+        Currently unused
+        -->
+        <fieldType name="wildcard_field" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="de.fhg.iais.cortex.search.analyzer.LengthTrimFilterFactory" length="32766" />
+            </analyzer>
+        </fieldType>        
+
+        <!--
+        No filters applied
+        Used by:
+            geocode_0_coordinate, geocode_1_coordinate
+        -->
+        <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" omitNorms="true" positionIncrementGap="0" />
+        
+        <!--
+        No filters applied
+        Used by:
+            geocode
+        -->
+        <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate" />
+        
+        <!--
+        No filters applied
+        Used by:
+            begin_time, end_time
+        -->
+       <fieldType name="timeInDays" class="solr.TrieLongField" precisionStep="0" omitNorms="true" positionIncrementGap="0" />
+    </types>
+
+    <fields>    
+        <!-- MANDATORY FIELDS -->   
+        <field name="id" type="keyword" indexed="true" stored="true" required="true" multiValued="false" docValues="true"/>
+        <field name="_version_" type="long" indexed="false" stored="false" multiValued="false" docValues="true" />
+
+        <!-- DEFAULT FIELDS - provide search on basic information -->
+        <field name="label" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="description" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="title" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="preview" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="preview_store" type="highlighting_type" indexed="true" stored="true" multiValued="false" />
+        <field name="view" type="text" indexed="true" stored="true" multiValued="true" />     
+        <field name="geocode" type="location" indexed="true" stored="true" multiValued="false" />
+        <field name="geocode_0_coordinate" type="double" indexed="true" stored="true" />
+        <field name="geocode_1_coordinate" type="double" indexed="true" stored="true" />
+
+        <!-- UTILITY FIELDS -->
+        <field name="sort_field" type="sort_type" indexed="true" stored="false" multiValued="false" sortMissingLast="true" />
+        <field name="spell_check" type="spellcheck_type" indexed="true" stored="false" multiValued="true" />
+        <dynamicField name="suggest_field*" type="suggest_type" indexed="true" stored="false" multiValued="true" />
+
+        <!-- TECHNICAL FACET FIELDS - Will not be displayed in the frontend -->
+        <field name="provider_id" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="revision_id" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="ingest_id" type="string" indexed="true" stored="true" multiValued="false" />
+        
+        <field name="mapping_version" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="last_update" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="category" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="license" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="license_group" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="digitalisat" type="text" indexed="true" stored="true" />
+        <field name="ranking" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="context" type="keyword" indexed="true" stored="true" multiValued="true" docValues="true"/>
+        <field name="md_format" type="string" indexed="true" stored="true" />
+        <field name="source_format" type="string" indexed="true" stored="true" />
+        <field name="supplier_id" type="string" indexed="true" stored="true" />
+        <field name="dataset_id" type="string" indexed="true" stored="true" />
+        <field name="dataset_label" type="string" indexed="true" stored="true" />
+        <field name="delivery_id" type="string" indexed="true" stored="true" />
+        <field name="aggregator_id" type="string" indexed="true" stored="true" />
+        <field name="provider_item_id" type="string" indexed="true" stored="true" />
+ 
+        <!-- FACET FIELDS - Will be displayed in the frontend -->
+
+        <!-- Deutsche Digitale Bibliothek -->
+        <field name="affiliate_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="type_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="mimetype_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="provider_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="language_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="place_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="keywords_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="topic_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="objecttype_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="sector_fct" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="begin_time" type="timeInDays" indexed="true" stored="true" multiValued="true" />
+        <field name="end_time" type="timeInDays" indexed="true" stored="true" multiValued="true" />
+
+        <!-- Archiv Portal D search fields -->  
+        <field name="apd_material" type="text" indexed="true" stored="true" />
+        <field name="apd_level_of_description" type="text" indexed="true" stored="true" />
+        <field name="apd_document_type" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="apd_context" type="text" indexed="true" stored="true" />
+        <field name="apd_reference_number" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="apd_abstracts" type="text" indexed="true" stored="true" />
+        <field name="apd_provenance" type="text" indexed="true" stored="true" multiValued="true" />
+
+        <!-- stored was set to "false" during merge of the configuration from old to now architecture. The reason for setting it to 
+        false in the new architecture is unknown to me @DLaqua -->      
+        
+        <!-- Archiv Portal D facets -->
+        <field name="apd_material_fct" type="string" indexed="true" stored="false" />
+        <field name="apd_level_of_description_fct" type="string" indexed="true" stored="false" />
+        <field name="apd_document_type_fct" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="apd_reference_number_fct" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="apd_provenance_fct" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="apd_keywords_fct" type="string" indexed="true" stored="false" multiValued="true" />
+
+        <!-- Archiv Portal D sort field -->
+        <field name="apd_xml_sort" type="string" indexed="true" stored="true" multiValued="false" />
+        
+        <!-- Themenportal search fields -->
+        <!-- Themenportal-Id -->
+        <field name="tp_category_id" type="keyword" indexed="true" stored="true" multiValued="true" />
+        <!-- Themenportal-Keyword, specific per Themenportal-Subcategory (the * contains the level below Themenportal-id) -->
+        <dynamicField name="tp_keyword_id_*" type="keyword" indexed="true" stored="true" multiValued="true" />
+
+        <!-- EXTENDED SEARCH FIELDS -->
+        <field name="affiliate" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="type" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="provider" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="language" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="place" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="keywords" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="topic" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="objecttype" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="sector" type="text" indexed="true" stored="false" multiValued="false" />
+
+        <!-- DYNAMIC FIELDS - Will be filled up on the fly for some fields -->
+        <!-- This facet is used for filter queries on facets - filtering only those values out that are matching the users input. The results are filtered by cortex and outputed.  -->
+        <dynamicField name="*_autocomplete" type="autocomplete_type" indexed="true" stored="false" multiValued="true" />
+        <!-- Randomization of search results -->
+        <dynamicField name="random_*" type="random" indexed="true" stored="false" />
+        <!-- Normdata URIs -->
+        <dynamicField name="*_normdata" type="string" indexed="true" stored="false" multiValued="true" />
+        <!-- Role code -->
+        <dynamicField name="*_role" type="string" indexed="true" stored="false" multiValued="true" />
+        <!-- Preprocessed for autocomplete -->
+        <dynamicField name="*_preprocessed" type="string" indexed="true" stored="false" multiValued="true" />
+
+        <!-- TIKA EXTRACTION FIELDS -->
+        <dynamicField name="unknown_*" type="string" indexed="false" stored="false" multiValued="true" />
+        
+        <!-- Sortfields -->
+        <dynamicField name="*_sort" type="string" indexed="true" stored="false" multiValued="false"
+            sortMissingLast="true" />
+        
+        <!-- piwik fields -->
+        <field name="nb_visits" type="long" indexed="false" stored="false" multiValued="false" docValues="true" />
+        <field name="avg_time_on_page" type="long" indexed="false" stored="false" multiValued="false" docValues="true" />
+        
+        
+        
+        <!-- !!!REMOVE FOR ISSUE DDB-1449 -->
+        <field name="institution_name" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="aggregation_field" type="string" indexed="true" stored="true" />
+        <field name="location_display_name" type="string" indexed="false" stored="true" />
+        <field name="grid_preview" type="text" indexed="true" stored="true" />
+        <field name="atoz" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="subsector" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="hasItems" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="digitalCopyType" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="digitalisattype_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="time_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="state_fct" type="string" indexed="true" stored="true" multiValued="true" />
+        <field name="apd_subject" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="apd_keywords" type="text" indexed="true" stored="true" multiValued="true" />
+        <field name="apd_context_fct" type="string" indexed="true" stored="false" />
+        <field name="apd_abstracts_fct" type="string" indexed="true" stored="false" />
+        <field name="apd_subject_fct" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="time" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="state" type="text" indexed="true" stored="false" multiValued="false" />
+        <field name="content" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="signature" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="time_begin_fct" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="time_end_fct" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="affiliate_fct_subject" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="affiliate_fct_involved" type="string" indexed="true" stored="false" multiValued="true" />
+        <field name="fulltext" type="text" indexed="true" stored="false" multiValued="true" />
+        <field name="fulltext_search" type="text" indexed="true" stored="true" multiValued="true" />
+        <!-- !!!END REMOVE -->
+        
+
+    </fields>
+
+    <uniqueKey>id</uniqueKey>
+
+    <!-- copyfields for spellchecking -->
+    <copyField source="label" dest="spell_check" />
+    <copyField source="view" dest="spell_check" />
+    
+    <!-- copyfields for the extended search of facets -->
+    <copyField source="provider_fct" dest="provider" />
+    <copyField source="language_fct" dest="language" />
+    <copyField source="place_fct" dest="place" />
+    <copyField source="keywords_fct" dest="keywords" />
+    <copyField source="topic_fct" dest="topic" />
+    <copyField source="objecttype_fct" dest="objecttype" />
+    <copyField source="affiliate_fct" dest="affiliate" />
+    <copyField source="sector_fct" dest="sector" />
+    <copyField source="type_fct" dest="type" />
+    
+    <!--  Copy fields for analyzed content which should be available not analyzed also-->
+    <copyField source="apd_material" dest="apd_material_fct" />
+    <copyField source="apd_level_of_description" dest="apd_level_of_description_fct" />
+    <copyField source="apd_document_type" dest="apd_document_type_fct" />
+    <copyField source="apd_reference_number" dest="apd_reference_number_fct" />
+    <copyField source="apd_provenance" dest="apd_provenance_fct" />
+
+    <!-- Copy fields for APD facets which should also be available as autocomplete facets - ONLY A TEMPORARY SOLUTION!! -->
+    <copyField source="apd_document_type" dest="apd_document_type_fct_autocomplete" />
+    <copyField source="apd_provenance" dest="apd_provenance_fct_autocomplete" />
+    
+</schema>

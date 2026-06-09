@@ -1,0 +1,61 @@
+{
+  "run": {
+    "shards": 1,
+    "elapsed_s": 151.1,
+    "stats_level": "dispatch",
+    "interrupted": false
+  },
+  "records": {
+    "processed": 89904,
+    "skipped_not_in_ids": 0,
+    "by_mediatype": {
+      "mt002": 75410,
+      "mt003": 14397,
+      "mt010": 57,
+      "mt005": 36,
+      "mt001": 4
+    },
+    "by_htype": {
+      "ht001": 11283,
+      "ht021": 2631,
+      "ht013": 238,
+      "ht007": 166,
+      "ht019": 96,
+      "ht020": 76,
+      "ht015": 63,
+      "ht023": 3
+    },
+    "uri_sanitized": 0,
+    "uri_split": 15631,
+    "uri_about_split": 15466,
+    "errors": {
+      "json_parse": 0,
+      "transform": 0
+    }
+  },
+  "triples": {
+    "total": 10545972,
+    "by_graph": {
+      "ddbedm": 5619439,
+      "mocho": 2242076,
+      "prov": 2684457
+    }
+  },
+  "werk_staging": {
+    "rows": 0,
+    "by_class": {}
+  },
+  "dispatch": {
+    "htype_hits": 0,
+    "mediatype_hits": 89904,
+    "fallback_d9": 0,
+    "skipped_mt007": 0,
+    "work_classes": {},
+    "expression_classes": {},
+    "manifestation_classes": {
+      "mocho:ImageManifestation": 75410,
+      "mocho:Manifestation": 14494
+    },
+    "rico_classes": {}
+  }
+}

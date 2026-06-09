@@ -1,0 +1,48 @@
+{
+  "run": {
+    "shards": 1,
+    "elapsed_s": 141.8,
+    "stats_level": "dispatch",
+    "interrupted": false
+  },
+  "records": {
+    "processed": 83572,
+    "skipped_not_in_ids": 0,
+    "by_mediatype": {
+      "mt002": 83571,
+      "mt007": 1
+    },
+    "by_htype": {},
+    "uri_sanitized": 0,
+    "uri_split": 13433,
+    "uri_about_split": 5944,
+    "errors": {
+      "json_parse": 0,
+      "transform": 0
+    }
+  },
+  "triples": {
+    "total": 9628501,
+    "by_graph": {
+      "ddbedm": 5086627,
+      "mocho": 1789244,
+      "prov": 2752630
+    }
+  },
+  "werk_staging": {
+    "rows": 0,
+    "by_class": {}
+  },
+  "dispatch": {
+    "htype_hits": 0,
+    "mediatype_hits": 83571,
+    "fallback_d9": 0,
+    "skipped_mt007": 1,
+    "work_classes": {
+      "mocho:ImmovableWork": 83571
+    },
+    "expression_classes": {},
+    "manifestation_classes": {},
+    "rico_classes": {}
+  }
+}

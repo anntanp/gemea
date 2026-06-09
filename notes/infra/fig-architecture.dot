@@ -1,0 +1,72 @@
+digraph G {
+    rankdir=LR;
+    compound=true;
+    fontname="Helvetica";
+    splines=spline;
+    nodesep=0.7;
+    ranksep=1.5;
+
+    node [style="filled,rounded", fillcolor="#E0E0F4", color="#B0B0D2",
+          fontname="Helvetica", fontsize=11, shape=box, margin="0.2,0.12"];
+    edge [fontname="Helvetica", fontsize=10, arrowsize=0.75];
+
+    subgraph cluster_SH {
+        label="Self-Hosted*";
+        style=filled;
+        fillcolor="#FFFFD8";
+        color="#AAAAAA";
+        fontname="Helvetica";
+        fontsize=12;
+
+        User  [shape=ellipse, label="User"];
+        OW    [label="OpenWebUI"];
+        OL    [label="Ollama"];
+        MCPO  [label="MCPO"];
+        T     [label="sparql_query\nMCP tool"];
+
+        User -> OW   [label="chat"];
+        OW   -> OL   [label="generate",  tailport=n, headport=w];
+        OL   -> OW   [label="response",  tailport=w, headport=n, constraint=false];
+        OW   -> MCPO [label="tool call",        tailport=s, headport=w];
+        MCPO -> T    [label="MCP"];
+        T    -> MCPO [constraint=false];
+    }
+
+    subgraph cluster_VPS {
+        label="gemea.ise.fiz-karlsruhe.de";
+        style=filled;
+        fillcolor="#FFFFD8";
+        color="#AAAAAA";
+        fontname="Helvetica";
+        fontsize=12;
+
+        QL      [label="QLever\nSPARQL endpoint"];
+        SHMARQL [label="SHMARQL\nLinked Data browser"];
+
+        SHMARQL -> QL [label="SPARQL proxy"];
+    }
+
+    subgraph cluster_CC {
+        label="Commercial*";
+        style=filled;
+        fillcolor="#FFFFD8";
+        color="#AAAAAA";
+        fontname="Helvetica";
+        fontsize=12;
+
+        UserC [shape=ellipse, label="User"];
+        CL    [label="Claude"];
+        TC    [label="sparql_query\nMCP tool"];
+
+        UserC -> CL [label="chat"];
+        CL    -> TC [label="MCP"];
+    }
+
+    /* cross-cluster edges */
+    T  -> QL [label="SPARQL POST",  tailport=s, headport=n];
+    QL -> T  [label="JSON results", constraint=false, tailport=n, headport=s];
+    T  -> MCPO [constraint=false];
+    TC -> QL [label="SPARQL POST"];
+    QL -> TC [label="JSON results", constraint=false];
+    User -> SHMARQL [label="browse", constraint=false];
+}

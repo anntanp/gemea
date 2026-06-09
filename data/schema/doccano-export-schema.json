@@ -1,0 +1,72 @@
+{
+  "description": "Doccano sequence-labeling export: NER span annotations on DDB title strings",
+  "export_date": "2026-06-16",
+  "format": "JSONL",
+  "encoding": "UTF-8",
+  "files": {
+    "ann.jsonl": {
+      "role": "adjudicated",
+      "description": "Consolidated / gold annotation file",
+      "records": 395,
+      "labeled_records": 183,
+      "records_with_comments": 0
+    },
+    "frankp.jsonl": {
+      "role": "annotator",
+      "annotator": "frankp",
+      "records": 395,
+      "labeled_records": 393,
+      "records_with_comments": 8
+    },
+    "harald.jsonl": {
+      "role": "annotator",
+      "annotator": "Harald",
+      "records": 395,
+      "labeled_records": 0,
+      "records_with_comments": 0
+    },
+    "dummy.doccano.jsonl": {
+      "role": "template",
+      "description": "Unannotated base file used for Doccano import; no labels",
+      "records": 395,
+      "labeled_records": 0,
+      "records_with_comments": 0
+    }
+  },
+  "record_schema": {
+    "id": {
+      "type": "integer",
+      "description": "Document ID (1-indexed); matches source document ID"
+    },
+    "text": {
+      "type": "string",
+      "description": "Raw title string from the DDB record; UTF-8"
+    },
+    "label": {
+      "type": "array",
+      "description": "List of span annotations; empty array when unannotated",
+      "items": {
+        "type": "array",
+        "length": 3,
+        "fields": [
+          {"index": 0, "name": "start", "type": "integer", "description": "Start character offset (inclusive)"},
+          {"index": 1, "name": "end",   "type": "integer", "description": "End character offset (exclusive); Python slice semantics: text[start:end]"},
+          {"index": 2, "name": "label", "type": "string",  "enum": ["TITLE", "OTHER_TITLE", "PARALLEL_TITLE", "PERSON", "TRANSLATOR"]}
+        ]
+      }
+    },
+    "Comments": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Annotator free-text remarks; empty array when none"
+    }
+  },
+  "label_types": {
+    "TITLE": "Main title of the work",
+    "OTHER_TITLE": "Subtitle or alternative/variant title",
+    "PARALLEL_TITLE": "Title in a parallel language",
+    "PERSON": "Personal name (author, creator, or attributed person)",
+    "TRANSLATOR": "Translator name"
+  },
+  "span_convention": "Character offsets into text; start inclusive, end exclusive (Python text[start:end])"
+}

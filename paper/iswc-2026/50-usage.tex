@@ -5,86 +5,97 @@
 
 \subsection{SPARQL Access}
 
-A public read-only SPARQL 1.1 endpoint is available at \todo{[endpoint URL]}, backed by QLever.
-QLever's integrated text and SPARQL support allows queries that combine keyword matching with graph constraints in a single request via \texttt{ql:contains-entity}.
+A public read-only SPARQL 1.1 endpoint is available at \url{https://gemea.ise.fiz-karlsruhe.de/sparql}, backed by QLever.
+Listings~1--3 illustrate representative query patterns; Listing~3 demonstrates cross-graph querying over \texttt{graph/ddbedm} and \texttt{graph/mocho}.
 
-\paragraph{Query 1: Objects associated with a given agent (GND URI).}
-\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true, caption={Objects associated with a given agent (GND URI).}]
 PREFIX edm: <http://www.europeana.eu/schemas/edm/>
 PREFIX dc:  <http://purl.org/dc/elements/1.1/>
-SELECT ?cho ?title WHERE {
-  ?agg edm:aggregatedCHO ?cho .
-  ?cho dc:creator <http://d-nb.info/gnd/118540238> ;
+SELECT ?cho ?title ?provider WHERE {
+  ?cho dc:creator <http://d-nb.info/gnd/118540238> ; # Goethe, Johann Wolfgang von
        dc:title   ?title .
+  ?agg edm:aggregatedCHO ?cho ;
+       edm:dataProvider   ?provider .
+  FILTER(isLiteral(?provider))
 }
 LIMIT 100
 \end{lstlisting}
 
-\paragraph{Query 2: Objects created in a given place and decade.}
-\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
-PREFIX edm:     <http://www.europeana.eu/schemas/edm/>
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true, caption={Objects associated with a given place.}]
 PREFIX dc:      <http://purl.org/dc/elements/1.1/>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 SELECT ?cho ?title ?date WHERE {
-  ?cho edm:currentLocation <http://sws.geonames.org/2925533/> ;
-       dc:title             ?title ;
-       dcterms:issued       ?date .
-  FILTER(?date >= "1800"^^xsd:gYear && ?date < "1810"^^xsd:gYear)
+  ?cho dcterms:spatial <https://sws.geonames.org/2925533> ; # Frankfurt am Main
+       dc:title         ?title ;
+       dc:date          ?date .
+  FILTER(STRSTARTS(?date, "180"))
 }
 LIMIT 100
 \end{lstlisting}
 
-\paragraph{Query 3: Object count per provider institution.}
-\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
-PREFIX edm: <http://www.europeana.eu/schemas/edm/>
-SELECT ?provider (COUNT(?cho) AS ?count) WHERE {
-  ?agg edm:dataProvider ?provider ;
-       edm:aggregatedCHO ?cho .
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true, caption={Source type strings alongside aligned mocho classes.}]
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+SELECT ?mochoClass ?dctype (COUNT(DISTINCT ?cho) AS ?n) WHERE {
+  GRAPH <https://gemea.ise.fiz-karlsruhe.de/graph/mocho> {
+    ?mocho rdf:type ?mochoClass ;
+           owl:sameAs ?cho .
+  }
+  GRAPH <https://gemea.ise.fiz-karlsruhe.de/graph/ddbedm> {
+    ?cho dc:type ?dctype .
+  }
 }
-GROUP BY ?provider ORDER BY DESC(?count)
+GROUP BY ?mochoClass ?dctype ORDER BY DESC(?n) LIMIT 20
 \end{lstlisting}
 
-\paragraph{Query 4: One-hop neighborhood of a ProvidedCHO.}
-\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
-PREFIX edm: <http://www.europeana.eu/schemas/edm/>
-SELECT ?p ?o WHERE {
-  { <http://www.deutsche-digitale-bibliothek.de/item/EXAMPLE123>
-    ?p ?o . }
-  UNION
-  { ?o ?p
-    <http://www.deutsche-digitale-bibliothek.de/item/EXAMPLE123> . }
-}
-\end{lstlisting}
-
-\subsection{Linked Data Browser}
-
-The SHMARQL interface (Section~\ref{sec:resource:shmarql}) provides point-and-click navigation over GEMEA without requiring SPARQL knowledge.
-Entity URIs for ProvidedCHOs, agents, places, and time spans are dereferenceable: a browser request renders an HTML entity page with outgoing and incoming links; HTTP content negotiation returns Turtle or JSON-LD for machine clients.
 
 \subsection{Research Applications}
 
-GEMEA supports the following LLM + KG research use cases.
+GEMEA's named graph structure, GND linking, provenance traces, and MCP interface support the following research use cases.
 
 \paragraph{KG-grounded retrieval.}
-The SPARQL endpoint and MCP interface support evaluation of KG-grounded RAG pipelines, entity-linked question answering, and hybrid text + structured query benchmarks over a real-world CH corpus at scale.
-QLever's integrated text search (\texttt{ql:contains-entity}) enables single-query evaluation of text and graph constraints without a separate full-text search layer.
+The SPARQL endpoint and MCP interface support evaluation of KG-grounded RAG pipelines~\cite{pan2024unifying}, entity-linked question answering~\cite{lan2023complex}, and natural language question answering over structured data~\cite{usbeck2018qald}.
 
 \paragraph{Entity embedding and link prediction.}
-The 26M entity graph --- agents, places, timespans, providers, and \texttt{mocho:Work} groupings --- provides a benchmark for entity embedding methods and link prediction.
+The entity graph (agents, places, timespans, providers, \texttt{mocho:Work} groupings, and domain- and modality-specific classes emitted by the mocho alignment) provides a large-scale benchmark for entity embedding and link prediction methods~\cite{wang2017kgesurvey}, including LLM-enhanced and contrastive approaches.
 Named graph structure supports provenance-aware experiments that distinguish source triples from enrichment triples.
 
 \paragraph{Explainability.}
-Provenance-tracked named graphs and PROV-O\todo{cite here!} traces on GND-linked triples support evaluation of KG-grounded explanation methods, including tracing a retrieval result back to its source institution, enrichment pathway, and match confidence.
+Provenance-tracked named graphs and PROV-O\cite{lebo2013provo} traces on GND-linked triples support evaluation of KG-grounded explanation methods, including tracing a retrieval result back to its source institution, enrichment pathway, and match confidence.
+The same structure supports evaluation of LLM-assisted enrichment provenance, where standard PROV-O traces are insufficient to capture model identity, confidence, and refinement type.
 
-\paragraph{Agentic KG access (\texttt{framework.trails}).}
-The MCP/MCPO interface supports development and evaluation of multi-step KG reasoning agents.
-An agent with access to the GEMEA MCP server can resolve entity queries, explore graph neighborhoods, and compose multi-hop SPARQL queries without manual endpoint configuration.
-\todo{Insert 2 example MCP agent interactions.}
 
-\paragraph{Ontology evaluation (\texttt{onto-eval}).}
-The \textbf{MOCHO}-aligned subgraph --- with documented alignment coverage and scope boundaries --- provides a grounded evaluation target for ontology evaluation methods and a benchmark for alignment improvement.
+\paragraph{Metadata quality analysis.}
+GEMEA exposes systematic encoding anomalies in source metadata that are invisible to record-level inspection but surface immediately as graph queries.
+The following query identifies objects attributed to Goethe as \texttt{dc:creator} or \texttt{dc:contributor} in museum records, grouped by \texttt{dc:type} (see also Section~\ref{sec:quality}):
+\begin{lstlisting}[language=SPARQL, basicstyle=\ttfamily\small, breaklines=true]
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dc:  <http://purl.org/dc/elements/1.1/>
+PREFIX edm: <http://www.europeana.eu/schemas/edm/>
+SELECT ?dctype (COUNT(DISTINCT ?cho) AS ?n)
+WHERE {
+  GRAPH <https://gemea.ise.fiz-karlsruhe.de/graph/ddbedm> {
+    { ?cho dc:creator    <http://d-nb.info/gnd/118540238> }
+    UNION
+    { ?cho dc:contributor <http://d-nb.info/gnd/118540238> }
+    OPTIONAL { ?cho dc:type ?dctype }
+    ?agg edm:aggregatedCHO ?cho ;
+         edm:dataProvider  ?inst .
+    ?inst rdf:type <http://ddb.vocnet.org/sparte/sparte006> .
+  }
+}
+GROUP BY ?dctype ORDER BY DESC(?n)
+\end{lstlisting}
+The query returns 120 records from the museum sector (\texttt{sparte006}) across \texttt{dc:type} values including prints (59), stage productions (30), medals (5), and minting dies (2).
+Within this set, 8 numismatic records (medals, minting dies, banknotes) show a clear misattribution: \texttt{dc:title} follows the pattern \emph{Maker: Johann Wolfgang von Goethe} (e.g., ``Bovy, Jean Fran\c{c}ois Antoine: Johann Wolfgang von Goethe''), where Goethe is the depicted subject but was recorded as \texttt{dc:creator} rather than the actual maker.
+This encoding error, propagated from institutional source records through the DDB aggregator, is invisible without cross-institution graph queries.
+
+\paragraph{Ontology evaluation.}
+The \textbf{MOCHO}-aligned subgraph provides a grounded evaluation target for ontology alignment methods.
+Because \texttt{graph/ddbedm} and \texttt{graph/mocho} encode the same objects under different schemas, the same query intent can be expressed against both graphs and compared on SPARQL execution time, result set size, and query complexity.
+Typed properties and WEMI-level distinctions in the aligned graph should reduce query verbosity and improve selectivity relative to the flat EDM representation; divergence on these metrics gives a measurable alignment quality signal without a manually curated gold standard.
 
 \subsection{Self-Hosting}
-
-The full GEMEA stack is deployable via Docker Compose.
-\todo{Hardware requirements, stack services (QLever, SHMARQL, MCP proxy), and link to deployment documentation.}
+The full GEMEA stack is deployable via Docker Compose, with setup scripts for multiple configurations (full stack, endpoint-only, MCP proxy) provided in the repository.
+Operators should expect at least 2\,TB of disk space for the QLever index and source data.

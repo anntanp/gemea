@@ -1,0 +1,459 @@
+% RM 059 — Dissertation, NER Status, Claude Usage
+% Presenter: Mary Ann Tan, FIZ-KDAI
+% Date: 03 June 2026
+\documentclass[xcolor,aspectratio=169,compress]{beamer}
+\usetheme{Boadilla}
+\definecolor{maincolor}{rgb}{.38,.06,.80}
+\usecolortheme[named=maincolor]{structure}
+\usepackage{sansmath}
+\usepackage{svg}
+\usepackage{tikzsymbols}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{pifont}
+
+\newcommand{\lnk}[2]{\href{#1}{\underline{#2}}}
+\newcommand{\cmark}{\textcolor{green!60!black}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}
+\newcommand{\done}{\textcolor{green!60!black}{Done}}
+\newcommand{\current}{\textcolor{orange}{\textbf{Current}}}
+\newcommand{\blocked}{\textcolor{red}{Blocked}}
+\newcommand{\deferred}{\textcolor{gray}{Deferred}}
+
+\makeatother
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.30\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor{}
+    (\insertshortdate)
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.55\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle\hspace*{3em}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+   \insertframenumber{} / \inserttotalframenumber\hspace*{1ex}
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
+\makeatletter
+
+\setbeamertemplate{headline}[default]
+\setbeamertemplate{navigation symbols}{}
+\mode<beamer>{\setbeamertemplate{blocks}[rounded][shadow=false]}
+\setbeamercovered{transparent}
+\useoutertheme[subsection=false]{miniframes}
+
+\title[RM 059 --- Dissertation, NER, Claude]{Dissertation, NER Status, Claude Usage}
+
+\author[M.A.\ Tan]{Mary Ann Tan}
+
+\institute[FIZ-KDAI]{FIZ Karlsruhe -- Leibniz Institute for Information Infrastructure, KDAI}
+
+\date[RM 059, 03.06.2026]{Research Meeting 059, {\sansmath 3$^{\rm rd}$} June 2026}
+
+% \logo{\includesvg[width=.2\textwidth]{../beamer-bodilla-template/Logo/FIZ_Logo_en.svg}\vspace{215pt}}
+
+% % % % % %
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+% ---- OUTLINE ----
+\begin{frame}{Outline}
+  \begin{enumerate}
+    \item Dissertation
+    \item NER Status
+    \item Claude Usage
+    \item GeMeA Plans
+  \end{enumerate}
+\end{frame}
+
+% =================================================================
+\section{Dissertation}
+% source: doktorarbeit/notes/practical-framing.md
+% =================================================================
+
+% ---- 1.1 Working Title ----
+% source: practical-framing.md §0 Working title
+\begin{frame}{Working Title}
+  \begin{block}{}
+    \large
+    \textit{Constructing Knowledge Graph Infrastructure from Heterogeneous Metadata:
+    Vocabulary Alignment, Scalable Design, and NLP Enrichment}
+  \end{block}
+  \smallskip
+  \footnotesize
+  \begin{tabular}{lp{8.5cm}}
+    \toprule
+    \textbf{``Constructing''} & artifact-forward over ``Engineering'' \\
+    \textbf{``Infrastructure''} & frames mocho and GeMeA as two layers of the same stack \\
+    \textbf{``Scalable Design''} & scalability as a concrete engineering constraint \\
+    \textbf{``Vocabulary Alignment''} & positions mocho as an infrastructural component \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+
+  \begin{itemize}\setlength{\itemsep}{2pt}
+    \item Previous: \textit{Engineering Knowledge Graphs \ldots}
+  \end{itemize}
+\end{frame}
+
+% ---- 1.2 Framing ----
+% source: practical-framing.md §3
+\begin{frame}{Framing}
+  % source: practical-framing.md §3
+  \small
+  \begin{itemize}\setlength{\itemsep}{6pt}
+    \item One pipeline, three phases: ontology engineering, system architecture, NLP enrichment
+    \item Each paper stands alone; the dissertation argues how the three constrain each other
+    \item \textbf{Thesis:} KG engineering requires methodologically distinct competencies;
+          this dissertation gives an integrated account of how they interact
+    \item \textbf{Trade-off:} cleanest dissociation from DDB --- but risks reading as three
+          papers with an introduction; conclusion must carry the synthetic argument
+  \end{itemize}
+\end{frame}
+
+% ---- 1.3 Outline ----
+% source: practical-framing.md §0.1 Outline
+\begin{frame}{Outline}
+  % source: practical-framing.md §0.1
+  \footnotesize
+  \begin{tabular}{clr}
+    \toprule
+    Ch. & Title & Pages \\
+    \midrule
+    1 & Introduction                                  & 8--10 \\
+    2 & Dataset and Research Context                  & 8--10 \\
+    3 & Related Literature                            & 15--18 \\
+    4 & Vocabulary Infrastructure with Mocho          & 12--15 \\
+    5 & KG Access Infrastructure with GeMeA           & 12--15 \\
+    6 & KG Enrichment with Information Extraction     & 12--15 \\
+    7 & Evaluation                                    & 8--10 \\
+    8 & Discussion                                    & 5--7  \\
+    9 & Conclusion                                    & 3--5  \\
+    \midrule
+      & \textbf{Total}                                & \textbf{82--100} \\
+    \bottomrule
+  \end{tabular}
+  \smallskip
+
+  \footnotesize
+  \textbf{§2} standalone before Related Literature\ \ $\cdot$\ \
+  \textbf{§4+§5} separate (schema vs.\ access layer)\ \ $\cdot$\ \
+  \textbf{§4--6} expanded beyond paper versions
+\end{frame}
+
+% ---- 1.3 Framing ----
+% source: practical-framing.md §1 Layered pipeline methodology
+\begin{frame}{Framing --- Layered Pipeline Methodology}
+  % source: practical-framing.md §1
+  \small
+  \begin{tabular}{llp{6.5cm}}
+    \toprule
+    Paper & Layer & Contribution \\
+    \midrule
+    mocho    & Vocabulary/schema  & OWL engineering, RDA alignment \\
+    GeMeA    & Infrastructure     & KG architecture, access design, retrieval \\
+    NER/JCDL & Enrichment         & Entity extraction, authority linking \\
+    \bottomrule
+  \end{tabular}
+
+  \medskip
+  \begin{block}{Thesis}
+    \footnotesize
+    A queryable KG from heterogeneous records requires distinct approaches at three layers,
+    each with its own design choices and evaluation criteria. DDB/GND is the test bed;
+    the contribution is the layer-wise methodology.
+  \end{block}
+
+\end{frame}
+
+
+% =================================================================
+\section{NER Status}
+% =================================================================
+
+\begin{frame}{NER Status}
+  {\footnotesize\url{https://github.com/anntanp/gemea/blob/develop/notes/project/reprocess-before-after.md}}
+  \par\smallskip
+  \textbf{Reprocessing: What is Unchanged}\par\smallskip
+  \small
+  \begin{tabular}{lp{5cm}}
+    \toprule
+    Aspect & Status \\
+    \midrule
+    SR-03--06 conclusions (FP rates, field decisions) & Valid --- heuristic behavior is corpus-agnostic \\
+    SR-08 gold sample (395 records)                   & Unchanged --- all present in new parquet \\
+    SR-09 decision (NuNER Zero FAIL)                  & Final \\
+    Tier percentages (0.1\,/\,7.5\,/\,92.4\,\%)      & Stable across both corpora \\
+    SR-10 era-stratified length pattern               & Preserved (pre-1700 longest, modern shortest) \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+
+% ---- NER Gold Annotation ----
+\begin{frame}{NER --- Gold Annotation}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Annotators:}
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item 2 domain experts
+        \item Annotator \#1: records 1--130
+        \item Annotator \#2: records 131--250
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Pending:}
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item Update Doccano texts --- add \texttt{htype} and link to DDB item
+              for faster annotation
+        \item Update Jira ticket (Frank) --- additional man-hours;
+              estimate with new fields: \textbf{5--8 min per text};
+              samples are difficult
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =================================================================
+\section{Claude Usage}
+% =================================================================
+
+% ---- 3.1 Workflow Overview ----
+\begin{frame}{Claude Usage --- Workflow}
+  \begin{block}{Plan-Do-Check-Act (PDCA)}
+    \footnotesize Notes anchor each phase.
+  \end{block}
+  \smallskip
+  \small
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Phases:}
+      \begin{enumerate}\setlength{\itemsep}{2pt}
+        \item \textbf{Plan} --- notes, roadmap, ADRs
+        \item \textbf{Do} --- implementation plan + actual
+        \item \textbf{Check} --- tests, bug notes, ADR update
+        \item \textbf{Act} --- update implementation actual
+      \end{enumerate}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Obsidian:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item[$\checkmark$] \textbf{Worked:} boats
+        \item[$\times$] \textbf{Did not work:} dots, calendar (manual daily logs)
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---- 3.2 Plan ----
+\begin{frame}{Claude Usage --- Plan}
+  \small
+  \textbf{Note conventions:}
+  \smallskip
+
+  \begin{tabular}{lp{7.5cm}}
+    \toprule
+    File & Purpose \\
+    \midrule
+    \texttt{*roadmap.md}       & project roadmap \\
+    \texttt{*plan.md}          & planning notes \\
+    \texttt{*.adr.md}          & Architecture Decision Record --- decisions made at the whiteboard \\
+    \texttt{inputs.md}         & all input files, including schemas \\
+    \texttt{outputs.md}        & expected outputs \\
+    \texttt{scripts/README.md} & inventory of all scripts \\
+    \bottomrule
+  \end{tabular}
+\end{frame}
+
+% ---- 3.3 Do / Check / Act ----
+\begin{frame}{Claude Usage --- Do / Check / Act}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.32\textwidth}
+      \textbf{Do:}
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item {\footnotesize\texttt{implementation-plan.md}}
+        \item {\footnotesize\texttt{implementation-actual.md}}
+        \item Update ADR
+      \end{itemize}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \textbf{Check:}
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item Test scripts {\footnotesize\textit{(not mastered yet)}}
+        \item {\footnotesize\texttt{*.bugs.md}}
+        \item Update ADR
+      \end{itemize}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \textbf{Act:}
+      \begin{itemize}\setlength{\itemsep}{4pt}
+        \item Update {\footnotesize\texttt{implementation-actual.md}}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---- 3.4 Drafting ----
+\begin{frame}{Claude Usage --- Drafting}
+  \small
+  \textbf{My take:}
+  \begin{enumerate}\setlength{\itemsep}{2pt}\small
+    \item Ideas come first
+    \item Framing first --- sketch ideas, build the storyline
+    \item RM-like session --- play Devil's Advocate, scrutinize each and every detail
+    \item Scripting for data analysis --- {\footnotesize\texttt{inputs.md}, \texttt{outputs.md}, \texttt{scripts/README.md}}
+    \item Drafting based on the CfP
+  \end{enumerate}
+  \medskip
+  \begin{alertblock}{\footnotesize Recommendation}
+    \footnotesize Researchers still need access to these tools --- knowing how they work
+    informs our decisions. We are already catching up; other researchers and industry have at least
+    a one-year headstart.
+  \end{alertblock}
+  \medskip
+  \textbf{Gray area:}
+  \begin{itemize}\setlength{\itemsep}{2pt}\small
+    \item PhD students need a critical voice of their own
+    \item Replicating a voice from existing works is possible --- but it stunts the skill
+  \end{itemize}
+\end{frame}
+
+
+% ---- Cost of Claude ----
+% source: claude/notes/ambot.md (media survey, 2026-05-26)
+\begin{frame}[shrink=5]{Cost of Claude --- Data Center Environmental Impact}
+  % source: claude/notes/ambot.md
+  \small
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Energy \& grid strain:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item Data center demand projected at \textbf{130\,GW by 2030} ($\sim$12\,\% of US total)
+              \lnk{https://www.datacenterknowledge.com/energy-power-supply/world-energy-outlook-2025-skyrocketing-data-center-demand-outpaces-grid}{[IEA/DCK]}
+        \item\lnk{https://www.washingtonpost.com/climate-environment/interactive/2025/giant-data-centers-energy-pollution/}{Washington Post interactive}: energy demand + pollution from mega-facilities
+      \end{itemize}
+
+      \medskip
+      \textbf{Carbon emissions:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item US data centers: \textbf{$>$100\,Mt CO$_2$/yr} ($\sim$2\,\% of US total); 56\,\% fossil-fueled
+              \lnk{https://www.climatechallange.com/environmental-impact-of-u-s-data-centers-2025-facts-and-figures/}{[Climate Challenge*]}
+        \item AI systems alone: \textbf{32--80\,Mt CO$_2$} projected in 2025
+              \lnk{https://www.climatechallange.com/environmental-impact-of-u-s-data-centers-2025-facts-and-figures/}{[Climate Challenge*]}
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Water consumption:}
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item Global data centers: \textbf{$\sim$5\,bn\,m$^3$/yr by 2027}
+              \lnk{https://www.sciencedirect.com/science/article/pii/S2666389925002788}{[Cell Press]}
+        \item US AI servers: \textbf{731--1,125\,Mm$^3$/yr by 2030}
+              \lnk{https://www.sciencedirect.com/science/article/pii/S2666389925002788}{[Cell Press]}
+        \item Self-reporting is the norm; most figures carry wide uncertainty bands
+              \lnk{https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2025AV002140}{[AGU Advances]}
+        \item EU: waste heat as resource for water purification + carbon capture
+              \lnk{https://environment.ec.europa.eu/news/ai-data-centre-waste-heat-could-be-used-water-purification-and-carbon-capture-2026-03-30_en}{[EU Commission]}
+      \end{itemize}
+
+      \medskip
+      \begin{alertblock}{\footnotesize Key gap}
+        \footnotesize Centers self-report, or don't report at all; most figures are estimates.
+        \lnk{https://calmatters.org/environment/2025/11/data-center-environmental-report/}{[CalMatters]}
+      \end{alertblock}
+
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =================================================================
+\section{GeMeA Plans}
+% =================================================================
+
+% ---- 5.1 Triple purpose ----
+\begin{frame}{GeMeA Plans --- Triple Purpose}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.32\textwidth}
+      \textbf{Researchers}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item SPARQL endpoint + MCP access layer
+        \item Testbed for ontology evaluation, agentic KG, RML mapping
+        \item Student projects at KIT
+        \item \textcolor{green!60!black}{Current focus}
+      \end{itemize}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \textbf{DDB Providers}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item Metadata quality dashboard
+        \item Per-provider quality metric
+        \item \textcolor{gray}{TBD}
+      \end{itemize}
+    \end{column}
+    \begin{column}{.32\textwidth}
+      \textbf{Public / Users}
+      \begin{itemize}\setlength{\itemsep}{3pt}
+        \item Image-based object lookup
+        \item Iconographic linking
+        \item \textcolor{gray}{TBD}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---- 5.2 Public application ----
+\begin{frame}{GeMeA Plans --- Public Application}
+  \small
+  \begin{columns}[t]
+    \begin{column}{.48\textwidth}
+      \textbf{Stage 1: Tafel lookup}
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Upload picture of \textit{Tafel}
+        \item NER+L --- extract and link named entities
+        \item GraphViz --- visualize entity graph
+      \end{enumerate}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \textbf{Stage 2: Object lookup}
+      \begin{enumerate}\setlength{\itemsep}{4pt}
+        \item Upload picture of object
+        \item Object detection (whole) + object detection (parts)
+        \item Iconography identification
+        \item Link to \lnk{https://iconclass.org/}{IconClass}
+      \end{enumerate}
+      \smallskip
+      \begin{block}{\footnotesize Preliminary}
+        \footnotesize Use lengthy \texttt{dc:description} from Museum metadata as NER+L
+        dataset --- discussion with Etienne, preliminary talks.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---- 5.3 Provider incentive ----
+\begin{frame}{GeMeA Plans --- Provider Incentive}
+  \small
+  \begin{itemize}\setlength{\itemsep}{6pt}
+    \item Objects surfaced in the public GraphViz view are assumed to have good-quality metadata ---
+          visibility is a proxy for quality
+    \item Providers can see which of their objects appear; those that don't are missing, incomplete,
+          or too sparse to link --- a concrete signal to improve delivery to DDB
+    \item \textbf{Incentive:} public visibility motivates providers to improve the metadata
+          they deliver
+  \end{itemize}
+
+  \medskip
+  \begin{alertblock}{Counter-argument}
+    \small Providers may ask: why use EDM at all when source metadata formats are available directly?
+  \end{alertblock}
+\end{frame}
+
+% =================================================================
+\end{document}
