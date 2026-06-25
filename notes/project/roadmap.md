@@ -18,11 +18,11 @@ Phase order: **0a → 0 → 1 → 1b → 3 → 4 → 2**
 1. Rule-based ISBD parser (covers ~28% of records where ISBD punctuation is present)
 2. NER fallback for the remaining ~72% (the majority path)
 
-Phase 0a produces the data and model needed for Step 2. It is a distinct NLP subtask from GND linking, documented in `notes/ner/ner-bibliographic.md` (model and label spec) and `notes/ner/silver-dataset-pipeline.md` (pipeline framework and status).
+Phase 0a produces the data and model needed for Step 2. It is a distinct NLP subtask from GND linking, documented in `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md` (model and label spec) and `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/silver-dataset-pipeline.md` (pipeline framework and status).
 
 ### Label set
 
-Labels organised by FRBR level; see `notes/ner/ner-bibliographic.md` §3 for full definitions.
+Labels organised by FRBR level; see `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md` §3 for full definitions.
 
 **Work:** `TITLE`, `OTHER_TITLE`, `PERSON`
 **Expression:** `TRANSLATOR`, `TRANSLATION`, `PARALLEL_TITLE`, `LANGUAGE`, `MEDIUM`
@@ -36,17 +36,17 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
   - Tier 2 (structural): `has_dot_dash AND f_resp_person AND ≥1 Manifestation field` — 4,613 records (0.1%)
   - Tier 1 (heuristic): `n_fields ≥ 3` OR `(f_person AND f_year)` — 335,524 records (7.5%)
   - Tier 0 (unrated): all others — 4,137,643 records (92.4%)
-  - Spec: `notes/ner/sr01_isbd-field-rating.md`; ADR: `notes/ner/sr01_isbd-field-rating-adr.md`
-- [x] Silver candidate selection spec — stratification by tier, era, `dc_type`, and field combination; see `notes/ner/sr01_isbd-field-rating.md`
+  - Spec: `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr01_isbd-field-rating.md`; ADR: `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr01_isbd-field-rating-adr.md`
+- [x] Silver candidate selection spec — stratification by tier, era, `dc_type`, and field combination; see `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr01_isbd-field-rating.md`
 - [x] Precision validation — per-field FP rates on 200-record stratified sample (SR-03); decisions:
   - **Excluded** (FP > 15%): `f_parallel` (~80% FP), `f_edition` (~83% FP), trailing `.` standalone signal (93% FP — SR-05)
   - **Sub-classified** (ambiguous signal): `f_person` → `f_resp_*` flags (SR-04): `f_resp_person` 35% (true author SoR), `f_resp_org` 19% (corporate body), `f_resp_editor` 5%, `f_resp_other` 41% (non-SoR FP)
   - **Accepted** (FP ≤ 15%): `f_year`, `f_other_title`, `f_publisher`, `f_series`, `f_volume`
-- [x] `notes/ner/sr01_isbd-field-rating.md` — ISBD field detection spec
-- [x] `notes/ner/sr01_isbd-field-rating-adr.md` — ADR for tier design and flag decisions
-- [x] Historical language scope (SR-06) — 200-record stratified sample; Early Modern German 93%, Latin ~0.5%; **no Latin stratum needed** for gold set; Early Modern German (pre-1750) is the primary historical challenge. See `notes/ner/sr06_historical-scope.md`.
-- [x] Corpus characterisation (SR-10) — original: `DF_DE_TITLES` provenance, token-length distribution (p25=4, p75=14), era-stratified length. See `notes/ner/sr10_de-titles-distribution.md §§1–6`.
-- [x] Corpus source migration (ADR-02, 2026-04-14) — replaced `DF_DE_TITLES_20240125b.pkl` with `data/out/s2/s2_meta_de_content.parquet` (9.2M rows; ADR-01 htypes + `dc:language ∈ {ger, gmh, nds, lat}`; xlm-roberta-large tokenizer). SR-10/SR-11 artifacts regenerated as `*_v2.*`. New thresholds: p25=8, p75=27. See `notes/adr/corpus-source-adr.md` and `notes/ner/sr10_de-titles-distribution.md §7`.
+- [x] `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr01_isbd-field-rating.md` — ISBD field detection spec
+- [x] `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr01_isbd-field-rating-adr.md` — ADR for tier design and flag decisions
+- [x] Historical language scope (SR-06) — 200-record stratified sample; Early Modern German 93%, Latin ~0.5%; **no Latin stratum needed** for gold set; Early Modern German (pre-1750) is the primary historical challenge. See `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr06_historical-scope.md`.
+- [x] Corpus characterisation (SR-10) — original: `DF_DE_TITLES` provenance, token-length distribution (p25=4, p75=14), era-stratified length. See `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_de-titles-distribution.md §§1–6`.
+- [x] Corpus source migration (ADR-02, 2026-04-14) — replaced `DF_DE_TITLES_20240125b.pkl` with `data/out/s2/s2_meta_de_content.parquet` (9.2M rows; ADR-01 htypes + `dc:language ∈ {ger, gmh, nds, lat}`; xlm-roberta-large tokenizer). SR-10/SR-11 artifacts regenerated as `*_v2.*`. New thresholds: p25=8, p75=27. See `notes/adr/corpus-source-adr.md` and `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_de-titles-distribution.md §7`.
 - [ ] `scripts/build_silver_spans.py` — span extraction from accepted flags; inputs: `sr01_isbd_field_ratings.csv` + DF_DE_TITLES auxiliary columns (`dc_publisher`, `dc_creator`, `dc_contributor`, `agents`); output: `data/processed/silver_spans.jsonl`
   - PLACE / PUBLISHER enrichment: match `dc_publisher` value as substring in title; label only if found
   - PERSON enrichment: match `dc_creator` / `dc_contributor` names against post-` /` segment; use `f_resp_person` flag only (exclude `f_resp_org`, `f_resp_editor`, `f_resp_other`)
@@ -54,7 +54,7 @@ Silver label targets (viable from ISBD-derived signals): `TITLE`, `OTHER_TITLE`,
 - [ ] SR-07 — FRBR metric scope for paper: confirm which FRBR levels (Work only, or also Expression/Manifestation) the evaluation section covers; determines gold set label scope. Blocks SR-08.
 - [ ] SR-08 — Gold set composition: ~500 manually annotated records stratified by era (modern / 19th c. / 1700–1800 / pre-1700), silver tier (2 / 1 / 0), `dc_type`, and title length; annotation guidelines must address pre-1750 author-before-title placement (systematic `f_person` false negative); no dedicated Latin stratum (SR-06). Blocked on SR-07. Blocks SR-09.
 - [ ] SR-09 — NuNER Zero evaluation: run `numind/NuNerZero` zero-shot on 500 stratified fallback records; assess F1 per label and per era stratum on gold set. Blocked on SR-08.
-- [ ] **Decision gate** (SR-09 output): NuNER Zero F1 ≥ threshold → use zero-shot; else LLM-label silver candidates and fine-tune `xlm-roberta-large` (primary) and `mdeberta-v3-base` (benchmark). See `notes/ner/ner-bibliographic.md` §10 for recommended fine-tuning path.
+- [ ] **Decision gate** (SR-09 output): NuNER Zero F1 ≥ threshold → use zero-shot; else LLM-label silver candidates and fine-tune `xlm-roberta-large` (primary) and `mdeberta-v3-base` (benchmark). See `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md` §10 for recommended fine-tuning path.
 
 ### Pipeline position
 
@@ -121,7 +121,7 @@ GeMeA does not own rdf2jsonld or mocho. Phase 0 is about **driving** them correc
 - [ ] `scripts/run_rdf2jsonld.sh` — invoke rdf2jsonld in parallel over all provider batches; output to `data/raw/rdf-json/`
 - [ ] `scripts/link_gnd_works.py` — link `dc:title` strings → GND Werk URIs; feeds mocho
   - Step 1: rule-based ISBD parser (split on ` / ` and `. - `) to extract clean title from messy `dc:title` strings
-  - Step 2: NER fallback for records without ISBD punctuation (~72% — majority path); uses model validated in Phase 0a; full label set: `TITLE, OTHER_TITLE, PERSON, TRANSLATOR, TRANSLATION, PARALLEL_TITLE, LANGUAGE, MEDIUM, EDITION, PUBLISHER, PLACE, YEAR, SERIES, VOLUME` — see `notes/ner/ner-bibliographic.md`
+  - Step 2: NER fallback for records without ISBD punctuation (~72% — majority path); uses model validated in Phase 0a; full label set: `TITLE, OTHER_TITLE, PERSON, TRANSLATOR, TRANSLATION, PARALLEL_TITLE, LANGUAGE, MEDIUM, EDITION, PUBLISHER, PLACE, YEAR, SERIES, VOLUME` — see `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md`
   - Step 3: normalize extracted title (Unicode NFC → lowercase → strip diacritics*) → tokenize → remove stopwords → select 2–3 distinctive tokens; *OQ-01: confirm diacritic stripping does not hurt FILTER recall before enabling
   - Step 4: deduplicate `(extracted_title, author_gnd_uri)` pairs (~65M records → ~5–10M unique)
   - Step 5: SPARQL query against DNB endpoint (`https://sparql.dnb.de/api/dnbgnd`, SPARQL 1.1 only — `contains-word` not available); concurrency: `asyncio.Semaphore(10)`

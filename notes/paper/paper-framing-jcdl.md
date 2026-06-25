@@ -128,7 +128,7 @@ This is a **methodology + dataset + evaluation** paper. The claim is: *here is h
 
 | Source | What to take |
 |---|---|
-| `gemea/notes/ner/spiel_ner.md` §0–§8 | Paper §§1–6; chain-of-thought maps directly to section structure |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/spiel_ner.md` §0–§8 | Paper §§1–6; chain-of-thought maps directly to section structure |
 | `sr10_de-titles-distribution.md` + `fig_title_lengths.png` | §2 corpus statistics |
 | `sr01_isbd-field-rating.md`, `sr01_isbd-applicability.md`, `sr01_isbd-title-analysis.md` | §3 ISBD background + silver labeling applicability |
 | `silver-dataset-pipeline.md` | §3 silver labeling methodology |

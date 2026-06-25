@@ -329,7 +329,7 @@ Example: `"Faust : eine Tragödie / von Goethe. - Neue Ausg."` → extracted tit
 `extracted_title` — a clean title string passed to Step 3 (token preparation) and used as the FILTER value in Pattern C queries.
 `extraction_method` — `"isbd"` or `"ner"`, recorded in the output JSON (FR-07).
 
-Full extraction design is documented in `notes/gnd/gnd-title-extraction.md`. NER model selection, evaluation, and bibliographic NER considerations are documented in `notes/ner/ner-bibliographic.md`.
+Full extraction design is documented in `notes/gnd/gnd-title-extraction.md`. NER model selection, evaluation, and bibliographic NER considerations are documented in `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md`.
 
 ---
 

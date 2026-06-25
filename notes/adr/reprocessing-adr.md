@@ -13,7 +13,7 @@
 
 ### Context
 
-The NER analysis pipeline (SR-10, SR-11) and the GND Werk linking input were both built against `data/DF_DE_TITLES_20240125b.pkl`, a pickle snapshot produced by `2024.01 MT-QA.ipynb`. Tracing the pkl's provenance (SR-10, `notes/ner/sr10_tracing-df-de-titles.md`) revealed three compounding problems:
+The NER analysis pipeline (SR-10, SR-11) and the GND Werk linking input were both built against `data/DF_DE_TITLES_20240125b.pkl`, a pickle snapshot produced by `2024.01 MT-QA.ipynb`. Tracing the pkl's provenance (SR-10, `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_tracing-df-de-titles.md`) revealed three compounding problems:
 
 **Problem 1 — Non-reproducibility.** The pkl was produced in an undated Jupyter notebook with an unspecified spaCy model version. No script reproduces it; the notebook is not committed to the repository. Patching it would require re-running the notebook in an environment that may not be recoverable.
 

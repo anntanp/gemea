@@ -205,4 +205,4 @@ Token distribution (xlm-roberta-large BPE):
 - `notes/corpus-analysis/lang-detection.md` — language filter rationale
 - `notes/corpus-analysis/tokenization.md` — tokenizer spec
 - `notes/corpus-analysis/de-titles-regeneration-plan.md` — SR-10/SR-11 regeneration plan
-- `notes/ner/sr10_de-titles-distribution.md` §7 — v2 distribution results
+- `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_de-titles-distribution.md` §7 — v2 distribution results

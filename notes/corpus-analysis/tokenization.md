@@ -33,7 +33,7 @@ NFC normalize → lowercase → strip diacritics
 
 **`xlm-roberta-large`** (`FacebookAI/xlm-roberta-large`)
 
-Already the documented NER backbone in `notes/ner/ner-bibliographic.md`, supported by HIPE-2022 and CLEF-HIPE-2020 evidence where it was the dominant top-system backbone for historical bibliographic NER in German.
+Already the documented NER backbone in `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md`, supported by HIPE-2022 and CLEF-HIPE-2020 evidence where it was the dominant top-system backbone for historical bibliographic NER in German.
 
 | Property | Detail |
 |----------|--------|
@@ -96,6 +96,6 @@ def tokenize_title(title: str) -> dict:
 
 This note covers tokenization only. The following are handled separately:
 
-- Fine-tuning `xlm-roberta-large` on the German bibliographic NER gold set → `notes/ner/`
+- Fine-tuning `xlm-roberta-large` on the German bibliographic NER gold set → `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/`
 - ISBD rule-based title extraction → `notes/gnd/gnd-linking-plan.md`
 - GND SPARQL query construction and scoring → `notes/gnd/gnd-linking-spec.md`

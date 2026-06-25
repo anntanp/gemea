@@ -121,9 +121,9 @@ After Steps B–D:
 |------|----------------|
 | `notes/project/reprocessing-workflow.md` | Remove `_v2` from all output filenames in pipeline diagram |
 | `notes/project/reprocess-before-after.md` | §7 file references → canonical names; add SR-11 output stats |
-| `notes/ner/reprocess-plan-ner.md` | Mark Steps A–D done; update file name references |
-| `notes/ner/ner-bibliographic.md` | SR-11 section: add run status + dc_type distribution |
-| `notes/ner/sr10_de-titles-distribution.md` | Update file references after SR-10 rename |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/reprocess-plan-ner.md` | Mark Steps A–D done; update file name references |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md` | SR-11 section: add run status + dc_type distribution |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_de-titles-distribution.md` | Update file references after SR-10 rename |
 | `notes/images/README.md` | Update filenames to canonical (remove `_v2` from entries) |
 
 ---
@@ -148,4 +148,4 @@ After Steps B–D:
 | `data/processed/ner/sr11_dctype_by_era.csv` | Renamed from `_v2` + moved from processed/ root (Step B) |
 | `data/annotation/sr11_prompt_validation_manual.jsonl` | Fresh output from Step D (50 records, correct dc_type) |
 | `notes/project/reprocessing-workflow.md` | Remove `_v2` from all output filenames |
-| `notes/ner/ner-bibliographic.md` | Add SR-11 run status |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md` | Add SR-11 run status |

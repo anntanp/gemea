@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-14
 **Related ADRs:** ADR-01/02/03 (`notes/adr/`), ADR-01 through ADR-08 (`notes/adr/gnd-linking-adr.md`)
-**Related notes:** `notes/project/reprocessing-workflow.md`, `notes/ner/ner-bibliographic.md`
+**Related notes:** `notes/project/reprocessing-workflow.md`, `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md`
 
 ---
 
@@ -89,7 +89,7 @@ The old pkl used spaCy tokens; the new parquet uses xlm-roberta-large BPE. BPE f
 | Medium | 5–14 | 9–27 (p25–p75) |
 | Long | > 14 | > 27 (p75) |
 
-These new thresholds apply to SR-08 gold set stratification and to the short-title filter in `link_gnd_works.py` (records with very short titles are poor SPARQL query candidates regardless of ISBD markers). See `notes/ner/sr10_title-length-thresholds.md` for the full derivation.
+These new thresholds apply to SR-08 gold set stratification and to the short-title filter in `link_gnd_works.py` (records with very short titles are poor SPARQL query candidates regardless of ISBD markers). See `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_title-length-thresholds.md` for the full derivation.
 
 ### 4.3 Latin NER scope (SR-06 decision preserved)
 
@@ -115,6 +115,6 @@ SR-06 resolved that the gold set annotation focuses on German-family titles only
 - `notes/adr/corpus-source-adr.md` — ADR-02 (pkl → parquet)
 - `notes/adr/htype-filtering-adr.md` — ADR-01 (htype filter)
 - `notes/adr/gnd-linking-adr.md` — ADR-01 through ADR-08 (GND Werk linking design)
-- `notes/ner/ner-bibliographic.md` — SR-01 through SR-12 (NER pipeline)
+- `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/ner-bibliographic.md` — SR-01 through SR-12 (NER pipeline)
 - `notes/project/reprocessing-workflow.md` — end-to-end pipeline diagram
 - `notes/corpus-analysis/lang-detection.md` §5.5 — Latin inclusion rationale

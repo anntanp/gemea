@@ -49,7 +49,7 @@ Tokenization is pre-computed by `scripts/analysis/tokenize_de_titles.py` (xlm-ro
 | Median `all_tokens` | 8 | 15 |
 | p25 / p75 | 4 / 14 | 8 / 27 |
 
-**SR-10 threshold recalibration required.** The (≤4 / 5–14 / >14) short/medium/long thresholds from the pkl do not transfer to xlm-roberta token counts. New thresholds: ≤8 / 9–27 / >27 (v2 p25/p75). See `notes/ner/sr10_title-length-thresholds.md`.
+**SR-10 threshold recalibration required.** The (≤4 / 5–14 / >14) short/medium/long thresholds from the pkl do not transfer to xlm-roberta token counts. New thresholds: ≤8 / 9–27 / >27 (v2 p25/p75). See `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_title-length-thresholds.md`.
 
 **SR-08 gold set stratification.** If title length is used as a stratification variable, use v2 thresholds. Pre-1750 records show median 32–52 BPE tokens (vs. 12–15 in the old pkl); the relative era pattern is preserved.
 
@@ -67,4 +67,4 @@ Tokenization is pre-computed by `scripts/analysis/tokenize_de_titles.py` (xlm-ro
 - `notes/corpus-analysis/lang-detection.md` — fasttext vs. dc:language analysis
 - `notes/corpus-analysis/filter-de-content.md` → `scripts/analysis/filter_de_content.py`
 - `notes/corpus-analysis/de-titles-regeneration-plan.md` — regeneration workflow
-- `notes/ner/sr10_de-titles-distribution.md` §7 — v2 distribution results
+- `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_de-titles-distribution.md` §7 — v2 distribution results

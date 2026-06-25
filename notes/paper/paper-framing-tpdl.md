@@ -109,13 +109,13 @@ This is a **methodology + dataset** paper, not an end-to-end NER results paper. 
 
 | Source | What to take |
 |---|---|
-| `gemea/notes/ner/spiel_ner.md` | §0–§8 map directly to paper sections; chain-of-thought outline is complete |
-| `gemea/notes/ner/sr01_isbd-*` | ISBD field rating, applicability, title analysis — §2 Background |
-| `gemea/notes/ner/sr05_*`, `sr06_*` | Noise sources, historical scope — §3.2 Challenges |
-| `gemea/notes/ner/silver-dataset-pipeline.md` | Silver labeling methodology — §3.3 |
-| `gemea/notes/ner/sr08_gold-set-composition.md`, `sr08_evaluation-design.md` | Gold set — §4 Evaluation Design |
-| `gemea/notes/ner/sr09_nuner-tier2-sanity.md` | NuNER Zero baseline — §5 Baseline |
-| `gemea/notes/ner/sr10_de-titles-distribution.md`, `fig_title_lengths.png` | Corpus statistics — §2 |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/spiel_ner.md` | §0–§8 map directly to paper sections; chain-of-thought outline is complete |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr01_isbd-*` | ISBD field rating, applicability, title analysis — §2 Background |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr05_*`, `sr06_*` | Noise sources, historical scope — §3.2 Challenges |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/silver-dataset-pipeline.md` | Silver labeling methodology — §3.3 |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr08_gold-set-composition.md`, `sr08_evaluation-design.md` | Gold set — §4 Evaluation Design |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr09_nuner-tier2-sanity.md` | NuNER Zero baseline — §5 Baseline |
+| `https://github.com/anntanp/bibner-werk/blob/main/notes/ner/sr10_de-titles-distribution.md`, `fig_title_lengths.png` | Corpus statistics — §2 |
 
 ### 2.3 TPDL topic fit
 
